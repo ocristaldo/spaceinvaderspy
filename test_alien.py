@@ -15,34 +15,16 @@
 # Import sys and pygame modules
 import os, sys
 import pygame
-# Imports specifics into the code
-from pygame.locals import *
-from pygame.compat import geterror
-
-# Error if not font or mixer
-if not pygame.font: print('Warning, fonts disabled')
-if not pygame.mixer: print('Warning, sound disabled')
+import aliens
 
 #-----------------------------------
 print('Global variables')
 #-----------------------------------
 
 # Window
-size = width, height = 900, 800                                 # Size of the window
+size = width, height = 320, 240                                 # Size of the window
 background_color = 0, 0, 0                                      # Background color
 text_color = 50, 50, 50                                         # Text color
-
-# set up the colors
-color.BLACK = (0, 0, 0)
-color.WHITE = (255, 255, 255)
-color.RED = (255, 0, 0)
-color.GREEN = (0, 255, 0)
-color.BLUE = (0, 0, 255)
-
-#directories
-main_dir = os.path.split(os.path.abspath(__file__))[0]
-data_dir = os.path.join(main_dir, "data")
-
 
 #-----------------------------------
 # Main function
@@ -57,8 +39,7 @@ def main():
     # Initialize everything   
     pygame.init()                                               # Initialize all pygame modules
     screen = pygame.display.set_mode(size)                      # Initialise screen window
-    pygame.display.set_caption("test set caption")              # Caption text
-    #pygame.mouse.set.visible(0)                                 # Hide mouse ?
+    pygame.display.set_caption("Alien test")              # Caption text
     
     # Create background
     background = pygame.Surface(screen.get_size())              # Using the same surface of the screen
@@ -68,7 +49,7 @@ def main():
     # Include text in background
     if pygame.font:
         font = pygame.font.Font(None, 36)                               # Defining font
-        text = font.render("test message", 1, (text_color))             # Defining text
+        text = font.render("Alien Test", 1, (text_color))             # Defining text
         textpos = text.get_rect(centerx=background.get_width()/2)       # Positioning text in the center
         background.blit(text, textpos)
 
@@ -84,11 +65,6 @@ def main():
     going = True
     while going:                                                        # Infinit Loop
         clock.tick(60)                                                  # Used to help control our game's framerate
-
-        #show splash screen
-        splash_screen(screen)
-        # draw the window onto the screen
-        pygame.display.update()
 
         # Handle Input Events
         for event in pygame.event.get():
@@ -109,49 +85,9 @@ def main():
         pygame.display.flip()
     
     pygame.quit()
-    # Game Over
 
-#-----------------------------------
-# other functions
-#-----------------------------------
+# Game Over
 
-def splash_screen(screen):
-    # set up the text
-    basicFont = pygame.font.SysFont(None, 48)
-    text = basicFont.render('Hello world!', True, color.WHITE, color.BLUE)
-    textRect = text.get_rect()
-    textRect.centerx = screen.get_rect().centerx
-    textRect.centery = screen.get_rect().centery
-    # draw the text onto the surface
-    screen.blit(text, textRect)
-
-def draw_sprite(screen):
-    print("sprites")
-
-#-----------------------------------
-# classes
-#-----------------------------------
-
-class Block(pygame.sprite.Sprite):
-    """
-    This class represents the ball.
-    It derives from the "Sprite" class in Pygame.
-    """
-    def __init__(self, color, width, height):
-        """
-        Ellipse Constructor. Pass in the color of the ellipse,
-        and its size
-        """
-        # Call the parent class (Sprite) constructor
-        super().__init__()
-    
-        # Set the background color and set it to be transparent
-        self.image = pygame.Surface([width, height])
-        self.image.fill(WHITE)
-        self.image.set_colorkey(WHITE)
-    
-        # Draw the ellipse
-        pygame.draw.ellipse(self.image, color, [0, 0, width, height])
 
 # this calls the 'main' function when this script is executed
 if __name__ == "__main__":
