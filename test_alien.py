@@ -26,6 +26,14 @@ size = width, height = 320, 240                                 # Size of the wi
 background_color = 0, 0, 0                                      # Background color
 text_color = 50, 50, 50                                         # Text color
 
+
+# set up the colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
 #-----------------------------------
 # Main function
 #-----------------------------------
@@ -59,7 +67,8 @@ def main():
 
     # Prepare game Objects
     clock = pygame.time.Clock()
-    allsprites = pygame.sprite.RenderPlain(())
+    alien = aliens.Alien(BLACK,30,30)
+    allsprites = pygame.sprite.RenderPlain((alien))
 
     # Main Loop
     going = True

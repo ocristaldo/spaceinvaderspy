@@ -29,8 +29,8 @@ class Alien(pygame.sprite.Sprite):
     
         # Set the background color and set it to be transparent
         self.image = pygame.Surface([width, height])
-        self.image.fill(WHITE)
-        self.image.set_colorkey(WHITE)
+        self.image.fill(color)
+        self.image.set_colorkey(color)
     
         # Draw the ellipse
         pygame.draw.ellipse(self.image, color, [0, 0, width, height])
