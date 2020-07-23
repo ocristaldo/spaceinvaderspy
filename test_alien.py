@@ -16,6 +16,7 @@
 import os, sys
 import pygame
 import aliens
+import random
 
 #-----------------------------------
 print('Global variables')
@@ -23,7 +24,7 @@ print('Global variables')
 
 # Window
 size = width, height = 320, 240                                 # Size of the window
-background_color = 0, 0, 0                                      # Background color
+background_color = 100, 100, 100                                      # Background color
 text_color = 50, 50, 50                                         # Text color
 
 
@@ -61,13 +62,33 @@ def main():
         textpos = text.get_rect(centerx=background.get_width()/2)       # Positioning text in the center
         background.blit(text, textpos)
 
+    # This is a list of 'sprites.' Each block in the program is
+    # added to this list. The list is managed by a class called 'Group.'
+    alien_list = pygame.sprite.Group()
+    
+    # This is a list of every sprite. 
+    # All blocks and the player block as well.
+    all_sprites_list = pygame.sprite.Group()
+
     # Display the background
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
     # Prepare game Objects
     clock = pygame.time.Clock()
-    alien = aliens.Alien(BLACK,30,30)
+    alien = aliens.Alien(WHITE,20,20)
+
+    # Set a random location for the alien
+    # alien.rect.x = random.randrange(width)
+    alien.rect.x = 10
+    # alien.rect.y = random.randrange(height)
+    alien.rect.y = 10
+ 
+
+    # Add the block to the list of objects
+    alien_list.add(alien)
+    all_sprites_list.add(alien)
+
     allsprites = pygame.sprite.RenderPlain((alien))
 
     # Main Loop
