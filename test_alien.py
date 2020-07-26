@@ -15,25 +15,14 @@
 # Import sys and pygame modules
 import os, sys
 import pygame
-import aliens
+from aliens import Alien
+from sslist import ss_alien1
 import random
-
-#-----------------------------------
-print('Global variables')
-#-----------------------------------
-
-# Window
-size = width, height = 320, 240                                 # Size of the window
-background_color = 100, 100, 100                                      # Background color
-text_color = 50, 50, 50                                         # Text color
+import constants
+import sslist
+import spritesheet
 
 
-# set up the colors
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
 
 #-----------------------------------
 # Main function
@@ -46,29 +35,32 @@ def main():
        a loop until the function returns."""
 
     # Initialize everything   
-    pygame.init()                                               # Initialize all pygame modules
-    screen = pygame.display.set_mode(size)                      # Initialise screen window
-    pygame.display.set_caption("Alien test")              # Caption text
+    pygame.init()                                                               # Initialize all pygame modules
+    # Set the height and width of the screen
+    size_multiplier = 3
+    size = [constants.SCREEN_WIDTH*size_multiplier, constants.SCREEN_HEIGHT*size_multiplier]
+    screen = pygame.display.set_mode(size)                                      # Initialise screen window
+    pygame.display.set_caption("Alien test")                                    # Caption text
     
     # Create background
-    background = pygame.Surface(screen.get_size())              # Using the same surface of the screen
+    background = pygame.Surface(screen.get_size())                              # Using the same surface of the screen
     background = background.convert()
-    background.fill(background_color)                           # Define background
+    background.fill(constants.background_color)                                 # Define background
 
     # Include text in background
     if pygame.font:
-        font = pygame.font.Font(None, 36)                               # Defining font
-        text = font.render("Alien Test", 1, (text_color))             # Defining text
-        textpos = text.get_rect(centerx=background.get_width()/2)       # Positioning text in the center
+        font = pygame.font.Font(None, 36)                                       # Defining font
+        text = font.render("Alien Test", 1, (constants.text_color))             # Defining text
+        textpos = text.get_rect(centerx=background.get_width()/2)               # Positioning text in the center
         background.blit(text, textpos)
 
     # This is a list of 'sprites.' Each block in the program is
     # added to this list. The list is managed by a class called 'Group.'
-    alien_list = pygame.sprite.Group()
+    #alien_list = pygame.sprite.Group()
     
     # This is a list of every sprite. 
     # All blocks and the player block as well.
-    all_sprites_list = pygame.sprite.Group()
+    #all_sprites_list = pygame.sprite.Group()
 
     # Display the background
     screen.blit(background, (0, 0))
@@ -76,18 +68,20 @@ def main():
 
     # Prepare game Objects
     clock = pygame.time.Clock()
-    alien = aliens.Alien(WHITE,20,20)
+    file = "img/ss3.png"
+    #alien = aliens.Alien(WHITE,20,20)
+    alien = Alien(file, constants.BLUE, ss_alien1, size_multiplier)
 
     # Set a random location for the alien
     # alien.rect.x = random.randrange(width)
-    alien.rect.x = 10
+    alien.rect.x = 100
     # alien.rect.y = random.randrange(height)
-    alien.rect.y = 10
+    alien.rect.y = 100
  
 
     # Add the block to the list of objects
-    alien_list.add(alien)
-    all_sprites_list.add(alien)
+    #alien_list.add(alien)
+    #all_sprites_list.add(alien)
 
     allsprites = pygame.sprite.RenderPlain((alien))
 
