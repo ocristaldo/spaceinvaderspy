@@ -37,7 +37,7 @@ def main():
     # Initialize everything   
     pygame.init()                                                               # Initialize all pygame modules
     # Set the height and width of the screen
-    size_multiplier = 3
+    size_multiplier = 1
     size = [constants.SCREEN_WIDTH*size_multiplier, constants.SCREEN_HEIGHT*size_multiplier]
     screen = pygame.display.set_mode(size)                                      # Initialise screen window
     pygame.display.set_caption("Alien test")                                    # Caption text
