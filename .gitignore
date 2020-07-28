@@ -1,2 +1,5 @@
 .vscode/settings.json
 __pycache__/aliens.cpython-38.pyc
+__pycache__/constants.cpython-38.pyc
+__pycache__/spritesheet.cpython-38.pyc
+__pycache__/sslist.cpython-38.pyc

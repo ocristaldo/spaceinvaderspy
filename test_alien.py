@@ -16,11 +16,12 @@
 import os, sys
 import pygame
 from aliens import Alien
-from sslist import ss_alien1
+#from sslist import ss_alien1
 import random
 import constants
 import sslist
 import spritesheet
+import math
 
 
 
@@ -37,7 +38,7 @@ def main():
     # Initialize everything   
     pygame.init()                                                               # Initialize all pygame modules
     # Set the height and width of the screen
-    size_multiplier = 1
+    size_multiplier = 3
     size = [constants.SCREEN_WIDTH*size_multiplier, constants.SCREEN_HEIGHT*size_multiplier]
     screen = pygame.display.set_mode(size)                                      # Initialise screen window
     pygame.display.set_caption("Alien test")                                    # Caption text
@@ -60,7 +61,7 @@ def main():
     
     # This is a list of every sprite. 
     # All blocks and the player block as well.
-    #all_sprites_list = pygame.sprite.Group()
+    all_sprites_list = pygame.sprite.Group()
 
     # Display the background
     screen.blit(background, (0, 0))
@@ -70,20 +71,37 @@ def main():
     clock = pygame.time.Clock()
     file = "img/ss3.png"
     #alien = aliens.Alien(WHITE,20,20)
-    alien = Alien(file, constants.BLUE, ss_alien1, size_multiplier)
+    #alien = Alien(file, constants.BLACK, sslist.ss_ufo, size_multiplier)
 
     # Set a random location for the alien
     # alien.rect.x = random.randrange(width)
-    alien.rect.x = 100
+    #alien.rect.x = 100
     # alien.rect.y = random.randrange(height)
-    alien.rect.y = 100
+    #alien.rect.y = 100
  
+    relx=0
+    rely=0
+    i=0
+    for x in sslist.ss_ls:
+        a = Alien(file, constants.BLACK, x, size_multiplier)
+        print(x[0],x[1],x[2],x[3])
+        div = math.floor(i/5)
+        print(div)
+        #relx = (div*relx)+10+x[2]
+        #rely = (div*rely)+10+x[3]
+        a.rect.x = div*x[2]
+        a.rect.y = div*x[3]
+        i+=1
+        print("obj", i, "x:",a.rect.x,"y:",a.rect.y)
+        all_sprites_list.add(a)
+
 
     # Add the block to the list of objects
     #alien_list.add(alien)
     #all_sprites_list.add(alien)
 
-    allsprites = pygame.sprite.RenderPlain((alien))
+    #allsprites = pygame.sprite.RenderPlain((alien))
+    allsprites = pygame.sprite.RenderPlain((all_sprites_list))
 
     # Main Loop
     going = True
