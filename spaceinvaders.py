@@ -13,63 +13,42 @@
 # Import section
 #-----------------------------------
 # Import sys and pygame modules
-import os, sys
+import os, sys, math
 import pygame
-# Imports specifics into the code
-from pygame.locals import *
-from pygame.compat import geterror
-
-# Error if not font or mixer
-if not pygame.font: print('Warning, fonts disabled')
-if not pygame.mixer: print('Warning, sound disabled')
-
-#-----------------------------------
-print('Global variables')
-#-----------------------------------
-
-# Window
-size = width, height = 900, 800                                 # Size of the window
-background_color = 0, 0, 0                                      # Background color
-text_color = 50, 50, 50                                         # Text color
-
-# set up the colors
-color.BLACK = (0, 0, 0)
-color.WHITE = (255, 255, 255)
-color.RED = (255, 0, 0)
-color.GREEN = (0, 255, 0)
-color.BLUE = (0, 0, 255)
-
-#directories
-main_dir = os.path.split(os.path.abspath(__file__))[0]
-data_dir = os.path.join(main_dir, "data")
-
+import constants
 
 #-----------------------------------
 # Main function
 #-----------------------------------
 
 def main():
-    print('main')
-    """this function is called when the program starts.
-       it initializes everything it needs, then runs in
-       a loop until the function returns."""
-
+    
     # Initialize everything   
     pygame.init()                                               # Initialize all pygame modules
-    screen = pygame.display.set_mode(size)                      # Initialise screen window
-    pygame.display.set_caption("test set caption")              # Caption text
-    #pygame.mouse.set.visible(0)                                 # Hide mouse ?
+
+    # Set the screen in full screen
+    screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+    #screen = pygame.display.set_mode((300,200))
+
+    # Get the screen info
+    screen_info = pygame.display.Info()
+    screen_w = screen_info.current_w
+    screen_h = screen_info.current_h
+
+    # Set window Title
+    pygame.display.set_caption("Space Invaders")                # Caption text
+    pygame.mouse.set_visible(False)                                 # Hide mouse ?
     
     # Create background
     background = pygame.Surface(screen.get_size())              # Using the same surface of the screen
     background = background.convert()
-    background.fill(background_color)                           # Define background
+    background.fill(constants.BACKGROUND_COLOR)                           # Define background
 
     # Include text in background
     if pygame.font:
-        font = pygame.font.Font(None, 36)                               # Defining font
-        text = font.render("test message", 1, (text_color))             # Defining text
-        textpos = text.get_rect(centerx=background.get_width()/2)       # Positioning text in the center
+        font = pygame.font.Font(None, 56)                               # Defining font
+        text = font.render("Space Invaders Demo", 1, (constants.BACKGROUND_TEXT_COLOR))             # Defining text
+        textpos = text.get_rect(centerx=math.floor(background.get_width()/2))       # Positioning text in the center
         background.blit(text, textpos)
 
     # Display the background
@@ -78,15 +57,12 @@ def main():
 
     # Prepare game Objects
     clock = pygame.time.Clock()
-    allsprites = pygame.sprite.RenderPlain(())
-
+    
     # Main Loop
     going = True
     while going:                                                        # Infinit Loop
         clock.tick(60)                                                  # Used to help control our game's framerate
 
-        #show splash screen
-        splash_screen(screen)
         # draw the window onto the screen
         pygame.display.update()
 
@@ -101,58 +77,15 @@ def main():
             elif event.type == pygame.MOUSEBUTTONUP:
                 going = False
 
-        allsprites.update()
-
         # Draw Everything
         screen.blit(background, (0, 0))
-        allsprites.draw(screen)
         pygame.display.flip()
     
     pygame.quit()
     # Game Over
 
-#-----------------------------------
-# other functions
-#-----------------------------------
-
-def splash_screen(screen):
-    # set up the text
-    basicFont = pygame.font.SysFont(None, 48)
-    text = basicFont.render('Hello world!', True, color.WHITE, color.BLUE)
-    textRect = text.get_rect()
-    textRect.centerx = screen.get_rect().centerx
-    textRect.centery = screen.get_rect().centery
-    # draw the text onto the surface
-    screen.blit(text, textRect)
-
-def draw_sprite(screen):
-    print("sprites")
-
-#-----------------------------------
-# classes
-#-----------------------------------
-
-class Block(pygame.sprite.Sprite):
-    """
-    This class represents the ball.
-    It derives from the "Sprite" class in Pygame.
-    """
-    def __init__(self, color, width, height):
-        """
-        Ellipse Constructor. Pass in the color of the ellipse,
-        and its size
-        """
-        # Call the parent class (Sprite) constructor
-        super().__init__()
-    
-        # Set the background color and set it to be transparent
-        self.image = pygame.Surface([width, height])
-        self.image.fill(WHITE)
-        self.image.set_colorkey(WHITE)
-    
-        # Draw the ellipse
-        pygame.draw.ellipse(self.image, color, [0, 0, width, height])
 
 # this calls the 'main' function when this script is executed
 if __name__ == "__main__":
     main()
+

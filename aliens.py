@@ -23,6 +23,7 @@ class Alien(pygame.sprite.Sprite):
     sprite_width = 10
     sprite_heigh = 10
     sprite_file = "/"
+    name=""
 
     #def __init__(self, key_color, file):
         
@@ -62,6 +63,8 @@ class Alien(pygame.sprite.Sprite):
                                             sprite_sheet_data[2],
                                             sprite_sheet_data[3])
  
+        self.name = sprite_sheet_data[4]
+
         # Set the background color and set it to be transparent
         #self.image = pygame.Surface([width, height])
         #new_width = width * 4
