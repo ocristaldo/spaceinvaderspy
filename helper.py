@@ -1,27 +1,21 @@
 #-----------------------------------
 # Import section
 #-----------------------------------
-import os, sys
+import os, sys, math
 import pygame
+import constants
 
-print (pygame.display.Info())
+def get_multiplier(heigh):
+    return math.floor(heigh/constants.ORIGINAL_HEIGH)
 
-"""
-import wx
-app = wx.App(False)
-width, height = wx.GetDisplaySize()
-#"""
+def get_gamesize(multiplier):
+    return (multiplier*constants.ORIGINAL_WIDHT, multiplier*constants.ORIGINAL_HEIGH)
+    
+def get_center(screen_w):
+    return math.floor(screen_w/2)
 
-"""
-import Tkinter
-root = Tkinter.Tk()    
-width = root.winfo_screenwidth()
-height = root.winfo_screenheight()
-#"""
+def get_00(screen_w, game_w):
+    return get_center(screen_w)-math.floor(game_w/2)
 
-"""
-from PySide import QtGui
-app = QtGui.QApplication([])
-screen_resolution = app.desktop().screenGeometry()
-width, height = screen_resolution.width(), screen_resolution.height()
-#"""
+def log(txt,obj):
+    print (txt,str(obj))
