@@ -16,13 +16,24 @@
 import os, sys
 import pygame
 from aliens import Alien
-from sslist import ss_alien1
+#from sslist import ss_alien1
 import random
 import constants
 import sslist
 import spritesheet
+import math
 
+# Imports specifics into the code
+from pygame.locals import *
+from pygame.compat import geterror
 
+# Error if not font or mixer
+if not pygame.font: print('Warning, fonts disabled')
+if not pygame.mixer: print('Warning, sound disabled')
+
+# Screen dimensions
+SCREEN_WIDTH  = 220
+SCREEN_HEIGHT = 120
 
 #-----------------------------------
 # Main function
@@ -36,9 +47,10 @@ def main():
 
     # Initialize everything   
     pygame.init()                                                               # Initialize all pygame modules
+    
     # Set the height and width of the screen
     size_multiplier = 3
-    size = [constants.SCREEN_WIDTH*size_multiplier, constants.SCREEN_HEIGHT*size_multiplier]
+    size = [SCREEN_WIDTH*size_multiplier, SCREEN_HEIGHT*size_multiplier]
     screen = pygame.display.set_mode(size)                                      # Initialise screen window
     pygame.display.set_caption("Alien test")                                    # Caption text
     
@@ -60,7 +72,7 @@ def main():
     
     # This is a list of every sprite. 
     # All blocks and the player block as well.
-    #all_sprites_list = pygame.sprite.Group()
+    all_sprites_list = pygame.sprite.Group()
 
     # Display the background
     screen.blit(background, (0, 0))
@@ -70,20 +82,55 @@ def main():
     clock = pygame.time.Clock()
     file = "img/ss3.png"
     #alien = aliens.Alien(WHITE,20,20)
-    alien = Alien(file, constants.BLUE, ss_alien1, size_multiplier)
+    #alien = Alien(file, constants.BLACK, sslist.ss_ufo, size_multiplier)
 
     # Set a random location for the alien
     # alien.rect.x = random.randrange(width)
-    alien.rect.x = 100
+    #alien.rect.x = 100
     # alien.rect.y = random.randrange(height)
-    alien.rect.y = 100
+    #alien.rect.y = 100
  
+    i=0
+    j=0
+    relx= sum = 0
+    rely=0
+    left_margin=10
+    h_sep = (10*size_multiplier)
+    v_sep = (10*size_multiplier)
+    heigh_margin=20
+    heigh_margin2=0
+    for x in sslist.ss_ls:
+        a = Alien(file, constants.KEY_COLOR, x, size_multiplier)
+        sum += (v_sep+(x[3]*size_multiplier))
+        relx = sum
+        if i<42:
+            topmax=12
+            div = math.modf(i/topmax)
+            rely = ( math.ceil(div[1]) * h_sep ) + x[3] + heigh_margin
+            heigh_margin2 = rely + h_sep
+        else:
+            topmax=8
+            div = math.modf(j/topmax)
+            rely = ( math.ceil(div[1]) * h_sep ) + x[3] + heigh_margin2
+            j+=1
+
+        if math.ceil(div[0])==0:relx = sum = left_margin
+        a.rect.x = relx
+        a.rect.y = rely
+        print("obj", i, "\t", x[4], "\tx:", a.rect.x,"\ty:", a.rect.y, "\tDiv:",math.floor(div[1]), "NewLine:", (div[0]==0))
+        all_sprites_list.add(a)
+        i+=1
+        
+
+        
+
 
     # Add the block to the list of objects
     #alien_list.add(alien)
     #all_sprites_list.add(alien)
 
-    allsprites = pygame.sprite.RenderPlain((alien))
+    #allsprites = pygame.sprite.RenderPlain((alien))
+    allsprites = pygame.sprite.RenderPlain((all_sprites_list))
 
     # Main Loop
     going = True
