@@ -4,6 +4,7 @@
 import os, sys, math
 import pygame
 import constants
+import sslist
 
 def get_multiplier(heigh):
     return math.floor(heigh/constants.ORIGINAL_HEIGH)
@@ -19,3 +20,6 @@ def get_00(screen_w, game_w):
 
 def log(txt,obj):
     print (txt,str(obj))
+
+def get_char_Sprite(char):
+    return eval('sslist.ss_' + char)

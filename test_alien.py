@@ -57,12 +57,12 @@ def main():
     # Create background
     background = pygame.Surface(screen.get_size())                              # Using the same surface of the screen
     background = background.convert()
-    background.fill(constants.background_color)                                 # Define background
+    background.fill(constants.BACKGROUND_COLOR)                                 # Define background
 
     # Include text in background
     if pygame.font:
         font = pygame.font.Font(None, 36)                                       # Defining font
-        text = font.render("Alien Test", 1, (constants.text_color))             # Defining text
+        text = font.render("Alien Test", 1, (constants.BACKGROUND_TEXT_COLOR))             # Defining text
         textpos = text.get_rect(centerx=background.get_width()/2)               # Positioning text in the center
         background.blit(text, textpos)
 
