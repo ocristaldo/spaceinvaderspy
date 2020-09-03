@@ -2,10 +2,6 @@ import pygame
 import sslist
 from spritesheet import SpriteSheet
 
-
-
-
-
 #-----------------------------------
 # classes
 #-----------------------------------
@@ -17,7 +13,6 @@ class GameLevel():
         
         # init game
         self.game = game
-        
         
     def start():
         #fire start event

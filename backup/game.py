@@ -1,5 +1,4 @@
 import pygame
-import constants
 from spritesheet import SpriteSheet
 
 class Game():
@@ -7,17 +6,31 @@ class Game():
         reset the game we'd just need to create a new instance of this
         class. """
  
-    def __init__(self, gameScreen):
+    def __init__(self):
         """ Constructor. Create all our attributes and initialize
         the game. """
  
-        self.gameScreen = gameScreen
         self.score = 0
         self.game_over = False
  
         # Create sprite lists
         self.block_list = pygame.sprite.Group()
         self.all_sprites_list = pygame.sprite.Group()
+ 
+        """
+        # Create the block sprites
+        for i in range(50):
+            block = Block()
+            block.rect.x = random.randrange(SCREEN_WIDTH)
+            block.rect.y = random.randrange(-300, SCREEN_HEIGHT)
+ 
+            self.block_list.add(block)
+            self.all_sprites_list.add(block)
+ 
+        # Create the player
+        self.player = Player()
+        self.all_sprites_list.add(self.player)
+        """
  
     def process_events(self):
         """ Process all of the events. Return a "True" if we need
@@ -55,14 +68,14 @@ class Game():
  
     def display_frame(self, screen):
         """ Display everything to the screen for the game. """
-        screen.fill(constants.WHITE)
+        screen.fill(WHITE)
  
         if self.game_over:
             # font = pygame.font.Font("Serif", 25)
             font = pygame.font.SysFont("serif", 25)
             text = font.render("Game Over, click to restart", True, BLACK)
-            center_x = (self.gameScreen.width // 2) - (text.get_width() // 2)
-            center_y = (self.gameScreen.heigh // 2) - (text.get_height() // 2)
+            center_x = (SCREEN_WIDTH // 2) - (text.get_width() // 2)
+            center_y = (SCREEN_HEIGHT // 2) - (text.get_height() // 2)
             screen.blit(text, [center_x, center_y])
  
         if not self.game_over:

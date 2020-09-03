@@ -16,6 +16,9 @@
 import os, sys, math
 import pygame
 import constants
+import helper
+from game import Game
+#import game
 
 #-----------------------------------
 # Main function
@@ -28,43 +31,51 @@ def main():
 
     # Set the screen in full screen
     screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
-    #screen = pygame.display.set_mode((300,200))
-
-    # Get the screen info
-    screen_info = pygame.display.Info()
-    screen_w = screen_info.current_w
-    screen_h = screen_info.current_h
+    
+    # Get the window info
+    window = helper.get_screen(pygame)
+    
+    # Set the size multiplier and define the game screen size
+    gameScreen = helper.get_game_screen(window)
 
     # Set window Title
     pygame.display.set_caption("Space Invaders")                # Caption text
-    pygame.mouse.set_visible(False)                                 # Hide mouse ?
+    pygame.mouse.set_visible(False)                             # Hide mouse ?
     
     # Create background
-    background = pygame.Surface(screen.get_size())              # Using the same surface of the screen
+    background = pygame.Surface(window.size)             # Using the same surface of the screen
     background = background.convert()
-    background.fill(constants.BACKGROUND_COLOR)                           # Define background
+    background.fill(constants.BACKGROUND_COLOR)                 # Define background
 
-    # Include text in background
-    if pygame.font:
-        font = pygame.font.Font(None, 56)                               # Defining font
-        text = font.render("Space Invaders Demo", 1, (constants.BACKGROUND_TEXT_COLOR))             # Defining text
-        textpos = text.get_rect(centerx=math.floor(background.get_width()/2))       # Positioning text in the center
-        background.blit(text, textpos)
+    # Create Game background
+    game_background = pygame.Surface(gameScreen.size)
+    game_background = game_background.convert()
+    game_background.fill(constants.GAME_BACKGROUND_COLOR) 
 
-    # Display the background
-    screen.blit(background, (0, 0))
-    pygame.display.flip()
-
-    # Prepare game Objects
+    # Prepare game clock
     clock = pygame.time.Clock()
+    
+    game_engine = Game(gameScreen)
     
     # Main Loop
     going = True
-    while going:                                                        # Infinit Loop
-        clock.tick(60)                                                  # Used to help control our game's framerate
+    while going:                                                # Infinit Loop
+        
+        # Process events (keystrokes, mouse clicks, etc)
+        done = game_engine.process_events()
+ 
+        # Update object positions, check for collisions
+        game_engine.run_logic()
+ 
+        # Draw the current frame
+        game_engine.display_frame(screen)
+ 
+        # Pause for the next frame
+        
+        clock.tick(60)                                          # Used to help control our game's framerate
 
         # draw the window onto the screen
-        pygame.display.update()
+        #pygame.display.update()
 
         # Handle Input Events
         for event in pygame.event.get():
@@ -78,7 +89,8 @@ def main():
                 going = False
 
         # Draw Everything
-        screen.blit(background, (0, 0))
+        #screen.blit(background, (0, 0))
+        screen.blit(game_background, (gameScreen.game00, 0))
         pygame.display.flip()
     
     pygame.quit()
