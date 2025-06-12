@@ -1,5 +1,5 @@
 import pygame
-import constants
+from . import constants
 
 class Bunker(pygame.sprite.Sprite):
     """Defensive bunker with simple health."""

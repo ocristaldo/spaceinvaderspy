@@ -18,7 +18,7 @@ pip install pygame
 Execute the main script to start the game:
 
 ```bash
-python spaceinvaders.py
+python -m src.main
 ```
 
 Use the arrow keys to move the ship and press **Space** to fire. Aliens move as a group and descend each time they hit the screen edges. Destroy all aliens to win.

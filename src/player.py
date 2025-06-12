@@ -1,6 +1,6 @@
 import pygame
-import constants
-import config
+from . import constants
+from . import config
 
 class Player(pygame.sprite.Sprite):
     """Ship controlled by the player."""
