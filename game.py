@@ -57,7 +57,9 @@ class Game(object):
             for block in blocks_hit_list:
                 self.score += 1
                 print(self.score)
-                # You can do something with "block" here.
+                # Remove the collided block from all sprites so it is
+                # no longer drawn or updated.
+                self.all_sprites_list.remove(block)
  
             if len(self.block_list) == 0:
                 self.game_over = True
