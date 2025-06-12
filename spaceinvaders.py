@@ -1,63 +1,27 @@
 #!/usr/bin/env python
-"""Simple Space Invaders clone.
+"""Enhanced Space Invaders clone.
 
-This version recreates basic gameplay using pygame. Aliens move as a group
-back and forth across the screen and descend when hitting a side. The player
-controls a ship at the bottom of the screen and can fire a single bullet at a
-time. When all aliens are destroyed the game ends.
+This version adds bunkers, alien bombs, a UFO, scoring and lives to more
+closely mirror the original arcade game. Gameplay remains simple: aliens
+move in formation, the player fires one bullet at a time and the game ends
+if aliens reach the bottom or the player loses all lives.
+
+This implementation is an unofficial, fan-made recreation created for
+educational purposes only. It includes no original assets or code from the
+1978 release and is not endorsed by the trademark holders.
 """
 import pygame
 import random
 import constants
+import config
+from player import Player
+from alien import Alien
+from bullet import Bullet, Bomb
+from bunker import Bunker
+from ufo import UFO
 
-# Scale the original arcade resolution to fit modern displays
-SCALE = 3
-SCREEN_WIDTH = constants.ORIGINAL_WIDTH * SCALE
-SCREEN_HEIGHT = constants.ORIGINAL_HEIGHT * SCALE
-
-
-class Player(pygame.sprite.Sprite):
-    """Ship controlled by the player."""
-
-    def __init__(self):
-        super().__init__()
-        self.image = pygame.Surface((22, 16))
-        self.image.fill(constants.WHITE)
-        self.rect = self.image.get_rect(midbottom=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 10))
-        self.speed = 5
-
-    def update(self, pressed):
-        if pressed[pygame.K_LEFT]:
-            self.rect.x -= self.speed
-        if pressed[pygame.K_RIGHT]:
-            self.rect.x += self.speed
-        self.rect.clamp_ip(pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
-
-
-class Alien(pygame.sprite.Sprite):
-    """Single alien sprite."""
-
-    def __init__(self, x, y):
-        super().__init__()
-        self.image = pygame.Surface((16, 12))
-        self.image.fill(constants.GREEN)
-        self.rect = self.image.get_rect(topleft=(x, y))
-
-
-class Bullet(pygame.sprite.Sprite):
-    """Bullet fired by the player."""
-
-    def __init__(self, pos):
-        super().__init__()
-        self.image = pygame.Surface((2, 8))
-        self.image.fill(constants.WHITE)
-        self.rect = self.image.get_rect(midbottom=pos)
-        self.speed = -7
-
-    def update(self):
-        self.rect.y += self.speed
-        if self.rect.bottom < 0:
-            self.kill()
+SCREEN_WIDTH = config.SCREEN_WIDTH
+SCREEN_HEIGHT = config.SCREEN_HEIGHT
 
 
 class Game:
@@ -68,42 +32,80 @@ class Game:
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Space Invaders")
         self.clock = pygame.time.Clock()
+        self.font = pygame.font.SysFont("monospace", 16)
         self.running = True
+        self.game_over = False
+
+        self.score = 0
+        self.lives = constants.LIVES_NUMBER
 
         self.player = Player()
         self.player_group = pygame.sprite.GroupSingle(self.player)
         self.bullet_group = pygame.sprite.Group()
+        self.bomb_group = pygame.sprite.Group()
+        self.bunker_group = self.create_bunkers()
+        self.ufo_group = pygame.sprite.Group()
+
         self.alien_group = self.create_aliens()
         self.alien_direction = 1
+        self.last_ufo_time = pygame.time.get_ticks()
 
     def create_aliens(self):
         group = pygame.sprite.Group()
-        margin_x = 20
-        margin_y = 40
-        spacing_x = 40
-        spacing_y = 30
-        rows = 3
-        cols = 6
+        margin_x = config.ALIEN_MARGIN_X
+        margin_y = config.ALIEN_MARGIN_Y
+        spacing_x = config.ALIEN_SPACING_X
+        spacing_y = config.ALIEN_SPACING_Y
+        rows = config.ALIEN_ROWS
+        cols = config.ALIEN_COLUMNS
+        values = [30, 20, 10]
         for row in range(rows):
             for col in range(cols):
                 x = margin_x + col * spacing_x
                 y = margin_y + row * spacing_y
-                group.add(Alien(x, y))
+                group.add(Alien(x, y, values[row]))
+        return group
+
+    def create_bunkers(self):
+        group = pygame.sprite.Group()
+        spacing = SCREEN_WIDTH // (constants.BLOCK_NUMBER + 1)
+        y = SCREEN_HEIGHT - 60
+        for i in range(constants.BLOCK_NUMBER):
+            x = spacing * (i + 1)
+            group.add(Bunker((x, y)))
         return group
 
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                if len(self.bullet_group) == 0:
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and len(self.bullet_group) == 0:
                     bullet = Bullet(self.player.rect.midtop)
                     self.bullet_group.add(bullet)
+                if event.key == pygame.K_r and self.game_over:
+                    self.__init__()
+
+    def spawn_bomb(self):
+        if not self.alien_group:
+            return
+        if random.random() < 0.02:
+            alien = random.choice(self.alien_group.sprites())
+            bomb = Bomb(alien.rect.midbottom)
+            self.bomb_group.add(bomb)
+
+    def spawn_ufo(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_ufo_time > config.UFO_INTERVAL:
+            self.ufo_group.add(UFO())
+            self.last_ufo_time = now
 
     def update(self):
         pressed = pygame.key.get_pressed()
         self.player_group.update(pressed)
         self.bullet_group.update()
+        self.bomb_group.update()
+        self.ufo_group.update()
 
         # Move aliens as a group
         move_x = self.alien_direction
@@ -117,20 +119,70 @@ class Game:
             alien.rect.x += move_x
             if move_down:
                 alien.rect.y += 10
+                if alien.rect.bottom >= SCREEN_HEIGHT - 40:
+                    self.game_over = True
 
-        # Check collisions
-        for bullet in pygame.sprite.groupcollide(self.bullet_group, self.alien_group, True, True):
-            pass
+        self.spawn_bomb()
+        self.spawn_ufo()
 
+        # Collisions
+        hits = pygame.sprite.groupcollide(self.bullet_group, self.alien_group, True, True)
+        for bullet, aliens in hits.items():
+            for alien in aliens:
+                self.score += alien.value
+
+        hits = pygame.sprite.groupcollide(self.bullet_group, self.ufo_group, True, True)
+        for bullet, ufos in hits.items():
+            for ufo in ufos:
+                self.score += ufo.value
+        # bullet vs bunker
+        hits = pygame.sprite.groupcollide(self.bullet_group, self.bunker_group, True, False)
+        for bunker_list in hits.values():
+            for bunker in bunker_list:
+                bunker.damage()
+        # bomb vs bunker
+        hits = pygame.sprite.groupcollide(self.bomb_group, self.bunker_group, True, False)
+        for bunker_list in hits.values():
+            for bunker in bunker_list:
+                bunker.damage()
+        # bomb vs player
+        if pygame.sprite.spritecollide(self.player, self.bomb_group, True):
+            self.lives -= 1
+            if self.lives <= 0:
+                self.game_over = True
         if not self.alien_group:
+            self.game_over = True
+        if self.game_over:
             self.running = False
 
     def draw(self):
         self.screen.fill(constants.BLACK)
         self.player_group.draw(self.screen)
         self.alien_group.draw(self.screen)
+        self.bunker_group.draw(self.screen)
         self.bullet_group.draw(self.screen)
+        self.bomb_group.draw(self.screen)
+        self.ufo_group.draw(self.screen)
+
+        score_surf = self.font.render(f"Score: {self.score}", True, constants.WHITE)
+        lives_surf = self.font.render(f"Lives: {self.lives}", True, constants.WHITE)
+        self.screen.blit(score_surf, (10, 5))
+        self.screen.blit(lives_surf, (SCREEN_WIDTH - lives_surf.get_width() - 10, 5))
         pygame.display.flip()
+
+    def game_over_screen(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    return False
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                    return True
+            self.screen.fill(constants.BLACK)
+            msg = self.font.render("GAME OVER - press R", True, constants.WHITE)
+            rect = msg.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+            self.screen.blit(msg, rect)
+            pygame.display.flip()
+            self.clock.tick(60)
 
     def run(self):
         while self.running:
@@ -138,7 +190,11 @@ class Game:
             self.update()
             self.draw()
             self.clock.tick(60)
+        again = self.game_over_screen() if self.game_over else False
         pygame.quit()
+        if again:
+            self.__init__()
+            self.run()
 
 
 def main():
