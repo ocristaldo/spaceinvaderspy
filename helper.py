@@ -7,10 +7,10 @@ import constants
 import sslist
 
 def get_multiplier(heigh):
-    return math.floor(heigh/constants.ORIGINAL_HEIGH)
+    return math.floor(heigh/constants.ORIGINAL_HEIGHT)
 
 def get_gamesize(multiplier):
-    return (multiplier*constants.ORIGINAL_WIDHT, multiplier*constants.ORIGINAL_HEIGH)
+    return (multiplier*constants.ORIGINAL_WIDTH, multiplier*constants.ORIGINAL_HEIGHT)
     
 def get_center(screen_w):
     return math.floor(screen_w/2)

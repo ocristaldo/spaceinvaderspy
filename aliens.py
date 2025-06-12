@@ -21,7 +21,7 @@ class Alien(pygame.sprite.Sprite):
     BLUE = (0, 0, 255)
 
     sprite_width = 10
-    sprite_heigh = 10
+    sprite_height = 10
     sprite_file = "/"
     name=""
 
@@ -50,7 +50,7 @@ class Alien(pygame.sprite.Sprite):
  
         #sprite_sheet = SpriteSheet("img/ss3.png")
         # Set the background color and set it to be transparent
-        #self.image = pygame.Surface([self.sprite_width, self.sprite_heigh])
+        #self.image = pygame.Surface([self.sprite_width, self.sprite_height])
         #self.image = pygame.transform.scale(self.image, (new_width, new_heigh))
         #self.image.set_colorkey(key_color)
         #self.image.fill(BLUE)
