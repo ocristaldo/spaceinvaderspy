@@ -10,15 +10,23 @@ This implementation is an unofficial, fan-made recreation created for
 educational purposes only. It includes no original assets or code from the
 1978 release and is not endorsed by the trademark holders.
 """
+import logging
 import pygame
 import random
-import constants
-import config
-from player import Player
-from alien import Alien
-from bullet import Bullet, Bomb
-from bunker import Bunker
-from ufo import UFO
+from . import constants
+from . import config
+from .player import Player
+from .alien import Alien
+from .bullet import Bullet, Bomb
+from .bunker import Bunker
+from .ufo import UFO
+
+logging.basicConfig(
+    level=logging.INFO,
+    filename="game.log",
+    filemode="w",
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
 
 SCREEN_WIDTH = config.SCREEN_WIDTH
 SCREEN_HEIGHT = config.SCREEN_HEIGHT
@@ -48,7 +56,10 @@ class Game:
 
         self.alien_group = self.create_aliens()
         self.alien_direction = 1
+        self.alien_speed = config.ALIEN_START_SPEED
+        self.initial_alien_count = len(self.alien_group)
         self.last_ufo_time = pygame.time.get_ticks()
+        logging.info("Game started. Player lives=%d", self.lives)
 
     def create_aliens(self):
         group = pygame.sprite.Group()
@@ -83,8 +94,10 @@ class Game:
                 if event.key == pygame.K_SPACE and len(self.bullet_group) == 0:
                     bullet = Bullet(self.player.rect.midtop)
                     self.bullet_group.add(bullet)
+                    logging.info("Bullet fired")
                 if event.key == pygame.K_r and self.game_over:
                     self.__init__()
+                    logging.info("Game restarted")
 
     def spawn_bomb(self):
         if not self.alien_group:
@@ -93,12 +106,23 @@ class Game:
             alien = random.choice(self.alien_group.sprites())
             bomb = Bomb(alien.rect.midbottom)
             self.bomb_group.add(bomb)
+            logging.debug("Alien bomb spawned at %s", bomb.rect.topleft)
 
     def spawn_ufo(self):
         now = pygame.time.get_ticks()
         if now - self.last_ufo_time > config.UFO_INTERVAL:
             self.ufo_group.add(UFO())
             self.last_ufo_time = now
+            logging.info("UFO spawned")
+
+    def update_alien_speed(self):
+        """Increase alien speed as their numbers decrease."""
+        remaining = len(self.alien_group)
+        if remaining:
+            self.alien_speed = (
+                config.ALIEN_START_SPEED
+                + (self.initial_alien_count - remaining) * config.ALIEN_SPEED_INCREMENT
+            )
 
     def update(self):
         pressed = pygame.key.get_pressed()
@@ -108,12 +132,16 @@ class Game:
         self.ufo_group.update()
 
         # Move aliens as a group
-        move_x = self.alien_direction
+        move_x = self.alien_direction * self.alien_speed
         move_down = False
         for alien in self.alien_group.sprites():
-            if (alien.rect.right + move_x >= SCREEN_WIDTH) or (alien.rect.left + move_x <= 0):
+            if (
+                alien.rect.right + move_x >= SCREEN_WIDTH
+                or alien.rect.left + move_x <= 0
+            ):
                 move_down = True
                 self.alien_direction *= -1
+                move_x = self.alien_direction * self.alien_speed
                 break
         for alien in self.alien_group.sprites():
             alien.rect.x += move_x
@@ -121,6 +149,7 @@ class Game:
                 alien.rect.y += 10
                 if alien.rect.bottom >= SCREEN_HEIGHT - 40:
                     self.game_over = True
+                    logging.info("Game over: aliens reached bottom")
 
         self.spawn_bomb()
         self.spawn_ufo()
@@ -130,29 +159,39 @@ class Game:
         for bullet, aliens in hits.items():
             for alien in aliens:
                 self.score += alien.value
+                logging.info("Alien destroyed at %s", alien.rect.topleft)
+        if hits:
+            self.update_alien_speed()
 
         hits = pygame.sprite.groupcollide(self.bullet_group, self.ufo_group, True, True)
         for bullet, ufos in hits.items():
             for ufo in ufos:
                 self.score += ufo.value
+                logging.info("UFO destroyed for %d points", ufo.value)
         # bullet vs bunker
         hits = pygame.sprite.groupcollide(self.bullet_group, self.bunker_group, True, False)
         for bunker_list in hits.values():
             for bunker in bunker_list:
                 bunker.damage()
+                logging.debug("Bunker damaged at %s", bunker.rect.topleft)
         # bomb vs bunker
         hits = pygame.sprite.groupcollide(self.bomb_group, self.bunker_group, True, False)
         for bunker_list in hits.values():
             for bunker in bunker_list:
                 bunker.damage()
+                logging.debug("Bunker hit by bomb at %s", bunker.rect.topleft)
         # bomb vs player
         if pygame.sprite.spritecollide(self.player, self.bomb_group, True):
             self.lives -= 1
+            logging.warning("Player hit! Lives left=%d", self.lives)
             if self.lives <= 0:
                 self.game_over = True
+                logging.info("Game over: player destroyed")
         if not self.alien_group:
             self.game_over = True
+            logging.info("Game over: all aliens destroyed")
         if self.game_over:
+            logging.info("Stopping main loop")
             self.running = False
 
     def draw(self):
@@ -194,6 +233,7 @@ class Game:
         pygame.quit()
         if again:
             self.__init__()
+            logging.info("Game restarted after game over")
             self.run()
 
 

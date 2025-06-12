@@ -1,7 +1,7 @@
 import pygame
 import random
-import constants
-import config
+from . import constants
+from . import config
 
 class UFO(pygame.sprite.Sprite):
     """Mystery saucer that awards bonus points."""
