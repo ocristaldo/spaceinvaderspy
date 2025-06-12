@@ -5,6 +5,10 @@ This version adds bunkers, alien bombs, a UFO, scoring and lives to more
 closely mirror the original arcade game. Gameplay remains simple: aliens
 move in formation, the player fires one bullet at a time and the game ends
 if aliens reach the bottom or the player loses all lives.
+
+This implementation is an unofficial, fan-made recreation created for
+educational purposes only. It includes no original assets or code from the
+1978 release and is not endorsed by the trademark holders.
 """
 import pygame
 import random
