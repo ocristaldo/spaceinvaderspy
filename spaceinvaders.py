@@ -1,91 +1,149 @@
 #!/usr/bin/env python
-#-----------------------------------
-# Documents
-#-----------------------------------
-# Pygame documentation
-# https://www.pygame.org/docs/
-#
-# Games programming
-# http://programarcadegames.com/index.php
-#
+"""Simple Space Invaders clone.
 
-#-----------------------------------
-# Import section
-#-----------------------------------
-# Import sys and pygame modules
-import os, sys, math
+This version recreates basic gameplay using pygame. Aliens move as a group
+back and forth across the screen and descend when hitting a side. The player
+controls a ship at the bottom of the screen and can fire a single bullet at a
+time. When all aliens are destroyed the game ends.
+"""
 import pygame
+import random
 import constants
 
-#-----------------------------------
-# Main function
-#-----------------------------------
+# Scale the original arcade resolution to fit modern displays
+SCALE = 3
+SCREEN_WIDTH = constants.ORIGINAL_WIDTH * SCALE
+SCREEN_HEIGHT = constants.ORIGINAL_HEIGHT * SCALE
 
-def main():
-    
-    # Initialize everything   
-    pygame.init()                                               # Initialize all pygame modules
 
-    # Set the screen in full screen
-    screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
-    #screen = pygame.display.set_mode((300,200))
+class Player(pygame.sprite.Sprite):
+    """Ship controlled by the player."""
 
-    # Get the screen info
-    screen_info = pygame.display.Info()
-    screen_w = screen_info.current_w
-    screen_h = screen_info.current_h
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((22, 16))
+        self.image.fill(constants.WHITE)
+        self.rect = self.image.get_rect(midbottom=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 10))
+        self.speed = 5
 
-    # Set window Title
-    pygame.display.set_caption("Space Invaders")                # Caption text
-    pygame.mouse.set_visible(False)                                 # Hide mouse ?
-    
-    # Create background
-    background = pygame.Surface(screen.get_size())              # Using the same surface of the screen
-    background = background.convert()
-    background.fill(constants.BACKGROUND_COLOR)                           # Define background
+    def update(self, pressed):
+        if pressed[pygame.K_LEFT]:
+            self.rect.x -= self.speed
+        if pressed[pygame.K_RIGHT]:
+            self.rect.x += self.speed
+        self.rect.clamp_ip(pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
 
-    # Include text in background
-    if pygame.font:
-        font = pygame.font.Font(None, 56)                               # Defining font
-        text = font.render("Space Invaders Demo", 1, (constants.BACKGROUND_TEXT_COLOR))             # Defining text
-        textpos = text.get_rect(centerx=math.floor(background.get_width()/2))       # Positioning text in the center
-        background.blit(text, textpos)
 
-    # Display the background
-    screen.blit(background, (0, 0))
-    pygame.display.flip()
+class Alien(pygame.sprite.Sprite):
+    """Single alien sprite."""
 
-    # Prepare game Objects
-    clock = pygame.time.Clock()
-    
-    # Main Loop
-    going = True
-    while going:                                                        # Infinit Loop
-        clock.tick(60)                                                  # Used to help control our game's framerate
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((16, 12))
+        self.image.fill(constants.GREEN)
+        self.rect = self.image.get_rect(topleft=(x, y))
 
-        # draw the window onto the screen
-        pygame.display.update()
 
-        # Handle Input Events
+class Bullet(pygame.sprite.Sprite):
+    """Bullet fired by the player."""
+
+    def __init__(self, pos):
+        super().__init__()
+        self.image = pygame.Surface((2, 8))
+        self.image.fill(constants.WHITE)
+        self.rect = self.image.get_rect(midbottom=pos)
+        self.speed = -7
+
+    def update(self):
+        self.rect.y += self.speed
+        if self.rect.bottom < 0:
+            self.kill()
+
+
+class Game:
+    """Main game controller."""
+
+    def __init__(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption("Space Invaders")
+        self.clock = pygame.time.Clock()
+        self.running = True
+
+        self.player = Player()
+        self.player_group = pygame.sprite.GroupSingle(self.player)
+        self.bullet_group = pygame.sprite.Group()
+        self.alien_group = self.create_aliens()
+        self.alien_direction = 1
+
+    def create_aliens(self):
+        group = pygame.sprite.Group()
+        margin_x = 20
+        margin_y = 40
+        spacing_x = 40
+        spacing_y = 30
+        rows = 3
+        cols = 6
+        for row in range(rows):
+            for col in range(cols):
+                x = margin_x + col * spacing_x
+                y = margin_y + row * spacing_y
+                group.add(Alien(x, y))
+        return group
+
+    def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                going = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                going = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                going = False
-            elif event.type == pygame.MOUSEBUTTONUP:
-                going = False
+                self.running = False
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if len(self.bullet_group) == 0:
+                    bullet = Bullet(self.player.rect.midtop)
+                    self.bullet_group.add(bullet)
 
-        # Draw Everything
-        screen.blit(background, (0, 0))
+    def update(self):
+        pressed = pygame.key.get_pressed()
+        self.player_group.update(pressed)
+        self.bullet_group.update()
+
+        # Move aliens as a group
+        move_x = self.alien_direction
+        move_down = False
+        for alien in self.alien_group.sprites():
+            if (alien.rect.right + move_x >= SCREEN_WIDTH) or (alien.rect.left + move_x <= 0):
+                move_down = True
+                self.alien_direction *= -1
+                break
+        for alien in self.alien_group.sprites():
+            alien.rect.x += move_x
+            if move_down:
+                alien.rect.y += 10
+
+        # Check collisions
+        for bullet in pygame.sprite.groupcollide(self.bullet_group, self.alien_group, True, True):
+            pass
+
+        if not self.alien_group:
+            self.running = False
+
+    def draw(self):
+        self.screen.fill(constants.BLACK)
+        self.player_group.draw(self.screen)
+        self.alien_group.draw(self.screen)
+        self.bullet_group.draw(self.screen)
         pygame.display.flip()
-    
-    pygame.quit()
-    # Game Over
+
+    def run(self):
+        while self.running:
+            self.handle_events()
+            self.update()
+            self.draw()
+            self.clock.tick(60)
+        pygame.quit()
 
 
-# this calls the 'main' function when this script is executed
+def main():
+    Game().run()
+
+
 if __name__ == "__main__":
     main()
-
