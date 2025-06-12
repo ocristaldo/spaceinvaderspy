@@ -9,112 +9,15 @@ if aliens reach the bottom or the player loses all lives.
 import pygame
 import random
 import constants
+import config
+from player import Player
+from alien import Alien
+from bullet import Bullet, Bomb
+from bunker import Bunker
+from ufo import UFO
 
-# Scale the original arcade resolution for modern displays
-SCALE = 3
-SCREEN_WIDTH = constants.ORIGINAL_WIDTH * SCALE
-SCREEN_HEIGHT = constants.ORIGINAL_HEIGHT * SCALE
-
-
-class Player(pygame.sprite.Sprite):
-    """Ship controlled by the player."""
-
-    def __init__(self):
-        super().__init__()
-        self.image = pygame.Surface((22, 16))
-        self.image.fill(constants.WHITE)
-        self.rect = self.image.get_rect(midbottom=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 20))
-        self.speed = 5
-
-    def update(self, pressed):
-        if pressed[pygame.K_LEFT]:
-            self.rect.x -= self.speed
-        if pressed[pygame.K_RIGHT]:
-            self.rect.x += self.speed
-        self.rect.clamp_ip(pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT))
-
-
-class Alien(pygame.sprite.Sprite):
-    """Single alien sprite."""
-
-    def __init__(self, x, y, value):
-        super().__init__()
-        self.image = pygame.Surface((16, 12))
-        self.image.fill(constants.GREEN)
-        self.rect = self.image.get_rect(topleft=(x, y))
-        self.value = value
-
-
-class Bullet(pygame.sprite.Sprite):
-    """Bullet fired by the player."""
-
-    def __init__(self, pos):
-        super().__init__()
-        self.image = pygame.Surface((2, 8))
-        self.image.fill(constants.WHITE)
-        self.rect = self.image.get_rect(midbottom=pos)
-        self.speed = -7
-
-    def update(self):
-        self.rect.y += self.speed
-        if self.rect.bottom < 0:
-            self.kill()
-
-
-class Bomb(pygame.sprite.Sprite):
-    """Projectile dropped by an alien."""
-
-    def __init__(self, pos):
-        super().__init__()
-        self.image = pygame.Surface((2, 8))
-        self.image.fill(constants.RED)
-        self.rect = self.image.get_rect(midtop=pos)
-        self.speed = 4
-
-    def update(self):
-        self.rect.y += self.speed
-        if self.rect.top > SCREEN_HEIGHT:
-            self.kill()
-
-
-class Bunker(pygame.sprite.Sprite):
-    """Defensive bunker with simple health."""
-
-    def __init__(self, pos):
-        super().__init__()
-        self.health = 4
-        self.images = []
-        for i in range(4):
-            img = pygame.Surface((32, 24))
-            shade = 255 - i * 60
-            img.fill((shade, shade, shade))
-            self.images.append(img)
-        self.image = self.images[self.health - 1]
-        self.rect = self.image.get_rect(midbottom=pos)
-
-    def damage(self):
-        self.health -= 1
-        if self.health <= 0:
-            self.kill()
-        else:
-            self.image = self.images[self.health - 1]
-
-
-class UFO(pygame.sprite.Sprite):
-    """Mystery saucer that awards bonus points."""
-
-    def __init__(self):
-        super().__init__()
-        self.image = pygame.Surface((24, 12))
-        self.image.fill(constants.BLUE)
-        self.rect = self.image.get_rect(topleft=(-30, 30))
-        self.speed = 2
-        self.value = random.choice([50, 100, 150, 300])
-
-    def update(self):
-        self.rect.x += self.speed
-        if self.rect.left > SCREEN_WIDTH:
-            self.kill()
+SCREEN_WIDTH = config.SCREEN_WIDTH
+SCREEN_HEIGHT = config.SCREEN_HEIGHT
 
 
 class Game:
@@ -145,12 +48,12 @@ class Game:
 
     def create_aliens(self):
         group = pygame.sprite.Group()
-        margin_x = 20
-        margin_y = 40
-        spacing_x = 40
-        spacing_y = 30
-        rows = 3
-        cols = 6
+        margin_x = config.ALIEN_MARGIN_X
+        margin_y = config.ALIEN_MARGIN_Y
+        spacing_x = config.ALIEN_SPACING_X
+        spacing_y = config.ALIEN_SPACING_Y
+        rows = config.ALIEN_ROWS
+        cols = config.ALIEN_COLUMNS
         values = [30, 20, 10]
         for row in range(rows):
             for col in range(cols):
@@ -189,7 +92,7 @@ class Game:
 
     def spawn_ufo(self):
         now = pygame.time.get_ticks()
-        if now - self.last_ufo_time > 25000:
+        if now - self.last_ufo_time > config.UFO_INTERVAL:
             self.ufo_group.add(UFO())
             self.last_ufo_time = now
 
