@@ -16,8 +16,8 @@ BACKGROUND_TEXT_COLOR = 50, 50, 50                              # Text color
 GAME_BACKGROUND_COLOR = 100, 100, 200                                      # Background color
 
 # Game Screen
-ORIGINAL_WIDHT = 224
-ORIGINAL_HEIGH = 256
+ORIGINAL_WIDTH = 224
+ORIGINAL_HEIGHT = 256
 
 # Layout Constants
 ALIEN_NUMBER = 11
