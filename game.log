@@ -1,0 +1,97 @@
+2025-06-12 15:34:12,274 [INFO] Game started. Player lives=3
+2025-06-12 15:34:14,643 [INFO] Bullet fired
+2025-06-12 15:34:15,582 [INFO] Alien destroyed at (201, 70)
+2025-06-12 15:34:15,583 [INFO] Alien destroyed at (241, 70)
+2025-06-12 15:34:15,583 [INFO] Alien destroyed at (281, 70)
+2025-06-12 15:34:15,583 [INFO] Alien destroyed at (321, 70)
+2025-06-12 15:34:16,040 [INFO] Bullet fired
+2025-06-12 15:34:16,968 [INFO] Alien destroyed at (307, 80)
+2025-06-12 15:34:16,968 [INFO] Alien destroyed at (347, 80)
+2025-06-12 15:34:17,307 [INFO] Bullet fired
+2025-06-12 15:34:20,566 [INFO] Bullet fired
+2025-06-12 15:34:22,140 [INFO] Alien destroyed at (281, 60)
+2025-06-12 15:34:23,103 [INFO] Bullet fired
+2025-06-12 15:34:24,541 [INFO] Alien destroyed at (463, 120)
+2025-06-12 15:34:25,147 [INFO] Bullet fired
+2025-06-12 15:34:28,713 [INFO] Bullet fired
+2025-06-12 15:34:30,634 [INFO] Bullet fired
+2025-06-12 15:34:33,275 [INFO] Bullet fired
+2025-06-12 15:34:36,677 [INFO] Bullet fired
+2025-06-12 15:34:37,284 [INFO] UFO spawned
+2025-06-12 15:34:39,127 [INFO] Bullet fired
+2025-06-12 15:34:40,998 [INFO] Bullet fired
+2025-06-12 15:34:42,518 [INFO] Alien destroyed at (488, 80)
+2025-06-12 15:34:44,121 [INFO] Bullet fired
+2025-06-12 15:34:45,490 [INFO] Alien destroyed at (376, 150)
+2025-06-12 15:34:46,227 [INFO] Bullet fired
+2025-06-12 15:34:47,576 [INFO] Alien destroyed at (372, 150)
+2025-06-12 15:34:47,914 [INFO] Bullet fired
+2025-06-12 15:34:50,554 [INFO] Bullet fired
+2025-06-12 15:34:51,883 [INFO] Alien destroyed at (458, 160)
+2025-06-12 15:34:52,629 [INFO] Bullet fired
+2025-06-12 15:34:54,523 [INFO] Bullet fired
+2025-06-12 15:34:57,615 [INFO] Bullet fired
+2025-06-12 15:35:01,241 [INFO] Bullet fired
+2025-06-12 15:35:02,289 [INFO] UFO spawned
+2025-06-12 15:35:03,649 [INFO] Bullet fired
+2025-06-12 15:35:05,743 [INFO] Bullet fired
+2025-06-12 15:35:07,112 [INFO] Alien destroyed at (300, 140)
+2025-06-12 15:35:08,398 [INFO] Bullet fired
+2025-06-12 15:35:10,250 [INFO] Bullet fired
+2025-06-12 15:35:12,575 [INFO] Bullet fired
+2025-06-12 15:35:15,635 [INFO] Bullet fired
+2025-06-12 15:35:16,810 [INFO] Alien destroyed at (430, 230)
+2025-06-12 15:35:17,807 [INFO] Bullet fired
+2025-06-12 15:35:19,598 [INFO] Bullet fired
+2025-06-12 15:35:21,611 [INFO] Bullet fired
+2025-06-12 15:35:23,741 [INFO] Bullet fired
+2025-06-12 15:35:25,757 [INFO] Bullet fired
+2025-06-12 15:35:27,294 [INFO] UFO spawned
+2025-06-12 15:35:28,278 [INFO] Bullet fired
+2025-06-12 15:35:29,913 [INFO] UFO destroyed for 100 points
+2025-06-12 15:35:30,423 [INFO] Bullet fired
+2025-06-12 15:35:32,939 [INFO] Bullet fired
+2025-06-12 15:35:34,139 [INFO] Alien destroyed at (260, 210)
+2025-06-12 15:35:34,698 [INFO] Bullet fired
+2025-06-12 15:35:36,493 [INFO] Bullet fired
+2025-06-12 15:35:39,312 [INFO] Bullet fired
+2025-06-12 15:35:41,409 [INFO] Bullet fired
+2025-06-12 15:35:43,894 [INFO] Bullet fired
+2025-06-12 15:35:46,357 [INFO] Bullet fired
+2025-06-12 15:35:48,166 [INFO] Bullet fired
+2025-06-12 15:35:51,723 [INFO] Bullet fired
+2025-06-12 15:35:52,300 [INFO] UFO spawned
+2025-06-12 15:35:54,093 [INFO] Bullet fired
+2025-06-12 15:35:56,542 [INFO] Bullet fired
+2025-06-12 15:35:58,825 [INFO] Bullet fired
+2025-06-12 15:35:59,890 [INFO] Alien destroyed at (306, 280)
+2025-06-12 15:36:02,007 [INFO] Bullet fired
+2025-06-12 15:36:04,672 [INFO] Bullet fired
+2025-06-12 15:36:07,954 [INFO] Bullet fired
+2025-06-12 15:36:11,862 [INFO] Bullet fired
+2025-06-12 15:36:14,136 [INFO] Bullet fired
+2025-06-12 15:36:16,263 [INFO] Bullet fired
+2025-06-12 15:36:17,313 [INFO] UFO spawned
+2025-06-12 15:36:18,312 [INFO] Bullet fired
+2025-06-12 15:36:20,783 [INFO] Bullet fired
+2025-06-12 15:36:25,377 [INFO] Bullet fired
+2025-06-12 15:36:27,796 [INFO] Bullet fired
+2025-06-12 15:36:30,179 [INFO] Bullet fired
+2025-06-12 15:36:33,649 [INFO] Bullet fired
+2025-06-12 15:36:37,533 [INFO] Bullet fired
+2025-06-12 15:36:39,460 [INFO] Bullet fired
+2025-06-12 15:36:41,878 [INFO] Bullet fired
+2025-06-12 15:36:42,317 [INFO] UFO spawned
+2025-06-12 15:36:42,672 [INFO] Alien destroyed at (328, 380)
+2025-06-12 15:36:44,271 [INFO] Bullet fired
+2025-06-12 15:36:44,934 [INFO] Alien destroyed at (436, 440)
+2025-06-12 15:36:44,935 [INFO] Game over: all aliens destroyed
+2025-06-12 15:36:44,935 [INFO] Stopping main loop
+2025-06-12 15:36:47,935 [INFO] Game started. Player lives=3
+2025-06-12 15:36:47,935 [INFO] Game restarted after game over
+2025-06-12 15:36:54,075 [WARNING] Player hit! Lives left=2
+2025-06-12 15:36:56,474 [WARNING] Player hit! Lives left=1
+2025-06-12 15:36:59,854 [INFO] Bullet fired
+2025-06-12 15:37:00,391 [WARNING] Player hit! Lives left=0
+2025-06-12 15:37:00,392 [INFO] Game over: player destroyed
+2025-06-12 15:37:00,392 [INFO] Stopping main loop

@@ -1,6 +1,6 @@
 import pygame
-from . import constants
-from . import config
+import constants
+import config
 
 class Bullet(pygame.sprite.Sprite):
     """Bullet fired by the player."""

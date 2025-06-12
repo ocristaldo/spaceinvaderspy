@@ -1,7 +1,7 @@
 import os
 import pygame
-from . import constants
-from . import config
+import constants
+import config
 
 class Alien(pygame.sprite.Sprite):
     """Single alien sprite."""

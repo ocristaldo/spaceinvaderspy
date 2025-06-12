@@ -1,5 +1,5 @@
 import os
-from . import constants
+import constants
 
 BASE_DIR = os.path.dirname(__file__)
 ASSETS_DIR = os.path.join(os.path.dirname(BASE_DIR), "assets")

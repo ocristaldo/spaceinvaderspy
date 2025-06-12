@@ -13,13 +13,13 @@ educational purposes only. It includes no original assets or code from the
 import logging
 import pygame
 import random
-from . import constants
-from . import config
-from .player import Player
-from .alien import Alien
-from .bullet import Bullet, Bomb
-from .bunker import Bunker
-from .ufo import UFO
+import constants
+import config
+from player import Player
+from alien import Alien
+from bullet import Bullet, Bomb
+from bunker import Bunker
+from ufo import UFO
 
 logging.basicConfig(
     level=logging.INFO,
