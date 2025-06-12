@@ -9,6 +9,7 @@ class Bunker(pygame.sprite.Sprite):
         self.health = 4
         self.images = []
         for i in range(4):
+            # Simple grayscale damage states
             img = pygame.Surface((32, 24))
             shade = 255 - i * 60
             img.fill((shade, shade, shade))
@@ -17,6 +18,7 @@ class Bunker(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(midbottom=pos)
 
     def damage(self):
+        """Reduce health and update appearance."""
         self.health -= 1
         if self.health <= 0:
             self.kill()

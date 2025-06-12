@@ -14,6 +14,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.y += self.speed
+        # Remove the bullet when it leaves the top of the screen
         if self.rect.bottom < 0:
             self.kill()
 
@@ -30,5 +31,6 @@ class Bomb(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.y += self.speed
+        # Remove the bomb when it falls below the screen
         if self.rect.top > config.SCREEN_HEIGHT:
             self.kill()

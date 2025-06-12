@@ -17,4 +17,5 @@ class Player(pygame.sprite.Sprite):
             self.rect.x -= self.speed
         if pressed[pygame.K_RIGHT]:
             self.rect.x += self.speed
+        # Keep the player within the screen bounds
         self.rect.clamp_ip(pygame.Rect(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT))

@@ -9,4 +9,5 @@ class Alien(pygame.sprite.Sprite):
         self.image = pygame.Surface((16, 12))
         self.image.fill(constants.GREEN)
         self.rect = self.image.get_rect(topleft=(x, y))
+        # Points awarded when this alien is destroyed
         self.value = value

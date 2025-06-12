@@ -1,52 +1,17 @@
-"""
-This module is used to pull individual sprites from sprite sheets.
-"""
+"""Utility for extracting sprites from a sprite sheet."""
 import pygame
- 
 import constants
- 
-class SpriteSheet(object):
-    """ Class used to grab images out of a sprite sheet. """
- 
-    def __init__(self, file_name):
-        """ Constructor. Pass in the file name of the sprite sheet. """
- 
-        # Load the sprite sheet.
+
+
+class SpriteSheet:
+    """Load a sprite sheet image and provide access to individual sprites."""
+
+    def __init__(self, file_name: str):
         self.sprite_sheet = pygame.image.load(file_name).convert()
- 
- 
-    def get_image(self, x, y, width, height):
-        """ Grab a single image out of a larger spritesheet
-            Pass in the x, y location of the sprite
-            and the width and height of the sprite. """
- 
-        # Create a new blank image
+
+    def get_image(self, x: int, y: int, width: int, height: int) -> pygame.Surface:
+        """Return a single sprite from the loaded sheet."""
         image = pygame.Surface([width, height]).convert()
- 
-        # Copy the sprite from the large sheet onto the smaller image
         image.blit(self.sprite_sheet, (0, 0), (x, y, width, height))
- 
-        # Assuming black works as the transparent color
         image.set_colorkey(constants.KEY_COLOR)
- 
-        # Return the image
         return image
-
-"""
-    def get_image(self, img_address):
-       
-        
-        # Create a new blank image
-        #image = pygame.Surface([width, height]).convert()
-        image = pygame.Surface([img_address[2], height[3]]).convert()
-
-        # Copy the sprite from the large sheet onto the smaller image
-        #image.blit(self.sprite_sheet, (0, 0), (x, y, width, height))
-        image.blit(self.sprite_sheet, (0, 0), (img_address[0], img_address[1], img_address[2], img_address[3]))
- 
-        # Assuming black works as the transparent color
-        image.set_colorkey(constants.BLACK)
- 
-        # Return the image
-        return image
-"""

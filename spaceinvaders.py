@@ -24,11 +24,14 @@ class Game:
     """Main game controller."""
 
     def __init__(self):
-        pygame.init()
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Space Invaders")
-        self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont("monospace", 16)
+        try:
+            pygame.init()
+            self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+            pygame.display.set_caption("Space Invaders")
+            self.clock = pygame.time.Clock()
+            self.font = pygame.font.SysFont("monospace", 16)
+        except pygame.error as exc:
+            raise RuntimeError("Pygame failed to initialize") from exc
         self.running = True
         self.game_over = False
 
@@ -47,6 +50,7 @@ class Game:
         self.last_ufo_time = pygame.time.get_ticks()
 
     def create_aliens(self):
+        """Create the alien formation."""
         group = pygame.sprite.Group()
         margin_x = config.ALIEN_MARGIN_X
         margin_y = config.ALIEN_MARGIN_Y
@@ -63,6 +67,7 @@ class Game:
         return group
 
     def create_bunkers(self):
+        """Create defensive bunkers for the player."""
         group = pygame.sprite.Group()
         spacing = SCREEN_WIDTH // (constants.BLOCK_NUMBER + 1)
         y = SCREEN_HEIGHT - 60
@@ -72,6 +77,7 @@ class Game:
         return group
 
     def handle_events(self):
+        """Process keyboard and window events."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -83,6 +89,7 @@ class Game:
                     self.__init__()
 
     def spawn_bomb(self):
+        """Randomly drop a bomb from an existing alien."""
         if not self.alien_group:
             return
         if random.random() < 0.02:
@@ -91,12 +98,14 @@ class Game:
             self.bomb_group.add(bomb)
 
     def spawn_ufo(self):
+        """Spawn a UFO at regular intervals."""
         now = pygame.time.get_ticks()
         if now - self.last_ufo_time > config.UFO_INTERVAL:
             self.ufo_group.add(UFO())
             self.last_ufo_time = now
 
     def update(self):
+        """Update game state for the current frame."""
         pressed = pygame.key.get_pressed()
         self.player_group.update(pressed)
         self.bullet_group.update()
@@ -152,6 +161,7 @@ class Game:
             self.running = False
 
     def draw(self):
+        """Render all sprites and HUD to the screen."""
         self.screen.fill(constants.BLACK)
         self.player_group.draw(self.screen)
         self.alien_group.draw(self.screen)
@@ -167,6 +177,7 @@ class Game:
         pygame.display.flip()
 
     def game_over_screen(self):
+        """Display the game over screen and wait for restart."""
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -181,6 +192,7 @@ class Game:
             self.clock.tick(60)
 
     def run(self):
+        """Main loop: process events, update logic and draw frames."""
         while self.running:
             self.handle_events()
             self.update()
