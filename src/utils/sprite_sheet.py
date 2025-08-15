@@ -140,34 +140,35 @@ class SpriteSheet:
 # Mapping from game entity names to arcade JSON sprite names
 ARCADE_SPRITE_MAPPING = {
     # Player ship sprites
-    'player': 'player_cannon_arcade',
-    'player_explosion': 'player_explosion_arcade_frame1',
-    
+    'player': 'player_cannon_jumbo_arcade_frame1',
+    # No explosion sprite in JSON, fallback to explosion_arcade_frame1
+    'player_explosion': 'explosion_arcade_frame1',
+
     # Alien sprites (different types and animation frames)
-    'alien_squid_1': 'invader_squid_arcade_frame1',
-    'alien_squid_2': 'invader_squid_arcade_frame2',
-    'alien_crab_1': 'invader_crab_arcade_frame1',
-    'alien_crab_2': 'invader_crab_arcade_frame2',
-    'alien_octopus_1': 'invader_octopus_arcade_frame1',
-    'alien_octopus_2': 'invader_octopus_arcade_frame2',
-    
+    'alien_squid_1': 'invader_squid_jumbo_arcade_frame1',
+    'alien_squid_2': 'invader_squid_jumbo_arcade_frame2',
+    'alien_crab_1': 'invader_crab_jumbo_arcade_frame1',
+    'alien_crab_2': 'invader_crab_jumbo_arcade_frame2',
+    'alien_octopus_1': 'invader_octopus_jumbo_arcade_frame1',
+    'alien_octopus_2': 'invader_octopus_jumbo_arcade_frame2',
+
     # UFO (mystery ship)
-    'ufo': 'ufo_arcade',
-    
+    'ufo': 'ufo_jumbo_arcade_frame1',
+
     # Projectiles
-    'bullet': 'player_shot_arcade',
-    'bomb_1': 'enemy_bomb_arcade_frame1',
-    'bomb_2': 'enemy_bomb_arcade_frame2',
-    'bomb_3': 'enemy_bomb_arcade_frame1',  # Reuse frame1 for variety
-    
+    'bullet': 'projectile_player_missile_arcade',
+    'bomb_1': 'projectile_enemy_bomb_arcade_variant1',
+    'bomb_2': 'projectile_enemy_bomb_arcade_variant2',
+    'bomb_3': 'projectile_enemy_bomb_arcade_variant3',
+
     # Bunker pieces (for destructible bunkers)
-    'bunker_full': 'barricade_arcade',
-    'bunker_damaged_1': 'barricade_arcade',  # Will need damage logic
-    'bunker_damaged_2': 'barricade_arcade',
-    'bunker_damaged_3': 'barricade_arcade',
-    
+    'bunker_full': 'barricade_arcade_full',
+    'bunker_damaged_1': 'barricade_arcade_full',  # No damaged variants in JSON
+    'bunker_damaged_2': 'barricade_arcade_full',
+    'bunker_damaged_3': 'barricade_arcade_full',
+
     # Explosion sprites
-    'explosion': 'player_explosion_arcade_frame1',
+    'explosion': 'explosion_arcade_frame1',
 }
 
 

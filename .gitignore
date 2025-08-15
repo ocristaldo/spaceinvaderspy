@@ -1,8 +1,48 @@
 .vscode/settings.json
-__pycache__/aliens.cpython-38.pyc
-__pycache__/constants.cpython-38.pyc
-__pycache__/spritesheet.cpython-38.pyc
-__pycache__/sslist.cpython-38.pyc
-__pycache__/helper.cpython-38.pyc
+*.pyc
 Space Invaders Color Edition.docx
 game.log
+/spaceinvaders
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+# Ignore virtual environment directories
+venv/
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+# Ignore IDE specific files
+.idea/
+# Ignore log files
+*.log
+# Ignore coverage reports
+coverage.xml
+*.coverage
+*.py,cover
+# Ignore build directories
+build/
+dist/
+# Ignore package distribution files
+*.egg-info/
+*.egg
+# Ignore test output files
+test_output/
+# Ignore configuration files
+*.cfg
+*.ini
+# Ignore environment files
+.env
+# Ignore data files
+data/
+# Ignore documentation files
+docs/
+# Ignore temporary files
+*.tmp
+# Ignore backup files
+*.bak
+# Ignore system files
+.DS_Store
+Thumbs.db
+# Ignore editor swap files
+*~
+# Ignore compiled files
+*.o             
