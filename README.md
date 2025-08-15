@@ -8,13 +8,29 @@ This project is under active development. Features and fixes are being added reg
 
 ## 🎮 Current Features
 
-- Classic Space Invaders gameplay
-- Alien formation movement
-- Player ship controls
-- Bunkers for defense
-- UFO bonus enemy
-- Scoring system
-- Lives system
+### Core Gameplay
+- Classic Space Invaders gameplay mechanics
+- Alien formation movement with increasing speed
+- Player ship controls (left/right movement, shooting)
+- Destructible bunkers for defense
+- UFO bonus enemy with random point values
+- Scoring system with different alien point values
+- Lives system (3 lives)
+
+### Advanced Features
+- **Sprite Sheet System**: Authentic arcade sprites loaded from JSON coordinate files
+- **Multi-Platform Sprite Support**: 
+  - Arcade (original)
+  - Atari 2600
+  - Deluxe edition
+  - Intellivision
+- **Sprite Viewer**: Interactive testing mode to view all sprites
+  - Key combinations: S+1 (Arcade), S+2 (Atari), S+3 (Deluxe), S+4 (Intellivision)
+  - Pagination with arrow keys (← →)
+  - Detailed sprite information display
+  - Platform switching without game restart
+- **Animated Sprites**: Alien animation with frame switching
+- **Comprehensive Logging**: Debug and info logging throughout the game
 
 ## 📋 Requirements
 
@@ -123,11 +139,25 @@ python3 -m unittest discover tests
 ## 📁 Project Structure
 ```
 spaceinvaderspy/
-├── src/              # Source code
-├── assets/           # Game assets (images, sounds)
-│   └── images/       # Sprite images
-├── tests/            # Unit tests
-└── requirements.txt  # Python dependencies
+├── src/                    # Source code
+│   ├── entities/          # Game entities (Player, Alien, Bullet, etc.)
+│   ├── utils/             # Utility modules (SpriteSheet, SpriteViewer, Logger)
+│   ├── core/              # Core game systems
+│   ├── states/            # Game states
+│   ├── main.py            # Main game entry point
+│   ├── config.py          # Game configuration
+│   └── constants.py       # Game constants
+├── assets/                # Game assets
+│   └── images/           # Sprite images and JSON coordinate files
+│       ├── SpaceInvaders.png           # Main sprite sheet
+│       ├── SpaceInvaders.arcade.json   # Arcade sprite coordinates
+│       ├── SpaceInvaders.atari.json    # Atari 2600 coordinates
+│       ├── SpaceInvaders.deluxe.json   # Deluxe coordinates
+│       └── SpaceInvaders.intellivision.json # Intellivision coordinates
+├── tests/                 # Unit and integration tests
+├── docs/                  # Documentation
+├── requirements.txt       # Python dependencies
+└── README.md             # This file
 ```
 
 ## 🤝 Contributing
@@ -148,14 +178,24 @@ To contribute:
 
 ## 🎯 Game Controls
 
-- Left Arrow/Right Arrow: Move player ship
-- Space: Fire bullet
-- R: Restart game (when game over)
-- Q: Quit game
+### Basic Controls
+- **Left Arrow/Right Arrow**: Move player ship
+- **Space**: Fire bullet (one bullet at a time)
+- **R**: Restart game (when game over) or exit sprite viewer
+- **Q**: Quit game
+
+### Sprite Viewer Controls
+- **S+1**: View Arcade sprites
+- **S+2**: View Atari 2600 sprites  
+- **S+3**: View Deluxe sprites
+- **S+4**: View Intellivision sprites
+- **← →**: Navigate between sprite pages
+- **R**: Return to game from sprite viewer
 
 ## 🐛 Known Issues
 
-- [Your known issues here]
+- Sprite viewer navigation has been optimized with debouncing
+- Some sprite coordinate files may need platform-specific adjustments
 - Please report any bugs in the Issues section
 
 ## 📝 License
@@ -175,8 +215,23 @@ This is an unofficial fan project created for educational purposes only. It incl
 
 ## 🔜 Roadmap
 
-- Add sound effects
-- Implement high score system
-- Add different levels with increasing difficulty
-- Add power-ups and special weapons
-- Create custom sprite animations
+### Completed ✅
+- ✅ Sprite sheet system with JSON coordinates
+- ✅ Multi-platform sprite support (4 platforms)
+- ✅ Interactive sprite viewer with pagination
+- ✅ Comprehensive logging system
+- ✅ Animated alien sprites
+- ✅ Key press debouncing for sprite viewer
+
+### In Progress 🚧
+- 🚧 Documentation updates and improvements
+- 🚧 Code review and best practices implementation
+
+### Planned 📋
+- 📋 Sound effects and music
+- 📋 High score system with persistence
+- 📋 Different levels with increasing difficulty
+- 📋 Power-ups and special weapons
+- 📋 Enhanced sprite animations and effects
+- 📋 Menu system and game states
+- 📋 Configuration file for game settings

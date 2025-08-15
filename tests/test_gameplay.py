@@ -7,8 +7,8 @@ except ImportError:  # pragma: no cover - skip tests if pygame missing
 if pygame:
     from src import main
     from src import config
-    from src.alien import Alien
-    from src.bullet import Bullet
+    from src.entities.alien import Alien
+    from src.entities.bullet import Bullet
 else:
     main = config = Alien = Bullet = None
 
@@ -26,6 +26,10 @@ class CollisionTest(unittest.TestCase):
         bullet = Bullet((50, 50))
         game.alien_group.add(alien)
         game.bullet_group.add(bullet)
+        
+        # Position bullet and alien to overlap for collision
+        bullet.rect.center = alien.rect.center
+        
         game.update()
         self.assertEqual(game.score, 10)
         self.assertFalse(game.alien_group)
