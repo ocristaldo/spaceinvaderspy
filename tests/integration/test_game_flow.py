@@ -74,16 +74,14 @@ class TestGameFlow(unittest.TestCase):
         self.assertEqual(len(self.game.bullet_group), 0)
         self.assertGreater(len(self.game.alien_group), initial_alien_count)
     
-    def test_alien_destruction_victory(self):
-        """Test victory condition when all aliens destroyed."""
-        # Remove all aliens
+    def test_alien_destruction_advances_wave(self):
+        """Clearing all aliens should advance to the next wave."""
         self.game.alien_group.empty()
-        
-        # Simulate update cycle
+        current_level = self.game.level
         self.game.update()
-        
-        # Should trigger game over
-        self.assertTrue(self.game.game_over)
+        self.assertFalse(self.game.game_over)
+        self.assertEqual(self.game.level, current_level + 1)
+        self.assertGreater(len(self.game.alien_group), 0)
     
     def test_alien_invasion_defeat(self):
         """Test defeat condition when aliens reach bottom."""
@@ -132,18 +130,13 @@ class TestErrorScenarios(unittest.TestCase):
         pygame.display.set_mode((1, 1))
     
     def test_empty_alien_group_handling(self):
-        """Test game handles empty alien group correctly."""
+        """Test game handles empty alien group by starting next wave."""
         game = Game()
         game.alien_group.empty()
-        
-        # Should not crash when spawning bombs
         game.spawn_bomb()
-        
-        # Should not crash during update
         game.update()
-        
-        # Should trigger victory condition
-        self.assertTrue(game.game_over)
+        self.assertFalse(game.game_over)
+        self.assertEqual(game.level, 2)
     
     def test_multiple_resets(self):
         """Test multiple consecutive resets work correctly."""
@@ -174,8 +167,9 @@ class TestErrorScenarios(unittest.TestCase):
         # Should not crash
         game.update()
         
-        # Verify game over triggered (no aliens = victory)
-        self.assertTrue(game.game_over)
+        # Verify next wave started instead of game over
+        self.assertFalse(game.game_over)
+        self.assertEqual(game.level, 2)
 
 
 if __name__ == '__main__':

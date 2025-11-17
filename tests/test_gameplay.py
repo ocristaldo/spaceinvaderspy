@@ -30,10 +30,26 @@ class CollisionTest(unittest.TestCase):
         # Position bullet and alien to overlap for collision
         bullet.rect.center = alien.rect.center
         
+        current_level = game.level
         game.update()
         self.assertEqual(game.score, 10)
-        self.assertFalse(game.alien_group)
+        self.assertGreater(len(game.alien_group), 0)
         self.assertFalse(game.bullet_group)
+
+    def test_player_bullet_intercepts_bomb(self):
+        game = main.Game()
+        from src.entities.bullet import Bullet, Bomb
+        game.bullet_group.empty()
+        game.bomb_group.empty()
+        bullet = Bullet((200, 200))
+        bomb = Bomb((200, 200))
+        bullet.rect.center = (220, 260)
+        bomb.rect.center = bullet.rect.center
+        game.bullet_group.add(bullet)
+        game.bomb_group.add(bomb)
+        game.update()
+        self.assertFalse(game.bullet_group)
+        self.assertFalse(game.bomb_group)
 
 
 @unittest.skipIf(pygame is None, "pygame not available")
@@ -51,4 +67,3 @@ class AlienMovementTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

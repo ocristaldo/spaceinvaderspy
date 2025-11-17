@@ -18,9 +18,12 @@ A work-in-progress recreation of the classic Space Invaders arcade game built wi
 
 ### Core Gameplay (today)
 - Classic Space Invaders loop: marching formations, incremental speed-ups
-- Player ship controls (left/right movement, single-shot firing)
-- Destructible bunkers for defense
-- UFO bonus enemy with random point values
+- Multi-wave progression with a visible level counter (aliens respawn faster each wave)
+- Configurable logical playfield scale (`SPACEINVADERS_SCALE`, default 2×) with automatic letterboxing so you can resize or zoom to taste
+- Player ship controls (left/right movement, authentic single-shot firing — raise the limit with `SPACEINVADERS_PLAYER_SHOTS` if you prefer modern pacing)
+- Destructible bunkers for defense (now spaced farther from the cannon to avoid overlap)
+- UFO bonus enemy with random point values and floating score popups
+- Player shots can intercept alien bombs mid-air (straight out of the arcade feel)
 - Scoring system with per-alien values and 3-life structure
 
 ### Galaga-inspired Goals (in progress)
@@ -49,6 +52,8 @@ A work-in-progress recreation of the classic Space Invaders arcade game built wi
 ## 📚 Gameplay Vision
 - `docs/GALAGA_SPEC.md` captures the Galaga mechanics we plan to graft onto this project: multi-wave progression, tractor beams, challenge stages, and attract/credit loops.
 - `docs/GAMEPLAY_OVERVIEW.md` explains how the current Space Invaders implementation works, making it easier to identify where Galaga systems will slot in.
+- `docs/SPRITES.md` catalogs every sprite in the JSON atlas and how the code uses it (handy when updating bunkers/FX).
+- `docs/space_invaders_start_screen.png` (and other reference PNGs in `docs/`) provide the visual targets for layout, colors, and HUD placement. Use them when adjusting positions or art.
 - Roadmap items below link directly back to these documents so design and implementation stay aligned.
 
 ## 📋 Requirements
@@ -93,10 +98,17 @@ cd spaceinvaderspy
 python3 -m pip install -r requirements.txt
 ```
 
-Quick start (macOS users)
--------------------------
+Quick start script (all platforms)
+----------------------------------
 
-This project includes a small helper script `workon.sh` that creates a virtualenv, installs dependencies, optionally runs tests, and drops you into an interactive shell with the venv active. See `QUICK_START.md` for usage and examples.
+Use `./spaceinvaders.sh` to handle the entire toolchain:
+
+- `./spaceinvaders.sh` → create/activate `.venv` (if needed), install requirements once, launch the game.
+- `./spaceinvaders.sh test` → ensure dependencies and run `pytest -q`.
+- `./spaceinvaders.sh shell` → drop into an interactive shell with the managed virtualenv activated.
+- Pass `SPACEINVADERS_WINDOW_SCALE=1.5 ./spaceinvaders.sh` to pick the initial window size (the game now renders to a logical playfield and scales/letterboxes to any window size you drag it to).
+
+The script automatically skips creation/installation when you're already inside any virtualenv, so you can opt into a custom environment without extra prompts.
 
 Coverage
 --------
@@ -150,7 +162,14 @@ python3 -m pip install -r requirements.txt
 
 ## 🎮 Running the Game
 
-After installation, run the game using:
+After installation, the quickest way to play is:
+
+```bash
+./spaceinvaders.sh
+```
+
+This ensures the virtualenv exists, installs requirements if needed, and launches `python -m src.main`.  
+Prefer manual commands? Use the per-platform invocations below:
 
 ### Windows
 ```powershell
@@ -164,15 +183,33 @@ python3 -m src.main
 
 ## 🧪 Running Tests
 
+Quick path:
+
+```bash
+./spaceinvaders.sh test
+```
+
+Manual commands:
+
 ### Windows
 ```powershell
-py -m unittest discover tests
+py -m pytest -v
 ```
 
 ### macOS/Linux/Raspberry Pi
 ```bash
-python3 -m unittest discover tests
+python3 -m pytest -v
 ```
+
+## ⚙️ Configuration Tweaks
+
+You can tweak the arcade feel without editing code by setting environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SPACEINVADERS_SCALE` | `2.0` | Logical playfield scale factor (2× = 448×512). Set `3.0` for the roomy 672×768 view or any value between 1–4. |
+| `SPACEINVADERS_WINDOW_SCALE` | `1.0` | Initial OS window scaling multiplier (the window still resizes freely). |
+| `SPACEINVADERS_PLAYER_SHOTS` | `1` | Maximum number of player bullets allowed on-screen. Raise to modernize the pacing while keeping the default authentic. |
 
 ## 📁 Project Structure
 ```
@@ -218,7 +255,8 @@ To contribute:
 
 ### Basic Controls
 - **Left Arrow/Right Arrow**: Move player ship
-- **Space**: Fire bullet (one bullet at a time)
+- **Space**: Fire bullet (default: one bullet at a time)
+- **Space (after losing a life)**: Respawn and resume play when prompted
 - **R**: Restart game (when game over) or exit sprite viewer
 - **Q**: Quit game
 

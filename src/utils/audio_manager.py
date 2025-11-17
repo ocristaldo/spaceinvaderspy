@@ -16,11 +16,18 @@ class AudioManager:
 
     def __init__(self):
         """Initialize the audio manager with muted audio by default."""
-        pygame.mixer.init()
         self.enabled = False  # Muted by default
         self.volume = 0.7  # 70% volume
         self.sounds = {}
         self.music = None
+        self.available = False
+        try:
+            pygame.mixer.init()
+            self.available = True
+        except pygame.error as exc:
+            logger.warning("Audio disabled: %s", exc)
+            return
+
         self._load_sounds()
         logger.info("AudioManager initialized (muted by default)")
 
@@ -69,7 +76,7 @@ class AudioManager:
 
     def play_sound(self, key):
         """Play a sound effect if audio is enabled and the sound exists."""
-        if not self.enabled or key not in self.sounds:
+        if not self.available or not self.enabled or key not in self.sounds:
             return
         
         try:
@@ -82,6 +89,9 @@ class AudioManager:
 
     def toggle_audio(self):
         """Toggle audio on/off."""
+        if not self.available:
+            logger.info("Audio toggle ignored; mixer not available.")
+            return
         self.enabled = not self.enabled
         status = "enabled" if self.enabled else "disabled"
         logger.info(f"Audio toggled: {status}")
@@ -97,6 +107,8 @@ class AudioManager:
 
     def set_volume(self, volume):
         """Set master volume (0.0 to 1.0)."""
+        if not self.available:
+            return
         self.volume = max(0.0, min(1.0, volume))
         pygame.mixer.music.set_volume(self.volume)
         logger.info(f"Volume set to {self.volume * 100:.0f}%")
@@ -111,12 +123,14 @@ class AudioManager:
 
     def stop_all(self):
         """Stop all sounds and music."""
-        pygame.mixer.stop()
-        pygame.mixer.music.stop()
-        logger.info("All audio stopped")
+        if self.available:
+            pygame.mixer.stop()
+            pygame.mixer.music.stop()
+            logger.info("All audio stopped")
 
     def cleanup(self):
         """Clean up audio resources."""
-        pygame.mixer.stop()
-        pygame.mixer.music.stop()
-        logger.info("Audio cleanup complete")
+        if self.available:
+            pygame.mixer.stop()
+            pygame.mixer.music.stop()
+            logger.info("Audio cleanup complete")

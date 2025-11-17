@@ -33,21 +33,29 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
-SCREEN_WIDTH = config.SCREEN_WIDTH
-SCREEN_HEIGHT = config.SCREEN_HEIGHT
-
 
 class Game:
     """Main game controller."""
 
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        initial_size = config.get_window_size(config.DEFAULT_WINDOW_SCALE)
+        self.screen = pygame.display.set_mode(initial_size, pygame.RESIZABLE)
         pygame.display.set_caption("Space Invaders")
+        self.logical_width = config.BASE_WIDTH
+        self.logical_height = config.BASE_HEIGHT
+        self.playfield_surface = pygame.Surface((self.logical_width, self.logical_height))
+        self.window_width, self.window_height = self.screen.get_size()
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("monospace", 16)
+        self.small_font = pygame.font.SysFont("monospace", 12)
         self.running = True
         self.game_over = False
+        self.waiting_for_respawn = False
+        self.level = 1
+        self.wave_message_text = ""
+        self.wave_message_timer = 0
+        self.floating_texts = []
 
         # State management
         self.state_manager = GameStateManager()
@@ -71,6 +79,7 @@ class Game:
 
         self.alien_group = self.create_aliens()
         self.alien_direction = 1
+        self._reset_alien_progression()
         
         # Sprite viewer for testing
         self.sprite_viewer = SpriteViewer(self.screen)
@@ -81,12 +90,22 @@ class Game:
         self.last_ufo_time = pygame.time.get_ticks()
         logging.info("Game started. Player lives=%d. Audio muted by default (press 'A' to toggle)", self.lives)
 
+    @property
+    def state(self):
+        """Backwards-compatible string state for existing tests/utilities."""
+        return self.state_manager.current_state.name
+
     def reset_game(self):
         """Reset the game to initial state."""
         self.game_over = False
+        self.waiting_for_respawn = False
         self.score = 0
         self.lives = constants.LIVES_NUMBER
         self.lives_awarded = 0
+        self.level = 1
+        self.wave_message_text = "Ready!"
+        self.wave_message_timer = pygame.time.get_ticks() + 2000
+        self.state_manager.change_state(GameState.PLAYING)
         
         # Clear all sprite groups
         self.bullet_group.empty()
@@ -94,8 +113,7 @@ class Game:
         self.ufo_group.empty()
         
         # Reset player
-        self.player = Player()
-        self.player_group = pygame.sprite.GroupSingle(self.player)
+        self._respawn_player()
         
         # Recreate aliens and bunkers
         self.alien_group = self.create_aliens()
@@ -103,35 +121,65 @@ class Game:
         
         # Reset alien movement
         self.alien_direction = 1
-        self.alien_speed = config.ALIEN_START_SPEED
-        self.initial_alien_count = len(self.alien_group)
+        self._reset_alien_progression()
         self.last_ufo_time = pygame.time.get_ticks()
         
         logging.info("Game reset complete")
 
     def create_aliens(self):
         group = pygame.sprite.Group()
-        margin_x = config.ALIEN_MARGIN_X
         margin_y = config.ALIEN_MARGIN_Y
-        spacing_x = config.ALIEN_SPACING_X
         spacing_y = config.ALIEN_SPACING_Y
         rows = config.ALIEN_ROWS
         cols = config.ALIEN_COLUMNS
         values = [30, 20, 20, 10, 10]  # Top row worth most points
-        for row in range(rows):
-            for col in range(cols):
-                x = margin_x + col * spacing_x
-                y = margin_y + row * spacing_y
-                group.add(Alien(x, y, values[row]))
+
+        # Get sprite dimensions for centering
+        from .utils.sprite_sheet import get_game_sprite
+        sprite_widths = {
+            30: get_game_sprite('alien_squid_1', config.SPRITE_SCALE).get_width(),
+            20: get_game_sprite('alien_crab_1', config.SPRITE_SCALE).get_width(),
+            10: get_game_sprite('alien_octopus_1', config.SPRITE_SCALE).get_width(),
+        }
+        sprite_heights = {
+            30: get_game_sprite('alien_squid_1', config.SPRITE_SCALE).get_height(),
+            20: get_game_sprite('alien_crab_1', config.SPRITE_SCALE).get_height(),
+            10: get_game_sprite('alien_octopus_1', config.SPRITE_SCALE).get_height(),
+        }
+        max_row_height = max(sprite_heights.values())
+
+        available_width = self.logical_width - (2 * config.ALIEN_MARGIN_X)
+
+        for row_idx, value in enumerate(values):
+            alien_width = sprite_widths[value]
+            preferred_spacing = config.ALIEN_SPACING_X
+            row_width = (cols * alien_width) + (cols - 1) * preferred_spacing
+
+            if row_width > available_width and cols > 1:
+                spacing_candidate = (available_width - (cols * alien_width)) / (cols - 1)
+                preferred_spacing = max(config.ALIEN_MIN_SPACING_X, spacing_candidate)
+                row_width = (cols * alien_width) + (cols - 1) * preferred_spacing
+
+            x_offset = max(
+                config.ALIEN_MARGIN_X,
+                (self.logical_width - row_width) / 2
+            )
+            
+            for col_idx in range(cols):
+                x = x_offset + col_idx * (alien_width + preferred_spacing)
+                row_base_y = margin_y + row_idx * spacing_y
+                y = row_base_y + (max_row_height - sprite_heights[value])
+                group.add(Alien(x, y, value))
         return group
 
     def create_bunkers(self):
         group = pygame.sprite.Group()
-        spacing = SCREEN_WIDTH // (constants.BLOCK_NUMBER + 1)
-        y = SCREEN_HEIGHT - 60
+        spacing = self.logical_width // (constants.BLOCK_NUMBER + 1)
+        player_top = self.player.rect.top
+        bunker_bottom = max(0, player_top - config.BUNKER_PLAYER_GAP)
         for i in range(constants.BLOCK_NUMBER):
-            x = spacing * (i + 1)
-            group.add(Bunker(x, y))
+            center_x = spacing * (i + 1)
+            group.add(Bunker(center_x, bunker_bottom))
         return group
 
     def handle_events(self):
@@ -165,6 +213,14 @@ class Game:
                 self.running = False
                 logging.info("Game quit via window close")
 
+            elif event.type == pygame.VIDEORESIZE:
+                self._handle_resize(event.w, event.h)
+                continue
+
+            elif event.type == pygame.WINDOWRESIZED:
+                self._handle_resize(event.x, event.y)
+                continue
+
             # Handle keyboard key press events
             elif event.type == pygame.KEYDOWN:
                 # R key: Exit sprite viewer or restart when game over
@@ -192,8 +248,20 @@ class Game:
                         logging.info("Options selected (not implemented)")
                     continue
 
+                if self.waiting_for_respawn:
+                    if event.key == pygame.K_SPACE:
+                        logging.info("Resuming play after life lost")
+                        self.waiting_for_respawn = False
+                    continue
+
                 # Spacebar: Fire bullet (only if no bullet currently active and playing)
-                if event.key == pygame.K_SPACE and len(self.bullet_group) == 0 and self.state_manager.current_state == GameState.PLAYING and not self.viewing_sprites:
+                if (
+                    event.key == pygame.K_SPACE
+                    and len(self.bullet_group) < config.PLAYER_MAX_BULLETS
+                    and self.state_manager.current_state == GameState.PLAYING
+                    and not self.viewing_sprites
+                    and not self.waiting_for_respawn
+                ):
                     bullet = Bullet(self.player.get_bullet_spawn_position())
                     self.bullet_group.add(bullet)
                     logging.info("Bullet fired from player position")
@@ -231,8 +299,11 @@ class Game:
         if not self.alien_group:
             return
         
-        # 2% chance per frame to spawn a bomb (at 60 FPS = ~1.2 bombs per second)
-        if random.random() < 0.02:
+        # Probability-based bomb spawn (starts gentle, ramps up as aliens fall)
+        bomb_chance = config.ALIEN_BOMB_CHANCE + (
+            max(0, self.initial_alien_count - len(self.alien_group)) * 0.0005
+        )
+        if random.random() < bomb_chance:
             # Select random alien from remaining aliens
             alien = random.choice(self.alien_group.sprites())
             # Create bomb at alien's bottom center
@@ -244,7 +315,7 @@ class Game:
     def spawn_ufo(self):
         now = pygame.time.get_ticks()
         if now - self.last_ufo_time > config.UFO_INTERVAL:
-            self.ufo_group.add(UFO(-50, 50))  # Start UFO off-screen left
+            self.ufo_group.add(UFO(-60, 40))  # Start UFO slightly higher
             self.last_ufo_time = now
             logging.info("UFO spawned")
 
@@ -259,6 +330,8 @@ class Game:
 
     def update(self):
         pressed = pygame.key.get_pressed()
+        if self.waiting_for_respawn:
+            return
         self.player_group.update(pressed)
         # Update non-projectile entities first
         self.ufo_group.update()
@@ -273,19 +346,23 @@ class Game:
             move_x = self.alien_direction * self.alien_speed
             move_down = False
 
-            # Check if any alien hits the edge
-            for alien in self.alien_group.sprites():
-                if (alien.rect.right + move_x >= SCREEN_WIDTH - 10 or 
-                    alien.rect.left + move_x <= 10):
-                    move_down = True
-                    self.alien_direction *= -1
-                    break
+            aliens = self.alien_group.sprites()
+            formation_left = min(alien.rect.left for alien in aliens)
+            formation_right = max(alien.rect.right for alien in aliens)
+
+            if (
+                formation_right + move_x >= self.logical_width - config.ALIEN_EDGE_PADDING
+                or formation_left + move_x <= config.ALIEN_EDGE_PADDING
+            ):
+                move_down = True
+                self.alien_direction *= -1
 
             # Move aliens
+            drop_limit = max(40, self.player.rect.top - config.BUNKER_PLAYER_GAP + 10)
             for alien in self.alien_group.sprites():
                 if move_down:
-                    alien.rect.y += 20  # Drop down when hitting edge
-                    if alien.rect.bottom >= SCREEN_HEIGHT - 60:
+                    alien.rect.y += config.ALIEN_DROP_DISTANCE  # Drop down when hitting edge
+                    if alien.rect.bottom >= drop_limit:
                         self.game_over = True
                         self.state_manager.change_state(GameState.GAME_OVER)
                         logging.info("Game over: aliens reached bottom")
@@ -310,6 +387,7 @@ class Game:
             for ufo in ufos:
                 self.score += ufo.value
                 logging.info("UFO destroyed for %d points", ufo.value)
+                self._add_floating_text(str(ufo.value), ufo.rect.center, color=constants.GREEN)
 
         # bullet vs bunker
         hits = pygame.sprite.groupcollide(self.bullet_group, self.bunker_group, True, False)
@@ -318,12 +396,10 @@ class Game:
                 bunker.damage()
                 logging.debug("Bunker damaged at %s", bunker.rect.topleft)
 
-        # bomb vs bunker
-        hits = pygame.sprite.groupcollide(self.bomb_group, self.bunker_group, True, False)
-        for bunker_list in hits.values():
-            for bunker in bunker_list:
-                bunker.damage()
-                logging.debug("Bunker hit by bomb at %s", bunker.rect.topleft)
+        # bullet vs bomb (player shots can intercept alien bombs)
+        intercepts = pygame.sprite.groupcollide(self.bullet_group, self.bomb_group, True, True)
+        if intercepts:
+            logging.debug("Player bullet intercepted an alien bomb")
 
         # bomb vs player - use sprite collision helper for robustness
         try:
@@ -337,11 +413,18 @@ class Game:
                 self.game_over = True
                 self.state_manager.change_state(GameState.GAME_OVER)
                 logging.info("Game over: player destroyed")
+            else:
+                self._handle_life_loss()
+
+        # bomb vs bunker
+        hits = pygame.sprite.groupcollide(self.bomb_group, self.bunker_group, True, False)
+        for bunker_list in hits.values():
+            for bunker in bunker_list:
+                bunker.damage()
+                logging.debug("Bunker hit by bomb at %s", bunker.rect.topleft)
 
         if not self.alien_group:
-            self.game_over = True
-            self.state_manager.change_state(GameState.GAME_OVER)
-            logging.info("Game over: all aliens destroyed")
+            self._start_next_wave()
 
         # Check for extra lives milestones
         self._check_extra_lives()
@@ -353,6 +436,51 @@ class Game:
         if self.game_over:
             logging.info("Game over detected")
             # Don't stop running immediately, let game_over_screen handle it
+
+    def _reset_alien_progression(self, speed_bonus: float = 0.0):
+        """Reset alien speed progression to the slow starting pace."""
+        self.initial_alien_count = len(self.alien_group)
+        self.alien_speed = config.ALIEN_START_SPEED + speed_bonus
+
+    def _respawn_player(self):
+        """Respawn the player ship at the starting position."""
+        self.player = Player()
+        self.player_group = pygame.sprite.GroupSingle(self.player)
+
+    def _handle_life_loss(self):
+        """Pause gameplay after losing a life and wait for player input to resume."""
+        self.waiting_for_respawn = True
+        self.bullet_group.empty()
+        self.bomb_group.empty()
+        self._respawn_player()
+        self._reset_alien_progression()
+        logging.info("Life lost. Press SPACE to continue.")
+
+    def _start_next_wave(self):
+        """Advance to the next wave when all aliens are cleared."""
+        self.level += 1
+        bonus_speed = min(0.05 * (self.level - 1), 0.6)
+        self.wave_message_text = f"Level {self.level}"
+        self.wave_message_timer = pygame.time.get_ticks() + 2000
+        self.alien_group = self.create_aliens()
+        self.bullet_group.empty()
+        self.bomb_group.empty()
+        self.ufo_group.empty()
+        self._reset_alien_progression(speed_bonus=bonus_speed)
+        logging.info("Advanced to level %d", self.level)
+
+    def _handle_resize(self, width: int, height: int):
+        """Handle window resize events and keep the sprite viewer surface in sync."""
+        width = max(1, width)
+        height = max(1, height)
+        if (width, height) == (self.window_width, self.window_height):
+            return
+        self.window_width, self.window_height = width, height
+        self.screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+        # Update sprite viewer target surface so it draws to the new window
+        if self.sprite_viewer:
+            self.sprite_viewer.screen = self.screen
+        logging.info("Window resized to %dx%d", width, height)
 
     def _check_extra_lives(self):
         """Check if player has earned extra lives based on score milestones."""
@@ -374,37 +502,72 @@ class Game:
         # If viewing sprites, draw sprite viewer instead of game
         if self.viewing_sprites:
             self.sprite_viewer.draw_sprite_grid()
-        else:
-            # Normal game drawing
-            self.screen.fill(constants.BLACK)
-            # If in MENU state, draw the menu and return
-            if self.state_manager.current_state == GameState.MENU:
-                self.menu.draw(self.screen)
-                pygame.display.flip()
-                return
-            self.player_group.draw(self.screen)
-            self.alien_group.draw(self.screen)
-            self.bunker_group.draw(self.screen)
-            self.bullet_group.draw(self.screen)
-            self.bomb_group.draw(self.screen)
-            self.ufo_group.draw(self.screen)
+            pygame.display.flip()
+            return
 
-            # Draw HUD: Score, High Score, Lives, and Audio Status
-            small_font = pygame.font.SysFont("monospace", 12)
-            score_surf = self.font.render(f"Score: {self.score}", True, constants.WHITE)
-            high_score_surf = self.font.render(f"Hi: {self.high_score_manager.get_high_score()}", True, constants.WHITE)
-            lives_surf = self.font.render(f"Lives: {self.lives}", True, constants.WHITE)
-            
-            # Audio status indicator
-            audio_status = "Audio: ON" if self.audio_manager.enabled else "Audio: OFF"
-            audio_color = constants.GREEN if self.audio_manager.enabled else constants.RED
-            audio_surf = small_font.render(audio_status, True, audio_color)
-            
-            self.screen.blit(score_surf, (10, 5))
-            self.screen.blit(high_score_surf, (SCREEN_WIDTH // 2 - 50, 5))
-            self.screen.blit(lives_surf, (SCREEN_WIDTH - lives_surf.get_width() - 10, 5))
-            self.screen.blit(audio_surf, (10, SCREEN_HEIGHT - 25))
+        # Normal game drawing
+        surface = self.playfield_surface
+        surface.fill(constants.BLACK)
+
+        # If in MENU state, draw the menu and return
+        if self.state_manager.current_state == GameState.MENU:
+            self.menu.draw(surface)
+            self._present_playfield()
+            return
+
+        self.player_group.draw(surface)
+        self.alien_group.draw(surface)
+        self.bunker_group.draw(surface)
+        self.bullet_group.draw(surface)
+        self.bomb_group.draw(surface)
+        self.ufo_group.draw(surface)
+
+        # Draw HUD: Score, High Score, Lives, and Audio Status
+        surface_width, surface_height = surface.get_size()
+        score_surf = self.font.render(f"Score: {self.score}", True, constants.WHITE)
+        high_score = self.high_score_manager.get_high_score()
+        high_score_surf = self.font.render(f"Hi: {high_score}", True, constants.WHITE)
+        lives_surf = self.font.render(f"Lives: {self.lives}", True, constants.WHITE)
+        level_surf = self.font.render(f"Level: {self.level}", True, constants.WHITE)
         
+        # Audio status indicator
+        audio_status = "Audio: ON" if self.audio_manager.enabled else "Audio: OFF"
+        audio_color = constants.GREEN if self.audio_manager.enabled else constants.RED
+        audio_surf = self.small_font.render(audio_status, True, audio_color)
+        
+        surface.blit(score_surf, (10, 5))
+        high_score_rect = high_score_surf.get_rect(midtop=(surface_width // 2, 5))
+        surface.blit(high_score_surf, high_score_rect)
+        surface.blit(lives_surf, (surface_width - lives_surf.get_width() - 10, 5))
+        surface.blit(level_surf, (surface_width - level_surf.get_width() - 10, 30))
+        surface.blit(audio_surf, (10, surface_height - audio_surf.get_height() - 10))
+
+        self._draw_floating_texts(surface)
+
+        if self.wave_message_timer > pygame.time.get_ticks():
+            self._draw_wave_message()
+
+        if self.waiting_for_respawn:
+            self._draw_life_lost_message()
+
+        if self.game_over:
+            self._draw_game_over_message()
+        
+        self._present_playfield()
+
+    def _present_playfield(self):
+        """Scale the logical playfield surface to the current window size."""
+        window_width, window_height = self.screen.get_size()
+        scale_x = window_width / self.logical_width
+        scale_y = window_height / self.logical_height
+        scale = min(scale_x, scale_y)
+        scaled_width = max(1, int(self.logical_width * scale))
+        scaled_height = max(1, int(self.logical_height * scale))
+        scaled_surface = pygame.transform.scale(self.playfield_surface, (scaled_width, scaled_height))
+        x_offset = (window_width - scaled_width) // 2
+        y_offset = (window_height - scaled_height) // 2
+        self.screen.fill(constants.BLACK)
+        self.screen.blit(scaled_surface, (x_offset, y_offset))
         pygame.display.flip()
 
     def game_over_screen(self):
@@ -414,11 +577,11 @@ class Game:
                     return False
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                     return True
-            self.screen.fill(constants.BLACK)
+            self.playfield_surface.fill(constants.BLACK)
             msg = self.font.render("GAME OVER - press R", True, constants.WHITE)
-            rect = msg.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-            self.screen.blit(msg, rect)
-            pygame.display.flip()
+            rect = msg.get_rect(center=(self.logical_width // 2, self.logical_height // 2))
+            self.playfield_surface.blit(msg, rect)
+            self._present_playfield()
             self.clock.tick(60)
 
     def run(self):
@@ -435,8 +598,12 @@ class Game:
             # Process all input events (keyboard, mouse, window events)
             self.handle_events()
             
-            # Only update game logic if not in game over state and not viewing sprites
-            if not self.game_over and not self.viewing_sprites:
+            # Only update game logic during active play
+            if (
+                self.state_manager.current_state == GameState.PLAYING
+                and not self.game_over
+                and not self.viewing_sprites
+            ):
                 self.update()
             
             # Always draw the current game state
@@ -448,10 +615,6 @@ class Game:
                 if not hasattr(self, '_game_over_processed'):
                     self.high_score_manager.update_score(self.score)
                     self._game_over_processed = True
-                
-                # Draw game over message on current screen
-                self._draw_game_over_message()
-                pygame.display.flip()
                 
                 # Check for restart input without blocking the main loop
                 keys = pygame.key.get_pressed()
@@ -474,10 +637,10 @@ class Game:
         final score, high score, and restart instructions without blocking the game loop.
         """
         # Create semi-transparent overlay
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay = pygame.Surface((self.logical_width, self.logical_height))
         overlay.set_alpha(128)  # 50% transparency
         overlay.fill(constants.BLACK)
-        self.screen.blit(overlay, (0, 0))
+        self.playfield_surface.blit(overlay, (0, 0))
         
         # Draw game over text
         game_over_text = self.font.render("GAME OVER", True, constants.WHITE)
@@ -496,15 +659,62 @@ class Game:
         restart_text = self.font.render("Press R to restart or Q to quit", True, constants.WHITE)
         
         # Center the text on screen
-        game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
-        final_score_rect = final_score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
-        high_score_rect = high_score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 10))
-        restart_rect = restart_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50))
+        center_x = self.logical_width // 2
+        center_y = self.logical_height // 2
+        game_over_rect = game_over_text.get_rect(center=(center_x, center_y - 50))
+        final_score_rect = final_score_text.get_rect(center=(center_x, center_y - 20))
+        high_score_rect = high_score_text.get_rect(center=(center_x, center_y + 10))
+        restart_rect = restart_text.get_rect(center=(center_x, center_y + 50))
         
-        self.screen.blit(game_over_text, game_over_rect)
-        self.screen.blit(final_score_text, final_score_rect)
-        self.screen.blit(high_score_text, high_score_rect)
-        self.screen.blit(restart_text, restart_rect)
+        self.playfield_surface.blit(game_over_text, game_over_rect)
+        self.playfield_surface.blit(final_score_text, final_score_rect)
+        self.playfield_surface.blit(high_score_text, high_score_rect)
+        self.playfield_surface.blit(restart_text, restart_rect)
+
+    def _draw_life_lost_message(self):
+        """Overlay prompting the player to continue after losing a life."""
+        overlay = pygame.Surface((self.logical_width, self.logical_height))
+        overlay.set_alpha(160)
+        overlay.fill((0, 0, 0))
+        self.playfield_surface.blit(overlay, (0, 0))
+
+        message = self.font.render("Ship destroyed!", True, constants.WHITE)
+        instruction = self.font.render("Press SPACE to continue", True, constants.WHITE)
+        remaining = self.font.render(f"Lives left: {self.lives}", True, constants.WHITE)
+
+        center_x = self.logical_width // 2
+        center_y = self.logical_height // 2
+        self.playfield_surface.blit(message, message.get_rect(center=(center_x, center_y - 20)))
+        self.playfield_surface.blit(instruction, instruction.get_rect(center=(center_x, center_y + 10)))
+        self.playfield_surface.blit(remaining, remaining.get_rect(center=(center_x, center_y + 40)))
+
+    def _add_floating_text(self, text, position, duration=900, color=constants.WHITE):
+        """Add a temporary floating text label."""
+        self.floating_texts.append({
+            "text": text,
+            "pos": position,
+            "expires": pygame.time.get_ticks() + duration,
+            "color": color,
+        })
+
+    def _draw_wave_message(self):
+        """Show temporary wave text (e.g., 'Level 2')."""
+        message = self.font.render(self.wave_message_text, True, constants.WHITE)
+        rect = message.get_rect(center=(self.logical_width // 2, self.logical_height // 2))
+        overlay = pygame.Surface((self.logical_width, self.logical_height))
+        overlay.set_alpha(120)
+        overlay.fill((0, 0, 0))
+        self.playfield_surface.blit(overlay, (0, 0))
+        self.playfield_surface.blit(message, rect)
+
+    def _draw_floating_texts(self, surface):
+        """Render temporary floating score/signal text (e.g., UFO bonuses)."""
+        now = pygame.time.get_ticks()
+        self.floating_texts = [ft for ft in self.floating_texts if ft["expires"] > now]
+        for ft in self.floating_texts:
+            text_surf = self.small_font.render(ft["text"], True, ft["color"])
+            rect = text_surf.get_rect(center=ft["pos"])
+            surface.blit(text_surf, rect)
 
 
 def main():

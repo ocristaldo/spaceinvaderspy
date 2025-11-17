@@ -27,7 +27,8 @@ class GameEngine:
         """Initialize pygame and create display."""
         try:
             pygame.init()
-            self.screen = pygame.display.set_mode((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
+            initial_size = config.get_window_size(config.DEFAULT_WINDOW_SCALE)
+            self.screen = pygame.display.set_mode(initial_size, pygame.RESIZABLE)
             pygame.display.set_caption("Space Invaders")
             self.clock = pygame.time.Clock()
             self.font = pygame.font.SysFont("monospace", 16)

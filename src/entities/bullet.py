@@ -25,7 +25,7 @@ class Bullet(pygame.sprite.Sprite):
         try:
             # Load bullet sprite from sprite sheet
             from ..utils.sprite_sheet import get_game_sprite
-            self.image = get_game_sprite('bullet', config.SCALE)
+            self.image = get_game_sprite('bullet', config.SPRITE_SCALE)
         except Exception:
             # Fallback to simple rectangle
             self.image = pygame.Surface((2, 8))
@@ -64,7 +64,7 @@ class Bomb(pygame.sprite.Sprite):
             from ..utils.sprite_sheet import get_game_sprite
             bomb_types = ['bomb_1', 'bomb_2', 'bomb_3']
             bomb_sprite = random.choice(bomb_types)
-            self.image = get_game_sprite(bomb_sprite, config.SCALE)
+            self.image = get_game_sprite(bomb_sprite, config.SPRITE_SCALE)
         except Exception:
             # Fallback to simple rectangle
             self.image = pygame.Surface((2, 8))
@@ -77,5 +77,5 @@ class Bomb(pygame.sprite.Sprite):
     def update(self) -> None:
         """Update bomb position and remove if off-screen."""
         self.rect.y += config.BOMB_SPEED
-        if self.rect.top > config.SCREEN_HEIGHT:
+        if self.rect.top > config.BASE_HEIGHT:
             self.kill()

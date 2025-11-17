@@ -27,7 +27,7 @@ class UFO(pygame.sprite.Sprite):
         try:
             # Load UFO sprite from sprite sheet
             from ..utils.sprite_sheet import get_game_sprite
-            self.image = get_game_sprite('ufo', config.SCALE)
+            self.image = get_game_sprite('ufo', config.SPRITE_SCALE)
         except Exception:
             # Fallback to drawn UFO
             self.image = pygame.Surface((32, 16))
@@ -44,5 +44,5 @@ class UFO(pygame.sprite.Sprite):
         """Update UFO position and remove when off-screen."""
         self.rect.x += self.speed
         # Remove UFO when it goes off screen
-        if self.rect.right < 0 or self.rect.left > config.SCREEN_WIDTH:
+        if self.rect.right < 0 or self.rect.left > config.BASE_WIDTH:
             self.kill()

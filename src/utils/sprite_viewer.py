@@ -115,21 +115,23 @@ class SpriteViewer:
         # Draw title with page info
         title_text = f"{platform_config['name']} Sprites ({total_sprites} total) - Page {self.current_page + 1}/{total_pages}"
         title_surface = self.font.render(title_text, True, platform_config['title_color'])
-        title_rect = title_surface.get_rect(centerx=config.SCREEN_WIDTH // 2, y=8)
+        surface_width, surface_height = self.screen.get_size()
+
+        title_rect = title_surface.get_rect(centerx=surface_width // 2, y=8)
         self.screen.blit(title_surface, title_rect)
         
         # Instructions
         instruction_text = "S+1/2/3/4: Switch platforms | ←→: Navigate pages | R: Return to game"
         instruction_surface = self.tiny_font.render(instruction_text, True, (200, 200, 200))
-        instruction_rect = instruction_surface.get_rect(centerx=config.SCREEN_WIDTH // 2, y=28)
+        instruction_rect = instruction_surface.get_rect(centerx=surface_width // 2, y=28)
         self.screen.blit(instruction_surface, instruction_rect)
         
         # Grid layout parameters
         start_y = 50
         cols = 4  # Number of columns (reduced for more space)
         rows = 3  # Number of rows
-        col_width = config.SCREEN_WIDTH // cols
-        row_height = (config.SCREEN_HEIGHT - start_y - 20) // rows
+        col_width = surface_width // cols
+        row_height = (surface_height - start_y - 20) // rows
         scale = 2  # Scale factor for sprites
         
         # Calculate sprites for current page

@@ -1,6 +1,5 @@
 """Bunker entity - destructible cover for the player."""
 import pygame
-from typing import Tuple
 from .. import constants
 from .. import config
 from ..utils.logger import setup_logger
@@ -31,15 +30,17 @@ class Bunker(pygame.sprite.Sprite):
             from ..utils.sprite_sheet import get_game_sprite
             bunker_sprites = ['bunker_full', 'bunker_damaged_1', 'bunker_damaged_2', 'bunker_damaged_3']
             for sprite_name in bunker_sprites:
-                image = get_game_sprite(sprite_name, config.SCALE)
+                image = get_game_sprite(sprite_name, config.SPRITE_SCALE)
                 self.images.append(image)
             self.image = self.images[0]
+            self.base_image = self.image.copy()
         except Exception as e:
             # Fallback to simple rectangle
-            self.image = pygame.Surface((32 * config.SCALE, 24 * config.SCALE))
+            self.image = pygame.Surface((32 * config.SPRITE_SCALE, 24 * config.SPRITE_SCALE))
             self.image.fill(constants.GREEN)
             self.logger.warning(f"Could not load bunker sprite: {e}. Using fallback.")
-        self.rect = self.image.get_rect(topleft=(x, y))
+            self.base_image = self.image.copy()
+        self.rect = self.image.get_rect(midbottom=(x, y))
 
     def damage(self) -> None:
         """Reduce bunker health when hit by bullets or bombs."""
@@ -48,8 +49,11 @@ class Bunker(pygame.sprite.Sprite):
             self.kill()
             self.logger.debug(f"Bunker destroyed at {self.rect.topleft}")
         else:
-            # Change color to show damage
-            damage_colors = [constants.GREEN, (255, 255, 0), (255, 165, 0), constants.RED]
-            color = damage_colors[min(3, 3 - self.health)]
-            self.image.fill(color)
+            # Tint the bunker instead of wiping the sprite
+            damage_ratio = self.health / 4
+            tint_value = int(80 + 175 * damage_ratio)
+            tinted = self.base_image.copy()
+            tint_color = (tint_value, tint_value, tint_value, 255)
+            tinted.fill(tint_color, special_flags=pygame.BLEND_RGBA_MULT)
+            self.image = tinted
             self.logger.debug(f"Bunker damaged, health: {self.health}")

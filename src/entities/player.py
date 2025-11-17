@@ -34,7 +34,7 @@ class Player(pygame.sprite.Sprite):
         """Create the player sprite graphics using the sprite sheet."""
         try:
             from ..utils.sprite_sheet import get_game_sprite
-            self.image = get_game_sprite('player', config.SCALE)
+            self.image = get_game_sprite('player', config.SPRITE_SCALE)
             self.logger.debug("Loaded player sprite from sprite sheet")
         except Exception as e:
             self.logger.warning(f"Failed to load player sprite from sheet: {e}. Using fallback.")
@@ -57,7 +57,7 @@ class Player(pygame.sprite.Sprite):
     def _initialize_position(self) -> None:
         """Set the initial position of the player."""
         self.rect = self.image.get_rect(
-            midbottom=(config.SCREEN_WIDTH // 2, config.SCREEN_HEIGHT - 20)
+            midbottom=(config.BASE_WIDTH // 2, config.BASE_HEIGHT - 20)
         )
 
     def update(self, pressed: Any) -> None:
@@ -74,7 +74,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x += self.speed
             
             # Keep player within screen bounds
-            self.rect.clamp_ip(pygame.Rect(0, 0, config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
+            self.rect.clamp_ip(pygame.Rect(0, 0, config.BASE_WIDTH, config.BASE_HEIGHT))
         except Exception as e:
             self.logger.error(f"Error updating player: {e}")
     
