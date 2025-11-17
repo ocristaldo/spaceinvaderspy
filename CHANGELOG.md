@@ -8,3 +8,4 @@ All notable changes to this project will be documented in this file.
 - Add: `QUICK_START.md` with macOS quick-start and adaptation notes
 - Add: Unit test for bomb/player collision (`tests/unit/test_bomb_collision.py`)
 - Add: GitHub Actions CI workflow (`.github/workflows/ci.yml`)
+ - Add: Test coverage collection in CI and coverage report artifact

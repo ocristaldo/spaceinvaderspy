@@ -79,6 +79,20 @@ Quick start (macOS users)
 
 This project includes a small helper script `workon.sh` that creates a virtualenv, installs dependencies, optionally runs tests, and drops you into an interactive shell with the venv active. See `QUICK_START.md` for usage and examples.
 
+Coverage
+--------
+
+This repository collects test coverage during CI and provides a coverage report artifact. To run coverage locally:
+
+```bash
+# from project root
+pytest --cov=src --cov-report=term --cov-report=xml
+```
+
+You can view the CI workflow badge here:
+
+![CI](https://github.com/ocristaldo/spaceinvaderspy/actions/workflows/ci.yml/badge.svg)
+
 ### Linux (Ubuntu/Debian)
 1. Install Python and required system packages:
 ```bash
