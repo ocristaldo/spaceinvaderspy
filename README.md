@@ -2,9 +2,17 @@
 
 A work-in-progress recreation of the classic Space Invaders arcade game built with Python and Pygame, now marching toward Galaga-style wave choreography and challenge stages. We keep the original sprites/feel while extending gameplay to match the deep dive documented in `docs/detailed_gameplay.md`.
 
-## 🚧 Project Status: Advanced prototype preparing for Galaga-style expansion
+## � Project Status
 
-The Space Invaders baseline is playable (movement, bunkers, UFO, bombs). The next milestone is layering in Galaga-inspired features such as dynamic enemy entries, challenge stages, tractor-beam captures, and richer scoring hooks. Contributors welcome!
+**Current:** Phase 2 Complete ✅ | **Next:** Phase 3 (Game States + Menu)  
+**For full details, see [PROJECT.md](PROJECT.md) or [STATUS.md](STATUS.md)**
+
+### Quick Stats
+- ✅ Core game playable
+- ✅ Audio system (muted by default)
+- ✅ High score persistence
+- ✅ Extra lives milestones
+- ✅ 10/10 tests passing
 
 ## 🎮 Current Features
 

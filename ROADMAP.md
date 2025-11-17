@@ -1,67 +1,135 @@
-SpaceInvadersPy — Roadmap & Project Plan
+# 🗺️ Space Invaders Py - Vision & Roadmap
 
-This document captures the short/medium/long-term roadmap, milestones, acceptance criteria, and a first-step implementation plan for the SpaceInvadersPy project.
+> **For detailed project status, phases, and action items, see [PROJECT.md](PROJECT.md) and [STATUS.md](STATUS.md)**
 
-1 — Vision
+---
 
-Build a faithful, well-tested, and easily extensible Space Invaders clone in Python with clean code, automated tests, CI, and approachable docs so contributors can iterate on gameplay, art, and sound.
+## 🎯 Product Vision
 
-Short-term goals (next 2 weeks)
-- Deliverables
-  - Definite project roadmap and milestones (this document).
-  - A simple main menu and pause overlay (Start / Options / Quit, Pause with P/Esc).
-  - Basic audio support (SFX + music) with volume control.
-  - Solid unit + integration tests for core gameplay; raise coverage to >= 60%.
-- Acceptance criteria
-  - `main` launches to a menu screen and entering Start begins gameplay.
-  - Pause toggles game updates/drawing and displays overlay.
-  - Audio toggles and volume control exist in Options.
-  - CI runs tests + coverage and reports results.
-- Estimated effort: 5–10 work-days (depends on asset availability)
+Build a faithful Space Invaders clone in Python that naturally evolves toward Galaga-style mechanics. The game should:
 
-Medium-term goals (1–3 months)
-- Level progression and difficulty scaling (multi-wave levels).
-- Improved bunker visuals, damage model and UI polish.
-- More tests and coverage to 75%+.
-- Performance tuning and 60 FPS target on supported systems.
+1. **Be playable today** - Core Space Invaders loop works now
+2. **Add depth gradually** - Expand with Galaga features over time
+3. **Stay maintainable** - Clean code, good tests, clear docs
+4. **Welcome contributors** - Easy to understand and extend
 
-Long-term goals (3+ months)
-- Packaging and distribution (pip/zip), release artifact generation.
-- Leaderboards/high-scores persistence (local or online optional).
-- Community content: alternate sprite sets, additional modes.
+---
 
-Milestones
-- M1: Roadmap + CI coverage (COMPLETE)
-- M2: Main menu + pause + Options (SFX/music toggle) — target: next PR
-- M3: Level progression + power-ups + difficulty scaling
-- M4: Visual polish + performance + release
+## 📈 High-Level Phases
 
-Prioritized backlog (high to low)
-1. Main menu + Pause UI + Options (SFX toggle, volume)
-2. Unit tests for core modules (input, game state, collision)
-3. Level/wave system
-4. Bunker visuals & per-block durability
-5. Performance profiling and fixes
-6. Packaging and release
+### Phase 1: Foundation ✅ Complete
+- Core Space Invaders gameplay
+- Collision detection
+- Scoring and lives
+- Sprite system
+- CI/CD pipeline
 
-First-step implementation plan (what I will do next)
-- Finish this roadmap (done) and link it from `docs/DEVELOPMENT_STATUS.md`.
-- Create a minimal UI module skeleton: `src/ui/menu.py` with classes for Menu and Overlay.
-- Integrate the menu into `src/main.py` so game starts in MENU state instead of directly running.
-- Add simple unit tests for menu state transitions (menu -> play -> pause -> restart).
+### Phase 2: Quick Wins ✅ Complete
+- Audio system (muted by default)
+- High score persistence
+- Extra lives milestones
+- Unit tests
 
-Implementation notes and conventions
-- State machine: Game states will be simple strings/enum: MENU, PLAYING, PAUSED, GAME_OVER.
-- Keep main loop responsive: only run `update()` when in PLAYING state; `draw()` continues in other states.
-- Tests should avoid requiring real display where possible; use `pygame.display.set_mode((1,1))` in test setup.
+### Phase 3: Foundation Systems 📅 Next
+- Game state machine
+- Menu UI
+- Pause system
+- Level progression
 
-How to review progress
-- Each milestone will be a PR with small, focused changes: docs, tests, UI, audio, gameplay.
-- CI will run tests and coverage for each PR. Aim to keep PRs small (1–3 files changed) to speed review.
+### Phase 4: Galaga Expansion 📅 Planned
+- Enemy formations (40-enemy layout)
+- Challenge stages (bonus waves)
+- Tractor beam capture
+- Dual fighter power-up
 
-Contact / ownership
-- Repo owner: (you)
-- I will implement the next step (menu + pause) unless you tell me to start a different item.
+### Phase 5: Polish & Release 📅 Final
+- Performance tuning
+- Comprehensive tests
+- 2-player mode
+- Packaging for distribution
+
+---
+
+## 🎮 Feature Roadmap
+
+### Today (Phase 2)
+- ✅ Classic Space Invaders gameplay
+- ✅ Audio (muted by default, toggle with 'A')
+- ✅ High scores saved to disk
+- ✅ Extra lives at 20k + 70k points
+
+### Soon (Phase 3)
+- 📅 Game menu and attract mode
+- 📅 Pause/resume functionality
+- 📅 Multi-wave level progression
+- 📅 Difficulty scaling
+
+### Later (Phase 4)
+- 📅 Galaga-style enemy formations
+- 📅 Challenge stages with bonuses
+- 📅 Boss enemies with tractor beam
+- 📅 Dual ship power-up
+- 📅 Enemy morphing mechanics
+
+### Eventually (Phase 5)
+- 📅 2-player alternating mode
+- 📅 Leaderboard system
+- 📅 Performance optimization
+- 📅 Release packaging
+
+---
+
+## 📋 Design Principles
+
+1. **Start Simple** - Get Space Invaders working first
+2. **Expand Gradually** - Add Galaga features phase by phase
+3. **Test Everything** - Aim for 70%+ code coverage
+4. **Document Clearly** - Make architecture easy to follow
+5. **Welcome Help** - Contribute-friendly setup and docs
+
+---
+
+## 🚀 How to Get Started
+
+### To Play
+```bash
+python -m src.main
+```
+
+### To Contribute
+1. Read [PROJECT.md](PROJECT.md) for full context
+2. Check [STATUS.md](STATUS.md) for current work
+3. Pick an item from Phase 3 (next phase)
+4. Create a feature branch and submit a PR
+
+### To Understand the Code
+1. Read `docs/GAMEPLAY_OVERVIEW.md` - how current systems work
+2. Read `docs/detailed_gameplay.md` - what Galaga features we're adding
+3. Explore `src/main.py` - main game loop
+4. Check tests for expected behavior
+
+---
+
+## 🎯 Success Criteria
+
+Each phase is complete when:
+- All features working as designed
+- Tests passing (70%+ coverage by Phase 5)
+- Documentation up to date
+- No known bugs or performance issues
+
+---
+
+## 📞 Questions?
+
+- **What should I work on?** → Check [STATUS.md](STATUS.md)
+- **How does X work?** → See [PROJECT.md](PROJECT.md)
+- **What's the plan?** → You're reading it
+- **How do I contribute?** → [PROJECT.md Contributing section](PROJECT.md#-how-to-contribute)
+
+---
+
+**For detailed project management, see [PROJECT.md](PROJECT.md)**
 
 
 
