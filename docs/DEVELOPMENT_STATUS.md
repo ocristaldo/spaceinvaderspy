@@ -1,6 +1,8 @@
-# 🚀 Space Invaders Python - Development Status & Roadmap
+# 🚀 Space Invaders Python - Development Status & Galaga Roadmap
 
-## 📊 Current Status: **ADVANCED PROTOTYPE WITH SPRITE SYSTEM**
+## 📊 Current Status: **Space Invaders core complete – Galaga-style expansion in design/early prototyping**
+
+The baseline Space Invaders mechanics are stable (see `docs/GAMEPLAY_OVERVIEW.md`). `docs/detailed_gameplay.md` captures the Galaga feature set we are adapting; this roadmap tracks how we bring those systems into the current codebase.
 
 ### ✅ **Completed Features**
 
@@ -20,6 +22,14 @@
 - [x] **Sprite Viewer** - Interactive testing mode with detailed sprite information
 - [x] **Sprite Animation** - Alien frame switching for classic movement effect
 - [x] **Fallback Graphics** - Colored rectangles when sprites fail to load
+- [x] **Documentation** - `docs/GAMEPLAY_OVERVIEW.md` (current state) and `docs/detailed_gameplay.md` (Galaga vision)
+
+#### **Galaga Expansion Targets (Design Reference)**
+- [ ] Enemy swoop/formation entry patterns
+- [ ] Tractor-beam capture + dual-ship firing
+- [ ] Challenge stage waves with accuracy tallies
+- [ ] Credit/attract flow (coin → 1P/2P) and HUD badges
+- [ ] Bonus-life thresholds and escalating difficulty per stage
 
 #### **Visual Improvements**
 - [x] **Sprite Scaling Fixed** - Reduced from 3x to 2x scale (448x512 resolution)
@@ -85,6 +95,13 @@
 - [ ] **API Documentation** - Auto-generated docs
 - [ ] **Developer Guide** - Architecture and contribution guide
 
+### **Galaga Mechanics Prototyping**
+- [ ] Enemy entry choreography (staging lanes, curved paths)
+- [ ] Dive-bomb AI phases with projectile timing windows
+- [ ] Challenge stage scaffolding and accuracy scoring
+- [ ] Tractor-beam capture prototype tied to existing sprite assets
+- [ ] Credit/attract state machine feeding into Game loop
+
 ---
 
 ## 🔧 **Technical Debt & Improvements**
@@ -112,12 +129,13 @@
 ## 🎮 **Feature Enhancements**
 
 ### **Gameplay Features**
-- [ ] **Multiple Levels** - Progressive difficulty increase
-- [ ] **Power-ups** - Special weapons and abilities
-- [ ] **High Score System** - Persistent score tracking
-- [ ] **Sound Effects** - Audio feedback for actions
-- [ ] **Background Music** - Atmospheric game audio
-- [ ] **Particle Effects** - Explosion and impact effects
+- [ ] **Stage Progression** - Sequential waves with increasing aggression (Galaga-style)
+- [ ] **Challenge/Rally Stage** - Bonus round with accuracy tally
+- [ ] **Capture Mechanic** - Tractor beam that can steal/give dual-ship power
+- [ ] **Power-ups** - Dual-ship firing, rapid shot, defensive buffs
+- [ ] **Credit & Bonus Life Logic** - Coin/C-start, 1P/2P rotation, 20k/70k thresholds
+- [ ] **High Score System** - Persistent tracking plus attract-mode display
+- [ ] **Sound & Music** - Effects for enemy swoops, tractor beams, challenge fanfare
 
 ### **Visual Enhancements**
 - [x] ~~**Sprite Animations**~~ - ✅ Animated alien sprites implemented
@@ -128,11 +146,11 @@
 - [ ] **Menu System** - Main menu, options, high scores
 
 ### **Advanced Features**
-- [ ] **Multiplayer Support** - Local co-op gameplay
-- [ ] **Difficulty Settings** - Easy, Normal, Hard modes
-- [ ] **Achievement System** - Unlock conditions and rewards
+- [ ] **Alternating 2-Player Mode** - Classic arcade turn-taking
+- [ ] **Difficulty Settings** - Tailor swoop speeds/projectile rates
+- [ ] **Achievement / Challenge Tracking** - e.g., "Perfect Challenge Stage"
 - [ ] **Replay System** - Record and playback gameplay
-- [ ] **Mod Support** - Custom levels and sprites
+- [ ] **Mod Support** - Custom level scripts and sprite packs
 
 ---
 
@@ -257,14 +275,14 @@ spaceinvaderspy/
 - ✅ **Interactive sprite viewer** - Paginated display with detailed sprite information
 
 ### **Next Session Focus**
-1. ✅ ~~Refactor main.py into smaller, focused modules~~ (Completed - good separation achieved)
-2. ✅ ~~Implement proper error handling throughout~~ (Completed - comprehensive logging added)
-3. Add comprehensive test suite (Next priority)
-4. ✅ ~~Create detailed code documentation~~ (Completed - comprehensive docstrings added)
-5. Implement sound system
-6. Create menu system and game states
+1. Map Galaga enemy entry paths to current alien entities (Bezier/waypoint spike)
+2. Prototype challenge stage scaffold (wave definition data + scoring hooks)
+3. Add comprehensive test suite covering new movement/capture systems
+4. Implement credit/attract states (coin insert, 1P/2P select, HUD badges)
+5. Layer sound hooks for swoops, captures, and challenge complete fanfare
+6. Create menu system and reusable state machine to host attract/play/challenge
 
 ---
 
-*Last Updated: 2025-08-15*
+*Last Updated: 2025-11-17*
 *Status: Active Development*

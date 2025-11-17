@@ -1,21 +1,26 @@
-# 👾 Space Invaders Python Clone
+# 👾 Space Invaders Python Clone (Galaga-inspired Evolution)
 
-A work-in-progress recreation of the classic Space Invaders arcade game built with Python and Pygame. This is an educational project aimed at learning game development fundamentals.
+A work-in-progress recreation of the classic Space Invaders arcade game built with Python and Pygame, now marching toward Galaga-style wave choreography and challenge stages. We keep the original sprites/feel while extending gameplay to match the deep dive documented in `docs/detailed_gameplay.md`.
 
-## 🚧 Project Status: Work In Progress
+## 🚧 Project Status: Advanced prototype preparing for Galaga-style expansion
 
-This project is under active development. Features and fixes are being added regularly. Contributors welcome!
+The Space Invaders baseline is playable (movement, bunkers, UFO, bombs). The next milestone is layering in Galaga-inspired features such as dynamic enemy entries, challenge stages, tractor-beam captures, and richer scoring hooks. Contributors welcome!
 
 ## 🎮 Current Features
 
-### Core Gameplay
-- Classic Space Invaders gameplay mechanics
-- Alien formation movement with increasing speed
-- Player ship controls (left/right movement, shooting)
+### Core Gameplay (today)
+- Classic Space Invaders loop: marching formations, incremental speed-ups
+- Player ship controls (left/right movement, single-shot firing)
 - Destructible bunkers for defense
 - UFO bonus enemy with random point values
-- Scoring system with different alien point values
-- Lives system (3 lives)
+- Scoring system with per-alien values and 3-life structure
+
+### Galaga-inspired Goals (in progress)
+- Enemy entry swoops + dive-bomb behavior pulled from `docs/detailed_gameplay.md`
+- Challenge / rally stages that reward accuracy streaks
+- Tractor-beam capture mechanic and dual-ship power-up
+- Credit/attract-mode flow with coin/1P/2P inputs
+- Bonus-life thresholds and rank indicators on HUD
 
 ### Advanced Features
 - **Sprite Sheet System**: Authentic arcade sprites loaded from JSON coordinate files
@@ -31,6 +36,12 @@ This project is under active development. Features and fixes are being added reg
   - Platform switching without game restart
 - **Animated Sprites**: Alien animation with frame switching
 - **Comprehensive Logging**: Debug and info logging throughout the game
+- **Design Docs**: `docs/detailed_gameplay.md` (Galaga reference) and `docs/GAMEPLAY_OVERVIEW.md` (current systems)
+
+## 📚 Gameplay Vision
+- `docs/detailed_gameplay.md` captures the Galaga mechanics we plan to graft onto this project: multi-wave progression, tractor beams, challenge stages, and attract/credit loops.
+- `docs/GAMEPLAY_OVERVIEW.md` explains how the current Space Invaders implementation works, making it easier to identify where Galaga systems will slot in.
+- Roadmap items below link directly back to these documents so design and implementation stay aligned.
 
 ## 📋 Requirements
 
@@ -235,22 +246,22 @@ This is an unofficial fan project created for educational purposes only. It incl
 ## 🔜 Roadmap
 
 ### Completed ✅
-- ✅ Sprite sheet system with JSON coordinates
-- ✅ Multi-platform sprite support (4 platforms)
+- ✅ Space Invaders core loop (player, aliens, bunkers, UFO, bombs)
+- ✅ Sprite sheet system with JSON coordinates + multi-platform atlases
 - ✅ Interactive sprite viewer with pagination
-- ✅ Comprehensive logging system
-- ✅ Animated alien sprites
-- ✅ Key press debouncing for sprite viewer
+- ✅ Comprehensive logging system and gameplay documentation
+- ✅ Animated alien sprites + scaling fixes
 
 ### In Progress 🚧
-- 🚧 Documentation updates and improvements
-- 🚧 Code review and best practices implementation
+- 🚧 Map current systems to Galaga feature list (`docs/detailed_gameplay.md`)
+- 🚧 Prototype enemy swoop/dive behaviors using existing sprite assets
+- 🚧 Design credit/attract flow + HUD updates (scores, stage badges)
+- 🚧 Expand docs with migration steps (GAMEPLAY_OVERVIEW vs detailed gameplay)
 
 ### Planned 📋
-- 📋 Sound effects and music
-- 📋 High score system with persistence
-- 📋 Different levels with increasing difficulty
-- 📋 Power-ups and special weapons
-- 📋 Enhanced sprite animations and effects
-- 📋 Menu system and game states
-- 📋 Configuration file for game settings
+- 📋 Challenge stages & accuracy bonus tallies
+- 📋 Tractor-beam capture + dual-ship firing mode
+- 📋 Enemy bullet patterns & varied formations (butterflies, boss ships)
+- 📋 Sound effects, music, and attract-mode cues
+- 📋 Credit system with 1P/2P alternating-play support
+- 📋 Persistent high scores + bonus-life thresholds (20k/70k etc.)
