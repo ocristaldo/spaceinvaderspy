@@ -1,6 +1,6 @@
 # 👾 Space Invaders Python Clone (Galaga-inspired Evolution)
 
-A work-in-progress recreation of the classic Space Invaders arcade game built with Python and Pygame, now marching toward Galaga-style wave choreography and challenge stages. We keep the original sprites/feel while extending gameplay to match the deep dive documented in `docs/detailed_gameplay.md`.
+A work-in-progress recreation of the classic Space Invaders arcade game built with Python and Pygame, now marching toward Galaga-style wave choreography and challenge stages. We keep the original sprites/feel while extending gameplay to match the complete spec documented in `GALAGA_SPEC.md`.
 
 ## � Project Status
 
@@ -24,7 +24,7 @@ A work-in-progress recreation of the classic Space Invaders arcade game built wi
 - Scoring system with per-alien values and 3-life structure
 
 ### Galaga-inspired Goals (in progress)
-- Enemy entry swoops + dive-bomb behavior pulled from `docs/detailed_gameplay.md`
+- Enemy entry swoops + dive-bomb behavior pulled from `GALAGA_SPEC.md`
 - Challenge / rally stages that reward accuracy streaks
 - Tractor-beam capture mechanic and dual-ship power-up
 - Credit/attract-mode flow with coin/1P/2P inputs
@@ -44,10 +44,10 @@ A work-in-progress recreation of the classic Space Invaders arcade game built wi
   - Platform switching without game restart
 - **Animated Sprites**: Alien animation with frame switching
 - **Comprehensive Logging**: Debug and info logging throughout the game
-- **Design Docs**: `docs/detailed_gameplay.md` (Galaga reference) and `docs/GAMEPLAY_OVERVIEW.md` (current systems)
+- **Design Docs**: `GALAGA_SPEC.md` (Galaga reference) and `docs/GAMEPLAY_OVERVIEW.md` (current systems)
 
 ## 📚 Gameplay Vision
-- `docs/detailed_gameplay.md` captures the Galaga mechanics we plan to graft onto this project: multi-wave progression, tractor beams, challenge stages, and attract/credit loops.
+- `GALAGA_SPEC.md` captures the Galaga mechanics we plan to graft onto this project: multi-wave progression, tractor beams, challenge stages, and attract/credit loops.
 - `docs/GAMEPLAY_OVERVIEW.md` explains how the current Space Invaders implementation works, making it easier to identify where Galaga systems will slot in.
 - Roadmap items below link directly back to these documents so design and implementation stay aligned.
 
@@ -261,7 +261,7 @@ This is an unofficial fan project created for educational purposes only. It incl
 - ✅ Animated alien sprites + scaling fixes
 
 ### In Progress 🚧
-- 🚧 Map current systems to Galaga feature list (`docs/detailed_gameplay.md`)
+- 🚧 Map current systems to Galaga feature list (`GALAGA_SPEC.md`)
 - 🚧 Prototype enemy swoop/dive behaviors using existing sprite assets
 - 🚧 Design credit/attract flow + HUD updates (scores, stage badges)
 - 🚧 Expand docs with migration steps (GAMEPLAY_OVERVIEW vs detailed gameplay)

@@ -104,7 +104,7 @@ python -m src.main
 
 ### To Understand the Code
 1. Read `docs/GAMEPLAY_OVERVIEW.md` - how current systems work
-2. Read `docs/detailed_gameplay.md` - what Galaga features we're adding
+2. Read `GALAGA_SPEC.md` - what Galaga features we're adding
 3. Explore `src/main.py` - main game loop
 4. Check tests for expected behavior
 

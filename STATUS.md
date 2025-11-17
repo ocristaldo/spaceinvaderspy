@@ -155,7 +155,7 @@ pytest tests/ --cov=src
 
 ### Documentation
 - `docs/GAMEPLAY_OVERVIEW.md` - Current architecture
-- `docs/detailed_gameplay.md` - Galaga specs
+- `GALAGA_SPEC.md` - Galaga specs
 
 ---
 

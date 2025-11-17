@@ -8,7 +8,7 @@
 
 ## 🎯 Project Overview
 
-A Python/Pygame recreation of classic Space Invaders with planned Galaga-style evolution. The game is **playable today** with core mechanics complete. We're now expanding with deeper arcade features documented in `docs/detailed_gameplay.md`.
+A Python/Pygame recreation of classic Space Invaders with planned Galaga-style evolution. The game is **playable today** with core mechanics complete. We're now expanding with deeper arcade features documented in `GALAGA_SPEC.md`.
 
 **Key Vision:** Start with Space Invaders baseline → evolve toward Galaga mechanics (enemy waves, tractor beams, challenge stages, dual fighters).
 
@@ -154,8 +154,7 @@ spaceinvaderspy/
 │   │   └── test_game_flow.py
 │   └── __init__.py
 ├── docs/
-│   ├── detailed_gameplay.md       # Galaga reference spec
-│   ├── GAMEPLAY_OVERVIEW.md       # Current system architecture
+│   └── GAMEPLAY_OVERVIEW.md      # Current systems architecture
 │   └── DEVELOPMENT_STATUS.md      # Detailed feature status
 ├── assets/
 │   ├── images/
@@ -290,7 +289,7 @@ pytest tests/ -v
 | **ROADMAP.md** | High-level product roadmap | Leadership/planning |
 | **CHANGELOG.md** | Version history and release notes | Release tracking |
 | **docs/GAMEPLAY_OVERVIEW.md** | Current system architecture | Developers |
-| **docs/detailed_gameplay.md** | Galaga mechanics spec | Feature implementers |
+| **GALAGA_SPEC.md** | Galaga mechanics spec | Feature implementers |
 | **QUICK_START.md** | Quick setup guide | New developers |
 
 ---
@@ -303,7 +302,7 @@ pytest tests/ -v
 3. Check entity classes - understand game objects
 
 ### To Implement Galaga Features
-1. Read `docs/detailed_gameplay.md` - full Galaga spec
+1. Read `GALAGA_SPEC.md` - full Galaga spec
 2. Check related Galaga phase in roadmap
 3. Look at existing enemy AI for patterns
 

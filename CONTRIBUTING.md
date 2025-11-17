@@ -256,7 +256,7 @@ Acceptance Criteria:
 4. **tests/** - Test files show expected behavior
 
 ### To Implement Galaga Features
-1. **[docs/detailed_gameplay.md](docs/detailed_gameplay.md)** - Complete Galaga spec
+1. **[GALAGA_SPEC.md](GALAGA_SPEC.md)** - Complete Galaga spec
 2. **Look at existing enemies** - Pattern to follow
 3. **Check related tests** - Understand expected behavior
 
