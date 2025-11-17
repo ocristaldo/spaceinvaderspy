@@ -169,7 +169,20 @@ ARCADE_SPRITE_MAPPING = {
 
     # Explosion sprites
     'explosion': 'explosion_arcade_frame1',
+
+    # UI elements
+    'title_logo': 'title_logo_marquee',
 }
+
+
+def _get_shared_sprite_sheet() -> SpriteSheet:
+    """Return the shared sprite sheet instance used by helper functions."""
+    if not hasattr(_get_shared_sprite_sheet, "_sheet"):
+        from .. import config
+        sprite_sheet_path = os.path.join(config.IMG_DIR, 'SpaceInvaders.png')
+        json_path = os.path.join(config.IMG_DIR, 'SpaceInvaders.arcade.json')
+        _get_shared_sprite_sheet._sheet = SpriteSheet(sprite_sheet_path, json_path)
+    return _get_shared_sprite_sheet._sheet
 
 
 def get_game_sprite(sprite_name: str, scale: int = 2) -> pygame.Surface:
@@ -183,22 +196,19 @@ def get_game_sprite(sprite_name: str, scale: int = 2) -> pygame.Surface:
     Returns:
         pygame.Surface containing the requested sprite
     """
-    from .. import config
+    sheet = _get_shared_sprite_sheet()
     
-    # Initialize sprite sheet if not already done
-    if not hasattr(get_game_sprite, '_sprite_sheet'):
-        sprite_sheet_path = os.path.join(config.IMG_DIR, 'SpaceInvaders.png')
-        json_path = os.path.join(config.IMG_DIR, 'SpaceInvaders.arcade.json')
-        get_game_sprite._sprite_sheet = SpriteSheet(sprite_sheet_path, json_path)
-    
-    # Map game sprite name to arcade sprite name
     arcade_sprite_name = ARCADE_SPRITE_MAPPING.get(sprite_name)
     if not arcade_sprite_name:
         logger = setup_logger(__name__)
         logger.warning(f"Unknown sprite name: {sprite_name}")
-        # Return a fallback sprite
-        sprite = pygame.Surface((16 * scale, 16 * scale), pygame.SRCALPHA)
-        sprite.fill((255, 0, 255))  # Magenta for missing sprites
-        return sprite
+        placeholder = pygame.Surface((16 * scale, 16 * scale), pygame.SRCALPHA)
+        placeholder.fill((255, 0, 255))
+        return placeholder
     
-    return get_game_sprite._sprite_sheet.get_sprite_by_name(arcade_sprite_name, scale)
+    return sheet.get_sprite_by_name(arcade_sprite_name, scale)
+
+
+def get_title_logo(scale: int = 1) -> pygame.Surface:
+    """Return the marquee logo sprite for menus/intro screens."""
+    return get_game_sprite('title_logo', scale)

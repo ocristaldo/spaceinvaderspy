@@ -24,7 +24,9 @@ from .utils.sprite_viewer import SpriteViewer
 from .utils.audio_manager import AudioManager
 from .utils.high_score_manager import HighScoreManager
 from .ui.menu import Menu
+from .ui.start_screen_demo import ScoreTableDemo, WaveFormationDemo
 from .systems.game_state_manager import GameStateManager, GameState
+from .utils.settings_manager import SettingsManager
 
 logging.basicConfig(
     level=logging.INFO,
@@ -49,6 +51,10 @@ class Game:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("monospace", 16)
         self.small_font = pygame.font.SysFont("monospace", 12)
+        menu_font_size = max(18, int(14 * config.PLAYFIELD_SCALE))
+        menu_body_size = max(14, int(12 * config.PLAYFIELD_SCALE))
+        self.menu_font = pygame.font.SysFont("monospace", menu_font_size)
+        self.menu_body_font = pygame.font.SysFont("monospace", menu_body_size)
         self.running = True
         self.game_over = False
         self.waiting_for_respawn = False
@@ -56,12 +62,17 @@ class Game:
         self.wave_message_text = ""
         self.wave_message_timer = 0
         self.floating_texts = []
+        self.settings_manager = SettingsManager()
+        self.level_start_delay_ms = 1500
+        self.level_start_ready_time = 0
 
         # State management
         self.state_manager = GameStateManager()
 
         # Audio and scoring systems
         self.audio_manager = AudioManager()
+        if self.settings_manager.audio_enabled() and not self.audio_manager.enabled:
+            self.audio_manager.toggle_audio()
         self.high_score_manager = HighScoreManager()
 
         self.score = 0
@@ -84,11 +95,33 @@ class Game:
         # Sprite viewer for testing
         self.sprite_viewer = SpriteViewer(self.screen)
         self.viewing_sprites = False
-        self.menu = Menu(self.font)
+        self.menu = Menu(self.menu_font, self.menu_body_font)
+        self.menu.update_options_state(self.audio_manager.enabled, self.settings_manager.intro_demo_enabled())
+        self.score_demo = ScoreTableDemo()
+        self.start_screen_demo = self.score_demo  # Backwards-compatibility for older tests/utilities
+        self.wave_demo = WaveFormationDemo()
+        self.demo_cycle = [self.score_demo, self.wave_demo]
+        self.demo_cycle_enabled = False
+        self.demo_cycle_index = 0
+        self.active_demo = None
         self.alien_speed = config.ALIEN_START_SPEED
         self.initial_alien_count = len(self.alien_group)
         self.last_ufo_time = pygame.time.get_ticks()
-        logging.info("Game started. Player lives=%d. Audio muted by default (press 'A' to toggle)", self.lives)
+        # Attract mode/demo settings
+        self.attract_last_activity_time = pygame.time.get_ticks()
+        self.attract_idle_time = config.ATTRACT_IDLE_TIME
+        self.debug_sprite_borders = self.settings_manager.debug_borders_enabled()
+        self.menu.set_debug_borders(self.debug_sprite_borders)
+        self.score_demo.set_debug_borders(self.debug_sprite_borders)
+        if hasattr(self.wave_demo, "set_debug_borders"):
+            self.wave_demo.set_debug_borders(self.debug_sprite_borders)
+
+        if self.settings_manager.intro_demo_enabled():
+            self.start_intro_demo()
+        else:
+            self.state_manager.change_state(GameState.MENU)
+        audio_status = "ON" if self.audio_manager.enabled else "muted (press 'A' to toggle)"
+        logging.info("Game started. Player lives=%d. Audio %s", self.lives, audio_status)
 
     @property
     def state(self):
@@ -105,6 +138,7 @@ class Game:
         self.level = 1
         self.wave_message_text = "Ready!"
         self.wave_message_timer = pygame.time.get_ticks() + 2000
+        self.level_start_ready_time = pygame.time.get_ticks() + self.level_start_delay_ms
         self.state_manager.change_state(GameState.PLAYING)
         
         # Clear all sprite groups
@@ -149,25 +183,20 @@ class Game:
         }
         max_row_height = max(sprite_heights.values())
 
-        available_width = self.logical_width - (2 * config.ALIEN_MARGIN_X)
-
+        max_sprite_width = max(sprite_widths.values())
+        column_gap = config.ALIEN_SPACING_X
+        formation_width = cols * max_sprite_width + (cols - 1) * column_gap
+        start_x = max(
+            config.ALIEN_MARGIN_X,
+            (self.logical_width - formation_width) / 2,
+        )
         for row_idx, value in enumerate(values):
             alien_width = sprite_widths[value]
-            preferred_spacing = config.ALIEN_SPACING_X
-            row_width = (cols * alien_width) + (cols - 1) * preferred_spacing
-
-            if row_width > available_width and cols > 1:
-                spacing_candidate = (available_width - (cols * alien_width)) / (cols - 1)
-                preferred_spacing = max(config.ALIEN_MIN_SPACING_X, spacing_candidate)
-                row_width = (cols * alien_width) + (cols - 1) * preferred_spacing
-
-            x_offset = max(
-                config.ALIEN_MARGIN_X,
-                (self.logical_width - row_width) / 2
-            )
-            
+            offset_within_cell = (max_sprite_width - alien_width) / 2
+            x_offset = start_x
             for col_idx in range(cols):
-                x = x_offset + col_idx * (alien_width + preferred_spacing)
+                cell_x = x_offset + col_idx * (max_sprite_width + column_gap)
+                x = cell_x + offset_within_cell
                 row_base_y = margin_y + row_idx * spacing_y
                 y = row_base_y + (max_row_height - sprite_heights[value])
                 group.add(Alien(x, y, value))
@@ -183,6 +212,69 @@ class Game:
             group.add(Bunker(center_x, bunker_bottom))
         return group
 
+    def start_intro_demo(self, triggered_from_options: bool = False, cycle: bool = False):
+        """Kick off the start-screen animation."""
+        if self.state_manager.current_state == GameState.ATTRACT and self.active_demo and self.active_demo.is_running():
+            if not cycle or self.demo_cycle_enabled:
+                return
+        if self.viewing_sprites:
+            self.viewing_sprites = False
+            self.sprite_viewer.reset_view()
+        self.menu.hide_controls()
+        self.menu.hide_high_scores()
+        self.menu.hide_credits()
+        self.menu.hide_options()
+        self.demo_cycle_enabled = cycle
+        if self.demo_cycle_enabled:
+            self.demo_cycle_index = 0
+            self.active_demo = self.demo_cycle[self.demo_cycle_index]
+        else:
+            self.active_demo = self.score_demo
+        if hasattr(self.active_demo, "set_debug_borders"):
+            self.active_demo.set_debug_borders(self.debug_sprite_borders)
+        self.active_demo.start()
+        self.state_manager.change_state(GameState.ATTRACT)
+        logging.info(
+            "Intro demo started%s (%s)",
+            " from options" if triggered_from_options else "",
+            "cycling" if cycle else "intro",
+        )
+
+    def _finish_intro_demo(self, forced: bool = False):
+        """Return to the menu once the intro demo is complete."""
+        if self.state_manager.current_state != GameState.ATTRACT:
+            return
+        if forced and self.active_demo and self.active_demo.is_running():
+            self.active_demo.skip()
+        elif not forced and (not self.active_demo or not self.active_demo.is_finished()):
+            return
+        self.state_manager.change_state(GameState.MENU)
+        self.demo_cycle_enabled = False
+        self.active_demo = None
+        self.attract_last_activity_time = pygame.time.get_ticks()
+        logging.info("Intro demo finished; returning to menu")
+
+    def _toggle_audio_setting(self):
+        """Toggle audio and persist the setting."""
+        self.audio_manager.toggle_audio()
+        self.settings_manager.set_audio_enabled(self.audio_manager.enabled)
+        self.menu.update_options_state(self.audio_manager.enabled, self.settings_manager.intro_demo_enabled())
+        logging.info("Audio toggled: %s", "ON" if self.audio_manager.enabled else "OFF")
+
+    def _set_debug_borders(self, enabled: bool) -> None:
+        enabled = bool(enabled)
+        if self.debug_sprite_borders == enabled:
+            return
+        self.debug_sprite_borders = enabled
+        self.settings_manager.set_debug_borders_enabled(enabled)
+        self.menu.set_debug_borders(enabled)
+        self.score_demo.set_debug_borders(enabled)
+        if hasattr(self.wave_demo, "set_debug_borders"):
+            self.wave_demo.set_debug_borders(enabled)
+        if hasattr(self.active_demo, "set_debug_borders"):
+            self.active_demo.set_debug_borders(enabled)
+        logging.info("Sprite border debug %s", "enabled" if enabled else "disabled")
+
     def handle_events(self):
         """
         Process all pygame events including keyboard input and window events.
@@ -195,26 +287,29 @@ class Game:
         """
         # Get currently pressed keys for combination detection
         keys_pressed = pygame.key.get_pressed()
-        
-        # Check for sprite viewer key combinations (works both in game and sprite viewer)
-        stage_snapshot = self.sprite_viewer.get_stage_from_key_combo(keys_pressed)
-        if stage_snapshot:
-            if self.sprite_viewer.load_stage_preview(stage_snapshot):
-                self.viewing_sprites = True
-                logging.info("Loaded stage preview: %s", stage_snapshot)
-        else:
-            platform = self.sprite_viewer.get_platform_from_key_combo(keys_pressed)
-            if platform:
-                if self.sprite_viewer.load_platform_sprites(platform):
-                    self.viewing_sprites = True
-                    logging.info(f"Switched to sprite viewer mode for {platform}")
 
-        # Handle sprite viewer navigation if currently viewing sprites
-        if self.viewing_sprites:
-            self.sprite_viewer.handle_navigation(keys_pressed)
+        if self.state_manager.current_state != GameState.ATTRACT:
+            # Check for sprite viewer key combinations (works both in game and sprite viewer)
+            stage_snapshot = self.sprite_viewer.get_stage_from_key_combo(keys_pressed)
+            if stage_snapshot:
+                if self.sprite_viewer.load_stage_preview(stage_snapshot):
+                    self.viewing_sprites = True
+                    logging.info("Loaded stage preview: %s", stage_snapshot)
+            else:
+                platform = self.sprite_viewer.get_platform_from_key_combo(keys_pressed)
+                if platform:
+                    if self.sprite_viewer.load_platform_sprites(platform):
+                        self.viewing_sprites = True
+                        logging.info(f"Switched to sprite viewer mode for {platform}")
+
+            # Handle sprite viewer navigation if currently viewing sprites
+            if self.viewing_sprites:
+                self.sprite_viewer.handle_navigation(keys_pressed)
 
         # Process all pending pygame events
         for event in pygame.event.get():
+            # Reset attract timer on any processed event
+            self.attract_last_activity_time = pygame.time.get_ticks()
             # Handle window close button
             if event.type == pygame.QUIT:
                 self.running = False
@@ -242,21 +337,71 @@ class Game:
                         logging.info("Game restarted")
                         continue
 
+                if self.state_manager.current_state == GameState.ATTRACT:
+                    if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                        self._finish_intro_demo(forced=True)
+                    continue
+
                 # Menu navigation when in MENU state
                 if self.state_manager.current_state == GameState.MENU:
+                    if self.menu.showing_options:
+                        if event.key == pygame.K_d:
+                            self.start_intro_demo(triggered_from_options=True, cycle=True)
+                            continue
+                        if event.key == pygame.K_i:
+                            new_state = not self.settings_manager.intro_demo_enabled()
+                            self.settings_manager.set_intro_demo_enabled(new_state)
+                            self.menu.update_options_state(self.audio_manager.enabled, new_state)
+                            logging.info("Intro demo autoplay %s", "enabled" if new_state else "disabled")
+                            continue
+                    if event.key == pygame.K_a:
+                        self._toggle_audio_setting()
+                        continue
+                    if not self.menu.showing_options and event.key == pygame.K_d:
+                        self.start_intro_demo(triggered_from_options=True, cycle=True)
+                        continue
                     action = self.menu.handle_key(event.key)
                     if action == "start":
-                        self.state_manager.change_state(GameState.PLAYING)
+                        self.reset_game()
                         logging.info("Game started from menu")
                     elif action == "controls":
                         self.menu.show_controls()
                         logging.info("Controls overlay opened from menu")
+                    elif action == "high scores":
+                        self.menu.show_high_scores(self.high_score_manager.get_top_scores())
+                        logging.info("High Scores overlay opened from menu")
+                    elif action == "credits":
+                        self.menu.show_credits()
+                        logging.info("Credits overlay opened from menu")
                     elif action == "quit":
                         self.running = False
                         logging.info("Game quit from menu")
                     elif action == "options":
-                        # Options not implemented yet
-                        logging.info("Options selected (not implemented)")
+                        # Open options overlay and pass current settings state
+                        self.menu.show_options_with_settings(
+                            self.audio_manager.enabled,
+                            self.settings_manager.intro_demo_enabled(),
+                            self.debug_sprite_borders,
+                        )
+                        logging.info("Options overlay opened from menu")
+                    elif action == "options_toggle_audio":
+                        self._toggle_audio_setting()
+                        continue
+                    elif action == "options_play_demo":
+                        self.menu.hide_options()
+                        self.start_intro_demo(triggered_from_options=True, cycle=True)
+                        continue
+                    elif action == "options_toggle_autodemo":
+                        new_state = not self.settings_manager.intro_demo_enabled()
+                        self.settings_manager.set_intro_demo_enabled(new_state)
+                        self.menu.update_options_state(self.audio_manager.enabled, new_state)
+                        logging.info("Intro demo autoplay %s", "enabled" if new_state else "disabled")
+                        continue
+                    elif action == "options_toggle_borders":
+                        self._set_debug_borders(not self.debug_sprite_borders)
+                        continue
+                    elif action == "options_back":
+                        continue
                     continue
 
                 if self.waiting_for_respawn:
@@ -293,8 +438,9 @@ class Game:
 
                 # A key: Toggle audio on/off
                 if event.key == pygame.K_a:
-                    self.audio_manager.toggle_audio()
-                    logging.info(f"Audio toggled: {'ON' if self.audio_manager.enabled else 'OFF'}")
+                    # If options overlay open or during play, allow toggling audio
+                    if self.menu.showing_options or self.state_manager.current_state == GameState.PLAYING:
+                        self._toggle_audio_setting()
 
     def spawn_bomb(self):
         """
@@ -307,7 +453,10 @@ class Game:
         - Creates bomb at alien's bottom center position
         """
         # Don't spawn bombs if no aliens remain
-        if not self.alien_group:
+        if (
+            self.state_manager.current_state != GameState.PLAYING
+            or not self.alien_group
+        ):
             return
         
         # Probability-based bomb spawn (starts gentle, ramps up as aliens fall)
@@ -333,11 +482,11 @@ class Game:
     def update_alien_speed(self):
         """Increase alien speed as their numbers decrease."""
         remaining = len(self.alien_group)
-        if remaining:
-            self.alien_speed = (
-                config.ALIEN_START_SPEED
-                + (self.initial_alien_count - remaining) * config.ALIEN_SPEED_INCREMENT
-            )
+        if remaining and self.initial_alien_count:
+            progress = 1.0 - (remaining / self.initial_alien_count)
+            max_speed = config.ALIEN_MAX_SPEED
+            base = config.ALIEN_START_SPEED
+            self.alien_speed = base + progress * (max_speed - base)
 
     def update(self):
         pressed = pygame.key.get_pressed()
@@ -403,7 +552,7 @@ class Game:
                 bunker.damage()
                 logging.debug("Bunker damaged at %s", bunker.rect.topleft)
 
-        # bullet vs bomb (player shots can intercept alien bombs)
+    # (No duplicate initialization here)
         intercepts = pygame.sprite.groupcollide(self.bullet_group, self.bomb_group, True, True)
         if intercepts:
             logging.debug("Player bullet intercepted an alien bomb")
@@ -496,6 +645,7 @@ class Game:
         bonus_speed = min(0.05 * (self.level - 1), 0.6)
         self.wave_message_text = f"Level {self.level}"
         self.wave_message_timer = pygame.time.get_ticks() + 2000
+        self.level_start_ready_time = pygame.time.get_ticks() + self.level_start_delay_ms
         self.alien_group = self.create_aliens()
         self.bullet_group.empty()
         self.bomb_group.empty()
@@ -534,6 +684,23 @@ class Game:
 
     def draw(self):
         # If viewing sprites, draw sprite viewer instead of game
+        # Attract/demo state renders whichever animated scene is active
+        if self.state_manager.current_state == GameState.ATTRACT:
+            if not self.active_demo:
+                self.active_demo = self.score_demo
+                self.active_demo.start()
+            self.active_demo.update()
+            self.active_demo.draw(self.playfield_surface)
+            self._present_playfield()
+            if self.active_demo.is_finished():
+                if self.demo_cycle_enabled:
+                    self.demo_cycle_index = (self.demo_cycle_index + 1) % len(self.demo_cycle)
+                    self.active_demo = self.demo_cycle[self.demo_cycle_index]
+                    self.active_demo.start()
+                else:
+                    self.active_demo.start()
+            return
+
         if self.viewing_sprites:
             self.sprite_viewer.draw_sprite_grid()
             pygame.display.flip()
@@ -586,7 +753,10 @@ class Game:
 
         if self.game_over:
             self._draw_game_over_message()
-        
+
+        if self.debug_sprite_borders:
+            self._draw_debug_sprite_borders(surface)
+
         self._present_playfield()
 
     def _present_playfield(self):
@@ -638,10 +808,27 @@ class Game:
                 and not self.game_over
                 and not self.viewing_sprites
             ):
-                self.update()
+                if pygame.time.get_ticks() >= self.level_start_ready_time:
+                    self.update()
             
             # Always draw the current game state
             self.draw()
+
+            # Trigger the demo again if the menu sits idle
+            if (
+                self.state_manager.current_state == GameState.MENU
+                and self.settings_manager.intro_demo_enabled()
+                and not any(
+                    (
+                        self.menu.showing_controls,
+                        self.menu.showing_high_scores,
+                        self.menu.showing_options,
+                        self.menu.showing_credits,
+                    )
+                )
+                and pygame.time.get_ticks() - self.attract_last_activity_time >= self.attract_idle_time
+            ):
+                self.start_intro_demo(cycle=True)
             
             # Handle game over state - show game over screen and wait for restart
             if self.game_over:
@@ -749,6 +936,21 @@ class Game:
             text_surf = self.small_font.render(ft["text"], True, ft["color"])
             rect = text_surf.get_rect(center=ft["pos"])
             surface.blit(text_surf, rect)
+
+    def _draw_debug_sprite_borders(self, surface: pygame.Surface) -> None:
+        color = constants.GREEN
+        for sprite in self.player_group.sprites():
+            pygame.draw.rect(surface, color, sprite.rect, 1)
+        for sprite in self.alien_group.sprites():
+            pygame.draw.rect(surface, color, sprite.rect, 1)
+        for sprite in self.bunker_group.sprites():
+            pygame.draw.rect(surface, color, sprite.rect, 1)
+        for sprite in self.bullet_group.sprites():
+            pygame.draw.rect(surface, color, sprite.rect, 1)
+        for sprite in self.bomb_group.sprites():
+            pygame.draw.rect(surface, color, sprite.rect, 1)
+        for sprite in self.ufo_group.sprites():
+            pygame.draw.rect(surface, color, sprite.rect, 1)
 
 
 def main():

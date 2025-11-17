@@ -223,5 +223,14 @@
     "y": 298,
     "width": 90,
     "height": 14
+  },
+  {
+    "name": "title_logo_marquee",
+    "platform": "arcade",
+    "frame": 1,
+    "x": 172,
+    "y": 10,
+    "width": 130,
+    "height": 155
   }
 ]

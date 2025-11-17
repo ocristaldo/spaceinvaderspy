@@ -14,7 +14,13 @@ def init_pygame():
 
 def test_menu_to_play_and_pause_toggle():
     game = Game()
-    # Initially in MENU
+    # Initially in ATTRACT (demo) - pressing any key should return to MENU
+    assert game.state == "ATTRACT"
+
+    # Simulate a key press (RETURN) to exit attract/demo and go to MENU
+    event = pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_RETURN})
+    pygame.event.post(event)
+    game.handle_events()
     assert game.state == "MENU"
 
     # Simulate pressing RETURN to start (menu selected defaults to Start)

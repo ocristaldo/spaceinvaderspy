@@ -24,18 +24,14 @@ A work-in-progress recreation of the classic Space Invaders arcade game built wi
 - Destructible bunkers for defense (now spaced farther from the cannon to avoid overlap)
 - UFO bonus enemy with random point values and floating score popups
 - Player shots can intercept alien bombs mid-air (straight out of the arcade feel)
-- In-game menu includes a "Controls" overlay that lists every shortcut (including sprite viewer combos)
+- Animated attract/demo sequence (the classic S+2-style screen) with aliens dropping into formation before returning to the menu
+- In-game menu includes a "Controls" overlay that lists every shortcut (including sprite viewer combos) and persists audio/demo settings
 - Scoring system with per-alien values and 3-life structure
 
 ### Advanced Features
 - **Sprite Sheet System**: Authentic arcade sprites loaded from JSON coordinate files
-- **Multi-Platform Sprite Support**: 
-  - Arcade (original)
-  - Atari 2600
-  - Deluxe edition
-  - Intellivision
-- **Sprite Viewer**: Interactive testing mode to view all sprites
-  - Key combinations: S+1 (Arcade), S+2 (Atari), S+3 (Deluxe), S+4 (Intellivision)
+- **Sprite Viewer**: Interactive testing mode
+  - Key combinations: S+1 (Arcade atlas), S+2 (start-screen preview), S+3 (wave-ready preview), S+4 (late-wave preview)
   - Pagination with arrow keys (← →)
   - Detailed sprite information display
   - Platform switching without game restart
@@ -257,6 +253,8 @@ To contribute:
 - **Left Arrow/Right Arrow**: Move player ship
 - **Space**: Fire bullet (default: one bullet at a time)
 - **Space (after losing a life)**: Respawn and resume play when prompted
+- **D (from Options)**: Replay the intro demo animation
+- **I (from Options)**: Toggle intro demo autoplay (persists to disk)
 - **R**: Restart game (when game over) or exit sprite viewer
 - **Q**: Quit game
 

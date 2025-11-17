@@ -155,6 +155,7 @@ class TestGameStateEnum:
     def test_game_state_enum_values(self):
         """Test that GameState enum has expected values."""
         assert GameState.MENU.value == "menu"
+        assert GameState.ATTRACT.value == "attract"
         assert GameState.PLAYING.value == "playing"
         assert GameState.PAUSED.value == "paused"
         assert GameState.GAME_OVER.value == "game_over"
@@ -163,7 +164,7 @@ class TestGameStateEnum:
     def test_game_state_enum_members(self):
         """Test that GameState enum has expected members."""
         states = {state.name for state in GameState}
-        expected = {"MENU", "PLAYING", "PAUSED", "GAME_OVER", "QUIT"}
+        expected = {"MENU", "ATTRACT", "PLAYING", "PAUSED", "GAME_OVER", "QUIT"}
         assert states == expected
         
     def test_game_state_enum_comparisons(self):

@@ -22,6 +22,13 @@ VENV_DIR="$PROJECT_ROOT/.venv"
 REQ_FILE="$PROJECT_ROOT/requirements.txt"
 REQ_HASH_FILE="$VENV_DIR/.requirements.sha256"
 DEFAULT_PY_CMDS=("python3" "python")
+CUSTOM_PYTHON="${SPACEINVADERS_PYTHON:-}"
+
+if [[ -n "${SPACEINVADERS_PYTEST_ARGS:-}" ]]; then
+  PYTEST_ARGS=("${(@s/ /)SPACEINVADERS_PYTEST_ARGS}")
+else
+  PYTEST_ARGS=("-q")
+fi
 
 ACTION="play"
 INSTALL=true
@@ -29,6 +36,31 @@ FORCE_INSTALL=false
 
 print_step() {
   echo "[spaceinvaders] $1"
+}
+
+find_command_in_path() {
+  for cmd in "$@"; do
+    local resolved
+    resolved="$(command -v "$cmd" 2>/dev/null || true)"
+    if [[ -n "$resolved" ]]; then
+      echo "$resolved"
+      return 0
+    fi
+  done
+  return 1
+}
+
+resolve_venv_exec() {
+  local env_dir="$1"
+  shift
+  for rel in "$@"; do
+    local candidate="$env_dir/bin/$rel"
+    if [[ -x "$candidate" ]]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+  return 1
 }
 
 usage() {
@@ -88,11 +120,22 @@ done
 ACTIVE_ENV="${VIRTUAL_ENV:-}"
 USING_EXTERNAL_ENV=false
 ACTIVE_PYTHON=""
-ACTIVE_PIP=""
 SYSTEM_PYTHON=""
 NEW_ENV_CREATED=false
 
 detect_system_python() {
+  if [[ -n "$CUSTOM_PYTHON" ]]; then
+    if [[ -x "$CUSTOM_PYTHON" ]]; then
+      SYSTEM_PYTHON="$CUSTOM_PYTHON"
+      return
+    elif command -v "$CUSTOM_PYTHON" >/dev/null 2>&1; then
+      SYSTEM_PYTHON="$(command -v "$CUSTOM_PYTHON")"
+      return
+    else
+      echo "[spaceinvaders] error: SPACEINVADERS_PYTHON '$CUSTOM_PYTHON' not found." >&2
+      exit 1
+    fi
+  fi
   for cmd in "${DEFAULT_PY_CMDS[@]}"; do
     if command -v "$cmd" >/dev/null 2>&1; then
       SYSTEM_PYTHON="$cmd"
@@ -106,9 +149,25 @@ detect_system_python() {
 
 setup_environment() {
   if [[ -n "$ACTIVE_ENV" ]]; then
+    if [[ "$ACTIVE_ENV" == "$VENV_DIR" ]]; then
+      print_step "Managed virtualenv already active; reusing it."
+      ACTIVE_PYTHON="$(resolve_venv_exec "$ACTIVE_ENV" python3 python)"
+      if [[ -z "$ACTIVE_PYTHON" ]]; then
+        echo "[spaceinvaders] error: could not find python executable inside $ACTIVE_ENV" >&2
+        exit 1
+      fi
+      USING_EXTERNAL_ENV=false
+      return
+    fi
     USING_EXTERNAL_ENV=true
-    ACTIVE_PYTHON="python"
-    ACTIVE_PIP="pip"
+    ACTIVE_PYTHON="$(resolve_venv_exec "$ACTIVE_ENV" python3 python)"
+    if [[ -z "$ACTIVE_PYTHON" ]]; then
+      ACTIVE_PYTHON="$(find_command_in_path "${DEFAULT_PY_CMDS[@]}")"
+    fi
+    if [[ -z "$ACTIVE_PYTHON" ]]; then
+      echo "[spaceinvaders] error: could not find python interpreter in active virtualenv." >&2
+      exit 1
+    fi
     print_step "Detected active virtualenv ($ACTIVE_ENV); skipping creation and install."
     return
   fi
@@ -122,8 +181,11 @@ setup_environment() {
   fi
 
   ACTIVE_ENV="$VENV_DIR"
-  ACTIVE_PYTHON="$ACTIVE_ENV/bin/python"
-  ACTIVE_PIP="$ACTIVE_ENV/bin/pip"
+  ACTIVE_PYTHON="$(resolve_venv_exec "$ACTIVE_ENV" python3 python)"
+  if [[ -z "$ACTIVE_PYTHON" ]]; then
+    echo "[spaceinvaders] error: could not find python executable inside $ACTIVE_ENV" >&2
+    exit 1
+  fi
 
   if [[ ! -x "$ACTIVE_PYTHON" ]]; then
     echo "[spaceinvaders] error: expected python executable at $ACTIVE_PYTHON" >&2
@@ -174,7 +236,7 @@ install_requirements_if_needed() {
 
   if [[ "$FORCE_INSTALL" == true || "$desired_hash" != "$current_hash" ]]; then
     print_step "Installing dependencies from requirements.txt"
-    "$ACTIVE_PIP" install -r "$REQ_FILE"
+    "$ACTIVE_PYTHON" -m pip install -r "$REQ_FILE"
     if [[ -n "$desired_hash" ]]; then
       echo "$desired_hash" > "$REQ_HASH_FILE"
     fi
@@ -190,9 +252,10 @@ launch_game() {
 }
 
 run_tests() {
-  print_step "Running pytest -q"
+  local args="${PYTEST_ARGS[*]}"
+  print_step "Running pytest ${args}"
   cd "$PROJECT_ROOT"
-  exec "$ACTIVE_PYTHON" -m pytest -q
+  exec "$ACTIVE_PYTHON" -m pytest "${PYTEST_ARGS[@]}"
 }
 
 open_shell() {

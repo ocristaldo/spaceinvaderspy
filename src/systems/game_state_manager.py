@@ -9,6 +9,7 @@ from ..utils.logger import setup_logger
 class GameState(Enum):
     """Enumeration of possible game states."""
     MENU = "menu"
+    ATTRACT = "attract"
     PLAYING = "playing"
     PAUSED = "paused"
     GAME_OVER = "game_over"
