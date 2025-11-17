@@ -24,6 +24,7 @@ from .utils.sprite_viewer import SpriteViewer
 from .utils.audio_manager import AudioManager
 from .utils.high_score_manager import HighScoreManager
 from .ui.menu import Menu
+from .systems.game_state_manager import GameStateManager, GameState
 
 logging.basicConfig(
     level=logging.INFO,
@@ -48,6 +49,9 @@ class Game:
         self.running = True
         self.game_over = False
 
+        # State management
+        self.state_manager = GameStateManager()
+
         # Audio and scoring systems
         self.audio_manager = AudioManager()
         self.high_score_manager = HighScoreManager()
@@ -71,8 +75,6 @@ class Game:
         # Sprite viewer for testing
         self.sprite_viewer = SpriteViewer(self.screen)
         self.viewing_sprites = False
-        # Game state: MENU, PLAYING, PAUSED, GAME_OVER
-        self.state = "MENU"
         self.menu = Menu(self.font)
         self.alien_speed = config.ALIEN_START_SPEED
         self.initial_alien_count = len(self.alien_group)
@@ -177,10 +179,10 @@ class Game:
                         continue
 
                 # Menu navigation when in MENU state
-                if self.state == "MENU":
+                if self.state_manager.current_state == GameState.MENU:
                     action = self.menu.handle_key(event.key)
                     if action == "start":
-                        self.state = "PLAYING"
+                        self.state_manager.change_state(GameState.PLAYING)
                         logging.info("Game started from menu")
                     elif action == "quit":
                         self.running = False
@@ -191,18 +193,18 @@ class Game:
                     continue
 
                 # Spacebar: Fire bullet (only if no bullet currently active and playing)
-                if event.key == pygame.K_SPACE and len(self.bullet_group) == 0 and self.state == "PLAYING" and not self.viewing_sprites:
+                if event.key == pygame.K_SPACE and len(self.bullet_group) == 0 and self.state_manager.current_state == GameState.PLAYING and not self.viewing_sprites:
                     bullet = Bullet(self.player.get_bullet_spawn_position())
                     self.bullet_group.add(bullet)
                     logging.info("Bullet fired from player position")
 
                 # P or ESC: Toggle pause when playing
                 if event.key in (pygame.K_p, pygame.K_ESCAPE):
-                    if self.state == "PLAYING":
-                        self.state = "PAUSED"
+                    if self.state_manager.current_state == GameState.PLAYING:
+                        self.state_manager.change_state(GameState.PAUSED)
                         logging.info("Game paused")
-                    elif self.state == "PAUSED":
-                        self.state = "PLAYING"
+                    elif self.state_manager.current_state == GameState.PAUSED:
+                        self.state_manager.change_state(GameState.PLAYING)
                         logging.info("Game resumed")
 
                 # Q key: Quit game at any time
@@ -285,6 +287,7 @@ class Game:
                     alien.rect.y += 20  # Drop down when hitting edge
                     if alien.rect.bottom >= SCREEN_HEIGHT - 60:
                         self.game_over = True
+                        self.state_manager.change_state(GameState.GAME_OVER)
                         logging.info("Game over: aliens reached bottom")
                 else:
                     alien.rect.x += move_x
@@ -332,10 +335,12 @@ class Game:
             logging.warning("Player hit! Lives left=%d", self.lives)
             if self.lives <= 0:
                 self.game_over = True
+                self.state_manager.change_state(GameState.GAME_OVER)
                 logging.info("Game over: player destroyed")
 
         if not self.alien_group:
             self.game_over = True
+            self.state_manager.change_state(GameState.GAME_OVER)
             logging.info("Game over: all aliens destroyed")
 
         # Check for extra lives milestones
@@ -373,7 +378,7 @@ class Game:
             # Normal game drawing
             self.screen.fill(constants.BLACK)
             # If in MENU state, draw the menu and return
-            if self.state == "MENU":
+            if self.state_manager.current_state == GameState.MENU:
                 self.menu.draw(self.screen)
                 pygame.display.flip()
                 return
