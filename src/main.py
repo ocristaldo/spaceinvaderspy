@@ -216,8 +216,7 @@ class Game:
     def update(self):
         pressed = pygame.key.get_pressed()
         self.player_group.update(pressed)
-        self.bullet_group.update()
-        self.bomb_group.update()
+        # Update non-projectile entities first
         self.ufo_group.update()
 
         # Animate aliens every 30 frames (0.5 seconds at 60 FPS)
@@ -229,7 +228,7 @@ class Game:
         if self.alien_group:
             move_x = self.alien_direction * self.alien_speed
             move_down = False
-            
+
             # Check if any alien hits the edge
             for alien in self.alien_group.sprites():
                 if (alien.rect.right + move_x >= SCREEN_WIDTH - 10 or 
@@ -237,7 +236,7 @@ class Game:
                     move_down = True
                     self.alien_direction *= -1
                     break
-            
+
             # Move aliens
             for alien in self.alien_group.sprites():
                 if move_down:
@@ -248,6 +247,7 @@ class Game:
                 else:
                     alien.rect.x += move_x
 
+        # Spawn events
         self.spawn_bomb()
         self.spawn_ufo()
 
@@ -265,24 +265,31 @@ class Game:
             for ufo in ufos:
                 self.score += ufo.value
                 logging.info("UFO destroyed for %d points", ufo.value)
+
         # bullet vs bunker
         hits = pygame.sprite.groupcollide(self.bullet_group, self.bunker_group, True, False)
         for bunker_list in hits.values():
             for bunker in bunker_list:
                 bunker.damage()
                 logging.debug("Bunker damaged at %s", bunker.rect.topleft)
+
         # bomb vs bunker
         hits = pygame.sprite.groupcollide(self.bomb_group, self.bunker_group, True, False)
         for bunker_list in hits.values():
             for bunker in bunker_list:
                 bunker.damage()
                 logging.debug("Bunker hit by bomb at %s", bunker.rect.topleft)
-        # bomb vs player - use deterministic rect-based collision check
-        # Debug: log rects to help diagnose collision issues in tests
-        logging.debug("Player rect: %s", getattr(self.player, 'rect', None))
+
+        # bomb vs player - deterministic rect-based collision check
+        collided_bombs = []
         for b in list(self.bomb_group):
-            logging.debug("Bomb rect: %s", getattr(b, 'rect', None))
-        collided_bombs = [b for b in list(self.bomb_group) if b.rect.colliderect(self.player.rect)]
+            try:
+                # Safe rect collision check
+                if b.rect.colliderect(self.player.rect):
+                    collided_bombs.append(b)
+            except Exception:
+                # Ignore malformed sprites
+                continue
         if collided_bombs:
             for bomb in collided_bombs:
                 bomb.kill()
@@ -291,9 +298,15 @@ class Game:
             if self.lives <= 0:
                 self.game_over = True
                 logging.info("Game over: player destroyed")
+
         if not self.alien_group:
             self.game_over = True
             logging.info("Game over: all aliens destroyed")
+
+        # Update bullets and bombs after handling collisions to keep frame semantics
+        self.bullet_group.update()
+        self.bomb_group.update()
+
         if self.game_over:
             logging.info("Game over detected")
             # Don't stop running immediately, let game_over_screen handle it

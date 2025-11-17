@@ -69,8 +69,9 @@ class Bomb(pygame.sprite.Sprite):
             # Fallback to simple rectangle
             self.image = pygame.Surface((2, 8))
             self.image.fill(constants.RED)
-        
-        self.rect = self.image.get_rect(midtop=pos)
+        # Use center-based placement so callers can pass a logical position
+        # (e.g., player's center or alien midbottom) and get a predictable rect.
+        self.rect = self.image.get_rect(center=pos)
         self.speed = config.BOMB_SPEED
 
     def update(self) -> None:

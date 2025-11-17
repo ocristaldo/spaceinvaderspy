@@ -23,9 +23,18 @@ def test_bomb_collision_decrements_lives_and_triggers_game_over():
     # Ensure rect overlap — set center explicitly to avoid anchor differences
     bomb.rect.center = game.player.rect.center
     game.bomb_group.add(bomb)
+    # Debug: show rects before update
+    print('TEST DEBUG player rect:', game.player.rect)
+    for b in game.bomb_group:
+        print('TEST DEBUG bomb rect before update:', b.rect)
 
     # Call update which should process collisions
     game.update()
+
+    # Debug: show rects after update
+    print('TEST DEBUG player rect after update:', game.player.rect)
+    for b in game.bomb_group:
+        print('TEST DEBUG bomb rect after update:', b.rect)
 
     assert game.lives == 0
     assert game.game_over
