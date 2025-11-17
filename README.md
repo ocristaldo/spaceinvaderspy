@@ -2,10 +2,10 @@
 
 A work-in-progress recreation of the classic Space Invaders arcade game built with Python and Pygame, now marching toward Galaga-style wave choreography and challenge stages. We keep the original sprites/feel while extending gameplay to match the complete spec documented in `GALAGA_SPEC.md`.
 
-## � Project Status
+## 🎯 Project Status
 
 **Current:** Phase 2 Complete ✅ | **Next:** Phase 3 (Game States + Menu)  
-**For full details, see [PROJECT.md](PROJECT.md) or [STATUS.md](STATUS.md)**
+**For full details, see [docs/PROJECT.md](docs/PROJECT.md) or [docs/STATUS.md](docs/STATUS.md)**
 
 ### Quick Stats
 - ✅ Core game playable
@@ -44,10 +44,10 @@ A work-in-progress recreation of the classic Space Invaders arcade game built wi
   - Platform switching without game restart
 - **Animated Sprites**: Alien animation with frame switching
 - **Comprehensive Logging**: Debug and info logging throughout the game
-- **Design Docs**: `GALAGA_SPEC.md` (Galaga reference) and `docs/GAMEPLAY_OVERVIEW.md` (current systems)
+- **Design Docs**: `docs/GALAGA_SPEC.md` (Galaga reference) and `docs/GAMEPLAY_OVERVIEW.md` (current systems)
 
 ## 📚 Gameplay Vision
-- `GALAGA_SPEC.md` captures the Galaga mechanics we plan to graft onto this project: multi-wave progression, tractor beams, challenge stages, and attract/credit loops.
+- `docs/GALAGA_SPEC.md` captures the Galaga mechanics we plan to graft onto this project: multi-wave progression, tractor beams, challenge stages, and attract/credit loops.
 - `docs/GAMEPLAY_OVERVIEW.md` explains how the current Space Invaders implementation works, making it easier to identify where Galaga systems will slot in.
 - Roadmap items below link directly back to these documents so design and implementation stay aligned.
 

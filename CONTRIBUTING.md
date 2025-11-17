@@ -8,8 +8,8 @@ Thanks for your interest in contributing! This document will help you get starte
 
 **New to the project?**
 1. Read [README.md](README.md) - Overview
-2. Read [STATUS.md](STATUS.md) - Current status
-3. Read [PROJECT.md](PROJECT.md) - Full details
+2. Read [docs/STATUS.md](docs/STATUS.md) - Current status
+3. Read [docs/PROJECT.md](docs/PROJECT.md) - Full details
 4. Play the game: `python -m src.main`
 
 **Know what you want to work on?**
@@ -37,7 +37,7 @@ Pick one of these to get started:
   - Complexity: Medium
   - Tests needed: 5+
 
-See [PROJECT.md](PROJECT.md) for full feature matrix and dependencies.
+See [docs/PROJECT.md](docs/PROJECT.md) for full feature matrix and dependencies.
 
 ---
 
@@ -250,13 +250,13 @@ Acceptance Criteria:
 ## 🎓 Learning Resources
 
 ### To Understand Current Code
-1. **[PROJECT.md](PROJECT.md)** - Full system overview
+1. **[docs/PROJECT.md](docs/PROJECT.md)** - Full system overview
 2. **[docs/GAMEPLAY_OVERVIEW.md](docs/GAMEPLAY_OVERVIEW.md)** - Current architecture
 3. **src/main.py** - Main game loop (start here)
 4. **tests/** - Test files show expected behavior
 
 ### To Implement Galaga Features
-1. **[GALAGA_SPEC.md](GALAGA_SPEC.md)** - Complete Galaga spec
+1. **[docs/GALAGA_SPEC.md](docs/GALAGA_SPEC.md)** - Complete Galaga spec
 2. **Look at existing enemies** - Pattern to follow
 3. **Check related tests** - Understand expected behavior
 
@@ -315,4 +315,4 @@ Fixes #123 or Related to #456
 
 Thank you for contributing! Your work helps make this project better for everyone. 🎉
 
-Questions? Open an issue or check [PROJECT.md](PROJECT.md).
+Questions? Open an issue or check [docs/PROJECT.md](docs/PROJECT.md).
