@@ -198,9 +198,9 @@ class Game:
         # Check for sprite viewer key combinations (works both in game and sprite viewer)
         stage_snapshot = self.sprite_viewer.get_stage_from_key_combo(keys_pressed)
         if stage_snapshot:
-            if self.sprite_viewer.load_stage_snapshot(stage_snapshot):
+            if self.sprite_viewer.load_stage_preview(stage_snapshot):
                 self.viewing_sprites = True
-                logging.info("Loaded reference snapshot: %s", stage_snapshot)
+                logging.info("Loaded stage preview: %s", stage_snapshot)
         else:
             platform = self.sprite_viewer.get_platform_from_key_combo(keys_pressed)
             if platform:
@@ -209,8 +209,8 @@ class Game:
                     logging.info(f"Switched to sprite viewer mode for {platform}")
         
         # Handle sprite viewer navigation if currently viewing sprites
-        if self.viewing_sprites:
-            self.sprite_viewer.handle_navigation(keys_pressed)
+            if self.viewing_sprites:
+                self.sprite_viewer.handle_navigation(keys_pressed)
 
         # Process all pending pygame events
         for event in pygame.event.get():
@@ -368,16 +368,12 @@ class Game:
                 self.alien_direction *= -1
 
             # Move aliens
-            drop_limit = max(40, self.player.rect.top - config.BUNKER_PLAYER_GAP + 10)
             for alien in self.alien_group.sprites():
                 if move_down:
                     alien.rect.y += config.ALIEN_DROP_DISTANCE  # Drop down when hitting edge
-                    if alien.rect.bottom >= drop_limit:
-                        self.game_over = True
-                        self.state_manager.change_state(GameState.GAME_OVER)
-                        logging.info("Game over: aliens reached bottom")
                 else:
                     alien.rect.x += move_x
+            self._handle_alien_collisions()
 
         # Spawn events
         self.spawn_bomb()
@@ -433,6 +429,8 @@ class Game:
                 bunker.damage()
                 logging.debug("Bunker hit by bomb at %s", bunker.rect.topleft)
 
+        self._handle_alien_collisions()
+
         if not self.alien_group:
             self._start_next_wave()
 
@@ -465,6 +463,31 @@ class Game:
         self._respawn_player()
         self._reset_alien_progression()
         logging.info("Life lost. Press SPACE to continue.")
+
+    def _handle_alien_collisions(self):
+        """Handle alien interactions with bunkers, player, and the ground."""
+        if not self.alien_group or self.game_over:
+            return
+
+        for alien in list(self.alien_group):
+            if alien.rect.colliderect(self.player.rect):
+                self._trigger_alien_victory("Game over: an alien reached the player")
+                return
+
+            if alien.rect.bottom >= self.logical_height - 4:
+                self._trigger_alien_victory("Game over: aliens reached the ground")
+                return
+
+            if self.bunker_group:
+                destroyed = pygame.sprite.spritecollide(alien, self.bunker_group, dokill=True)
+                for bunker in destroyed:
+                    logging.debug("Bunker destroyed by alien at %s", bunker.rect.topleft)
+
+    def _trigger_alien_victory(self, reason: str):
+        """Set the game over state due to alien advancement."""
+        self.game_over = True
+        self.state_manager.change_state(GameState.GAME_OVER)
+        logging.info(reason)
 
     def _start_next_wave(self):
         """Advance to the next wave when all aliens are cleared."""

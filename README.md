@@ -259,9 +259,9 @@ To contribute:
 - **S+2**: View Atari 2600 sprites  
 - **S+3**: View Deluxe sprites
 - **S+4**: View Intellivision sprites
-- **S+5**: Show start-screen reference snapshot (from docs/space_invaders_start_screen.png)
-- **S+6**: Show gameplay reference snapshot (docs/spaceinvaders_gameplay.jpg)
-- **S+7**: Show gameplay (color) reference snapshot (docs/spaceinvaders_gameplay_color.png)
+- **S+5**: Render the “Start Screen” mock scene (title, score table, credit prompt)
+- **S+6**: Render the “Wave Ready” mock scene (player + bunkers + alien formation)
+- **S+7**: Render the “Late-Game” mock scene (aliens near bunkers, bombs mid-air)
 - **← →**: Navigate between sprite pages
 - **R**: Return to game from sprite viewer
 

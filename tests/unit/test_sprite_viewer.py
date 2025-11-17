@@ -15,14 +15,14 @@ def pygame_display():
     pygame.quit()
 
 
-def test_load_stage_snapshot_start_screen():
+def test_load_stage_preview_start_screen():
     screen = pygame.display.get_surface()
     viewer = SpriteViewer(screen)
-    assert "start_screen" in viewer.stage_snapshots
-    loaded = viewer.load_stage_snapshot("start_screen")
+    assert "start_screen" in viewer.stage_previews
+    loaded = viewer.load_stage_preview("start_screen")
     assert loaded
     assert viewer.current_stage == "start_screen"
-    assert viewer.stage_image is not None
-    viewer.clear_stage_snapshot()
-    assert viewer.stage_image is None
+    assert viewer.stage_surface is not None
+    viewer.clear_stage_preview()
+    assert viewer.stage_surface is None
     assert viewer.stage_meta is None

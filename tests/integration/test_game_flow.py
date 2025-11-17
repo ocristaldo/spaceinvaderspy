@@ -83,23 +83,11 @@ class TestGameFlow(unittest.TestCase):
         self.assertEqual(self.game.level, current_level + 1)
         self.assertGreater(len(self.game.alien_group), 0)
     
-    def test_alien_invasion_defeat(self):
-        """Test defeat condition when aliens reach bottom."""
-        # Move aliens to bottom of screen (below the trigger threshold)
-        # The threshold in main.py is SCREEN_HEIGHT - 60
-        from src import config
-        for alien in self.game.alien_group:
-            alien.rect.bottom = config.SCREEN_HEIGHT - 50  # Below the threshold
-            # Position alien at right edge to force move_down
-            alien.rect.right = config.SCREEN_WIDTH - 5
-        
-        # Force move_down to trigger the check
-        self.game.alien_direction = 1
-        
-        # Simulate update cycle
+    def test_alien_reaching_player_triggers_defeat(self):
+        """Test defeat condition when an alien collides with the player."""
+        alien = next(iter(self.game.alien_group))
+        alien.rect.center = self.game.player.rect.center
         self.game.update()
-        
-        # Should trigger game over
         self.assertTrue(self.game.game_over)
     
     def test_player_death_defeat(self):

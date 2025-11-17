@@ -21,15 +21,23 @@ class AudioManager:
         self.sounds = {}
         self.music = None
         self.available = False
+        if self._initialize_mixer():
+            self.available = True
+            self._load_sounds()
+            logger.info("AudioManager initialized (muted by default)")
+        else:
+            logger.warning("Audio subsystem unavailable; running muted.")
+
+    def _initialize_mixer(self) -> bool:
+        """Attempt to initialize pygame.mixer if not already active."""
+        if pygame.mixer.get_init():
+            return True
         try:
             pygame.mixer.init()
-            self.available = True
+            return True
         except pygame.error as exc:
-            logger.warning("Audio disabled: %s", exc)
-            return
-
-        self._load_sounds()
-        logger.info("AudioManager initialized (muted by default)")
+            logger.warning("Unable to initialize audio: %s", exc)
+            return False
 
     def _get_sound_path(self, filename):
         """Construct the full path to a sound file."""
@@ -90,8 +98,12 @@ class AudioManager:
     def toggle_audio(self):
         """Toggle audio on/off."""
         if not self.available:
-            logger.info("Audio toggle ignored; mixer not available.")
-            return
+            if not self._initialize_mixer():
+                logger.info("Audio toggle ignored; mixer still unavailable.")
+                return
+            self.available = True
+            if not self.sounds:
+                self._load_sounds()
         self.enabled = not self.enabled
         status = "enabled" if self.enabled else "disabled"
         logger.info(f"Audio toggled: {status}")

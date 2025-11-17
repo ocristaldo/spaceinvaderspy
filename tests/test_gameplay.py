@@ -65,5 +65,24 @@ class AlienMovementTest(unittest.TestCase):
         self.assertEqual(game.alien_direction, -1)
 
 
+@unittest.skipIf(pygame is None, "pygame not available")
+class AlienCollisionTest(unittest.TestCase):
+    def test_alien_colliding_with_player_triggers_game_over(self):
+        game = main.Game()
+        alien = next(iter(game.alien_group))
+        alien.rect.center = game.player.rect.center
+        game.update()
+        self.assertTrue(game.game_over)
+
+    def test_alien_colliding_with_bunker_removes_it(self):
+        game = main.Game()
+        initial_bunkers = len(game.bunker_group)
+        bunker = next(iter(game.bunker_group))
+        alien = next(iter(game.alien_group))
+        alien.rect.center = bunker.rect.center
+        game.update()
+        self.assertLess(len(game.bunker_group), initial_bunkers)
+
+
 if __name__ == "__main__":
     unittest.main()

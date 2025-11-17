@@ -14,9 +14,9 @@ class Menu:
         "Q : Quit game",
         "R : Restart (game over) / exit sprite viewer",
         "S + 1..4 : Sprite atlases (Arcade, Atari, Deluxe, Intellivision)",
-        "S + 5 : Start-screen reference image",
-        "S + 6 : Gameplay reference image",
-        "S + 7 : Gameplay (color) reference image",
+        "S + 5 : Render start-screen preview",
+        "S + 6 : Render wave-ready preview",
+        "S + 7 : Render late-wave preview",
     ]
 
     def __init__(self, font: pygame.font.Font):

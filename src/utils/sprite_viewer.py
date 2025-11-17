@@ -8,9 +8,9 @@ import pygame
 import json
 import os
 from typing import Dict, List, Optional, Tuple
-from .sprite_sheet import SpriteSheet
+from .sprite_sheet import SpriteSheet, get_game_sprite
 from .logger import setup_logger
-from .. import config
+from .. import config, constants
 
 
 class SpriteViewer:
@@ -60,31 +60,33 @@ class SpriteViewer:
         self.sprite_sheet = None
         self.current_page = 0
         self.sprites_per_page = 12  # 3 rows x 4 columns for better spacing
-        project_root = os.path.dirname(config.BASE_DIR)
-        docs_dir = os.path.join(project_root, "docs")
-        self.stage_snapshots = {
+        self.stage_surface: Optional[pygame.Surface] = None
+        self.stage_meta: Optional[Dict] = None
+        self.current_stage: Optional[str] = None
+        self.stage_cache: Dict[str, pygame.Surface] = {}
+        self.sprite_cache: Dict[str, pygame.Surface] = {}
+        self.stage_previews = {
             'start_screen': {
-                'name': 'Start Screen (Reference)',
-                'file': os.path.join(docs_dir, 'space_invaders_start_screen.png'),
-                'description': 'Matches the attract-mode image in docs/space_invaders_start_screen.png',
+                'name': 'Start Screen',
+                'description': 'Title, score advance table, and credit prompt.',
                 'hotkey': pygame.K_5,
             },
-            'gameplay_bw': {
-                'name': 'Gameplay Reference (B/W)',
-                'file': os.path.join(docs_dir, 'spaceinvaders_gameplay.jpg'),
-                'description': 'Baseline gameplay reference with bunkers, aliens, and player in place.',
+            'wave_ready': {
+                'name': 'Wave Ready',
+                'description': 'Player, bunkers, and full alien formation at the start of a level.',
                 'hotkey': pygame.K_6,
             },
-            'gameplay_color': {
-                'name': 'Gameplay Reference (Color)',
-                'file': os.path.join(docs_dir, 'spaceinvaders_gameplay_color.png'),
-                'description': 'Colorized gameplay snapshot from documentation.',
+            'late_wave': {
+                'name': 'Late Wave',
+                'description': 'Aliens near the bunkers with bombs raining down.',
                 'hotkey': pygame.K_7,
             },
         }
-        self.stage_image: Optional[pygame.Surface] = None
-        self.stage_meta: Optional[Dict] = None
-        self.current_stage: Optional[str] = None
+        self.stage_renderers = {
+            'start_screen': self._render_start_screen_scene,
+            'wave_ready': self._render_wave_ready_scene,
+            'late_wave': self._render_late_wave_scene,
+        }
         
         # Key debouncing variables
         self.last_key_time = 0
@@ -128,8 +130,8 @@ class SpriteViewer:
     
     def draw_sprite_grid(self) -> None:
         """Draw all sprites in a paginated grid layout with detailed information."""
-        if self.stage_image:
-            self.draw_stage_snapshot()
+        if self.stage_surface:
+            self.draw_stage_preview()
             return
 
         if not self.current_platform or not self.sprites_data:
@@ -249,10 +251,10 @@ class SpriteViewer:
         return None
 
     def get_stage_from_key_combo(self, keys_pressed) -> Optional[str]:
-        """Return the stage snapshot key if S + (5-7) is pressed."""
+        """Return the stage preview key if S plus one of the stage hotkeys is pressed."""
         if not keys_pressed[pygame.K_s]:
             return None
-        for key, data in self.stage_snapshots.items():
+        for key, data in self.stage_previews.items():
             if keys_pressed[data['hotkey']]:
                 return key
         return None
@@ -264,7 +266,7 @@ class SpriteViewer:
         Args:
             keys_pressed: pygame key state from pygame.key.get_pressed()
         """
-        if self.stage_image:
+        if self.stage_surface:
             return
 
         if not self.sprites_data:
@@ -286,36 +288,42 @@ class SpriteViewer:
             self.current_page -= 1
             self.last_key_time = current_time
 
-    def load_stage_snapshot(self, stage_key: str) -> bool:
-        """Load a static reference image from docs/ to compare visuals."""
-        stage = self.stage_snapshots.get(stage_key)
-        if not stage:
+    def load_stage_preview(self, stage_key: str) -> bool:
+        """Render a mock stage using the real sprites so we can compare against references."""
+        renderer = self.stage_renderers.get(stage_key)
+        meta = self.stage_previews.get(stage_key)
+        if not renderer or not meta:
+            self.logger.error("Unknown stage preview: %s", stage_key)
             return False
         try:
-            image = pygame.image.load(stage['file']).convert()
+            surface = self.stage_cache.get(stage_key)
+            if surface is None:
+                surface = renderer()
+                self.stage_cache[stage_key] = surface
+            self.stage_surface = surface.copy()
+            self.stage_meta = meta
+            self.current_stage = stage_key
+            self.current_platform = None
+            self.sprites_data = []
+            self.sprite_sheet = None
+            self.current_page = 0
+            return True
         except Exception as exc:
-            self.logger.error("Failed to load stage snapshot %s: %s", stage_key, exc)
+            self.logger.error("Failed to build stage preview %s: %s", stage_key, exc)
             return False
-        self.stage_image = image
-        self.stage_meta = stage
-        self.current_stage = stage_key
-        self.current_platform = None
-        self.sprites_data = []
-        self.sprite_sheet = None
-        return True
 
-    def clear_stage_snapshot(self):
-        """Clear any loaded stage reference image."""
-        self.stage_image = None
+    def clear_stage_preview(self):
+        """Clear any loaded stage preview."""
+        self.stage_surface = None
         self.stage_meta = None
         self.current_stage = None
 
-    def draw_stage_snapshot(self):
-        """Render the current stage snapshot image on screen."""
-        if not self.stage_image or not self.stage_meta:
+    def draw_stage_preview(self):
+        """Render the current stage preview on screen."""
+        if not self.stage_surface or not self.stage_meta:
             return
         surface_width, surface_height = self.screen.get_size()
-        image_rect = self.stage_image.get_rect()
+        image_rect = self.stage_surface.get_rect()
         scale = min(
             surface_width / image_rect.width,
             surface_height / image_rect.height
@@ -324,7 +332,7 @@ class SpriteViewer:
             max(1, int(image_rect.width * scale)),
             max(1, int(image_rect.height * scale)),
         )
-        scaled = pygame.transform.smoothscale(self.stage_image, scaled_size)
+        scaled = pygame.transform.smoothscale(self.stage_surface, scaled_size)
         x = (surface_width - scaled_size[0]) // 2
         y = (surface_height - scaled_size[1]) // 2
         self.screen.fill((5, 5, 5))
@@ -334,7 +342,6 @@ class SpriteViewer:
         self.screen.blit(caption, caption.get_rect(center=(surface_width // 2, 10 + caption.get_height() // 2)))
 
         description_lines = [
-            f"Source: {os.path.basename(self.stage_meta['file'])}",
             self.stage_meta['description'],
             "Press R to return or choose another S+<number> command."
         ]
@@ -348,4 +355,114 @@ class SpriteViewer:
         self.sprites_data = []
         self.sprite_sheet = None
         self.current_page = 0
-        self.clear_stage_snapshot()
+        self.clear_stage_preview()
+
+    # --- Stage preview rendering helpers -------------------------------------------------
+
+    def _fetch_sprite(self, sprite_name: str) -> pygame.Surface:
+        if sprite_name not in self.sprite_cache:
+            self.sprite_cache[sprite_name] = get_game_sprite(sprite_name, config.SPRITE_SCALE)
+        return self.sprite_cache[sprite_name]
+
+    def _render_start_screen_scene(self) -> pygame.Surface:
+        surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
+        surface.fill((0, 0, 0))
+        title_font = pygame.font.SysFont("monospace", 36, bold=True)
+        subtitle_font = pygame.font.SysFont("monospace", 20)
+        score_font = pygame.font.SysFont("monospace", 18)
+
+        surface.blit(title_font.render("SPACE INVADERS", True, (255, 255, 255)),
+                     (config.BASE_WIDTH // 2 - 150, 40))
+        surface.blit(subtitle_font.render("SCORE ADVANCE TABLE", True, (255, 255, 0)),
+                     (config.BASE_WIDTH // 2 - 150, 90))
+        entries = [
+            ('ufo', "? = MYSTERY"),
+            ('alien_squid_1', "= 30 POINTS"),
+            ('alien_crab_1', "= 20 POINTS"),
+            ('alien_octopus_1', "= 10 POINTS"),
+        ]
+        y = 130
+        for sprite_name, text in entries:
+            sprite = self._fetch_sprite(sprite_name)
+            surface.blit(sprite, (config.BASE_WIDTH // 2 - 160, y))
+            surface.blit(score_font.render(text, True, (200, 200, 200)),
+                         (config.BASE_WIDTH // 2 - 110, y + sprite.get_height() // 4))
+            y += 32
+        surface.blit(subtitle_font.render("CREDIT 00", True, (255, 255, 255)),
+                     (config.BASE_WIDTH // 2 - 80, config.BASE_HEIGHT - 80))
+        return surface
+
+    def _render_wave_ready_scene(self) -> pygame.Surface:
+        surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
+        surface.fill((0, 0, 0))
+        info_font = pygame.font.SysFont("monospace", 20)
+        surface.blit(info_font.render("LEVEL 01", True, (255, 255, 0)), (20, 20))
+        self._draw_ufo_lane(surface)
+        self._draw_alien_rows(surface, top_y=80)
+        bunker_bottom = config.BASE_HEIGHT - 80
+        self._draw_bunkers(surface, bunker_bottom)
+        self._draw_player(surface, config.BASE_HEIGHT - 40)
+        pygame.draw.line(surface, (80, 80, 80), (0, config.BASE_HEIGHT - 35), (config.BASE_WIDTH, config.BASE_HEIGHT - 35))
+        return surface
+
+    def _render_late_wave_scene(self) -> pygame.Surface:
+        surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
+        surface.fill((0, 0, 0))
+        info_font = pygame.font.SysFont("monospace", 20)
+        surface.blit(info_font.render("LEVEL 04", True, (255, 120, 120)), (20, 20))
+        self._draw_ufo_lane(surface)
+        self._draw_alien_rows(surface, top_y=140, columns=7, spacing=12)
+        bunker_bottom = config.BASE_HEIGHT - 70
+        self._draw_bunkers(surface, bunker_bottom, cutouts=True)
+        self._draw_player(surface, config.BASE_HEIGHT - 40)
+        self._draw_bombs(surface)
+        self._draw_player_bullet(surface)
+        pygame.draw.line(surface, (80, 80, 80), (0, config.BASE_HEIGHT - 35), (config.BASE_WIDTH, config.BASE_HEIGHT - 35))
+        return surface
+
+    def _draw_ufo_lane(self, surface: pygame.Surface):
+        ufo = self._fetch_sprite('ufo')
+        surface.blit(ufo, (10, 50))
+        surface.blit(self.tiny_font.render("= ? MYSTERY", True, (200, 200, 200)), (10 + ufo.get_width() + 8, 60))
+
+    def _draw_alien_rows(self, surface: pygame.Surface, top_y: int, columns: int = 8, spacing: int = 8):
+        row_types = ['alien_squid_1', 'alien_crab_1', 'alien_crab_1', 'alien_octopus_1', 'alien_octopus_1']
+        y = top_y
+        for sprite_name in row_types:
+            sprite = self._fetch_sprite(sprite_name)
+            total_width = columns * sprite.get_width() + (columns - 1) * spacing
+            start_x = (config.BASE_WIDTH - total_width) // 2
+            for col in range(columns):
+                surface.blit(sprite, (start_x + col * (sprite.get_width() + spacing), y))
+            y += sprite.get_height() + 10
+
+    def _draw_bunkers(self, surface: pygame.Surface, bottom_y: int, cutouts: bool = False):
+        bunker_sprite = self._fetch_sprite('bunker_full')
+        spacing = config.BASE_WIDTH // (constants.BLOCK_NUMBER + 1)
+        for i in range(constants.BLOCK_NUMBER):
+            x = spacing * (i + 1) - bunker_sprite.get_width() // 2
+            rect = pygame.Rect(x, bottom_y - bunker_sprite.get_height(), bunker_sprite.get_width(), bunker_sprite.get_height())
+            surface.blit(bunker_sprite, rect.topleft)
+            if cutouts:
+                pygame.draw.rect(surface, (0, 0, 0), rect.inflate(-10, -12))
+
+    def _draw_player(self, surface: pygame.Surface, bottom_y: int):
+        player = self._fetch_sprite('player')
+        x = (config.BASE_WIDTH - player.get_width()) // 2
+        surface.blit(player, (x, bottom_y - player.get_height()))
+
+    def _draw_bombs(self, surface: pygame.Surface):
+        bomb = self._fetch_sprite('bomb_1')
+        positions = [
+            (config.BASE_WIDTH // 2 - 80, config.BASE_HEIGHT - 140),
+            (config.BASE_WIDTH // 2 + 60, config.BASE_HEIGHT - 160),
+            (config.BASE_WIDTH // 2 + 10, config.BASE_HEIGHT - 180),
+        ]
+        for pos in positions:
+            surface.blit(bomb, pos)
+
+    def _draw_player_bullet(self, surface: pygame.Surface):
+        bullet = self._fetch_sprite('bullet')
+        x = (config.BASE_WIDTH - bullet.get_width()) // 2
+        y = config.BASE_HEIGHT - 120
+        surface.blit(bullet, (x, y))
