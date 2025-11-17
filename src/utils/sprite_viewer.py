@@ -60,6 +60,31 @@ class SpriteViewer:
         self.sprite_sheet = None
         self.current_page = 0
         self.sprites_per_page = 12  # 3 rows x 4 columns for better spacing
+        project_root = os.path.dirname(config.BASE_DIR)
+        docs_dir = os.path.join(project_root, "docs")
+        self.stage_snapshots = {
+            'start_screen': {
+                'name': 'Start Screen (Reference)',
+                'file': os.path.join(docs_dir, 'space_invaders_start_screen.png'),
+                'description': 'Matches the attract-mode image in docs/space_invaders_start_screen.png',
+                'hotkey': pygame.K_5,
+            },
+            'gameplay_bw': {
+                'name': 'Gameplay Reference (B/W)',
+                'file': os.path.join(docs_dir, 'spaceinvaders_gameplay.jpg'),
+                'description': 'Baseline gameplay reference with bunkers, aliens, and player in place.',
+                'hotkey': pygame.K_6,
+            },
+            'gameplay_color': {
+                'name': 'Gameplay Reference (Color)',
+                'file': os.path.join(docs_dir, 'spaceinvaders_gameplay_color.png'),
+                'description': 'Colorized gameplay snapshot from documentation.',
+                'hotkey': pygame.K_7,
+            },
+        }
+        self.stage_image: Optional[pygame.Surface] = None
+        self.stage_meta: Optional[Dict] = None
+        self.current_stage: Optional[str] = None
         
         # Key debouncing variables
         self.last_key_time = 0
@@ -79,6 +104,7 @@ class SpriteViewer:
             self.logger.error(f"Unknown platform: {platform}")
             return False
         
+        self.clear_stage_snapshot()
         platform_config = self.platforms[platform]
         json_path = os.path.join(config.IMG_DIR, platform_config['json_file'])
         sprite_sheet_path = os.path.join(config.IMG_DIR, 'SpaceInvaders.png')
@@ -102,6 +128,10 @@ class SpriteViewer:
     
     def draw_sprite_grid(self) -> None:
         """Draw all sprites in a paginated grid layout with detailed information."""
+        if self.stage_image:
+            self.draw_stage_snapshot()
+            return
+
         if not self.current_platform or not self.sprites_data:
             return
         
@@ -217,6 +247,15 @@ class SpriteViewer:
                 return 'intellivision'
         
         return None
+
+    def get_stage_from_key_combo(self, keys_pressed) -> Optional[str]:
+        """Return the stage snapshot key if S + (5-7) is pressed."""
+        if not keys_pressed[pygame.K_s]:
+            return None
+        for key, data in self.stage_snapshots.items():
+            if keys_pressed[data['hotkey']]:
+                return key
+        return None
     
     def handle_navigation(self, keys_pressed) -> None:
         """
@@ -225,6 +264,9 @@ class SpriteViewer:
         Args:
             keys_pressed: pygame key state from pygame.key.get_pressed()
         """
+        if self.stage_image:
+            return
+
         if not self.sprites_data:
             return
         
@@ -243,3 +285,67 @@ class SpriteViewer:
         elif keys_pressed[pygame.K_LEFT] and self.current_page > 0:
             self.current_page -= 1
             self.last_key_time = current_time
+
+    def load_stage_snapshot(self, stage_key: str) -> bool:
+        """Load a static reference image from docs/ to compare visuals."""
+        stage = self.stage_snapshots.get(stage_key)
+        if not stage:
+            return False
+        try:
+            image = pygame.image.load(stage['file']).convert()
+        except Exception as exc:
+            self.logger.error("Failed to load stage snapshot %s: %s", stage_key, exc)
+            return False
+        self.stage_image = image
+        self.stage_meta = stage
+        self.current_stage = stage_key
+        self.current_platform = None
+        self.sprites_data = []
+        self.sprite_sheet = None
+        return True
+
+    def clear_stage_snapshot(self):
+        """Clear any loaded stage reference image."""
+        self.stage_image = None
+        self.stage_meta = None
+        self.current_stage = None
+
+    def draw_stage_snapshot(self):
+        """Render the current stage snapshot image on screen."""
+        if not self.stage_image or not self.stage_meta:
+            return
+        surface_width, surface_height = self.screen.get_size()
+        image_rect = self.stage_image.get_rect()
+        scale = min(
+            surface_width / image_rect.width,
+            surface_height / image_rect.height
+        )
+        scaled_size = (
+            max(1, int(image_rect.width * scale)),
+            max(1, int(image_rect.height * scale)),
+        )
+        scaled = pygame.transform.smoothscale(self.stage_image, scaled_size)
+        x = (surface_width - scaled_size[0]) // 2
+        y = (surface_height - scaled_size[1]) // 2
+        self.screen.fill((5, 5, 5))
+        self.screen.blit(scaled, (x, y))
+
+        caption = self.font.render(self.stage_meta['name'], True, (255, 255, 0))
+        self.screen.blit(caption, caption.get_rect(center=(surface_width // 2, 10 + caption.get_height() // 2)))
+
+        description_lines = [
+            f"Source: {os.path.basename(self.stage_meta['file'])}",
+            self.stage_meta['description'],
+            "Press R to return or choose another S+<number> command."
+        ]
+        for idx, text in enumerate(description_lines):
+            line = self.small_font.render(text, True, (220, 220, 220))
+            self.screen.blit(line, line.get_rect(center=(surface_width // 2, surface_height - 70 + idx * 18)))
+
+    def reset_view(self):
+        """Reset viewer state (used when exiting from the game)."""
+        self.current_platform = None
+        self.sprites_data = []
+        self.sprite_sheet = None
+        self.current_page = 0
+        self.clear_stage_snapshot()

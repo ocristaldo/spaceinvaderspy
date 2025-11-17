@@ -1,6 +1,6 @@
-# 👾 Space Invaders Python Clone (Galaga-inspired Evolution)
+# 👾 Space Invaders Python Clone
 
-A work-in-progress recreation of the classic Space Invaders arcade game built with Python and Pygame, now marching toward Galaga-style wave choreography and challenge stages. We keep the original sprites/feel while extending gameplay to match the complete spec documented in `GALAGA_SPEC.md`.
+A work-in-progress recreation of the classic Space Invaders arcade game built with Python and Pygame, guided directly by the design notes in `docs/space_invaders_spec.md`. We keep the original sprites/feel while layering quality-of-life features for modern platforms.
 
 ## 🎯 Project Status
 
@@ -24,14 +24,8 @@ A work-in-progress recreation of the classic Space Invaders arcade game built wi
 - Destructible bunkers for defense (now spaced farther from the cannon to avoid overlap)
 - UFO bonus enemy with random point values and floating score popups
 - Player shots can intercept alien bombs mid-air (straight out of the arcade feel)
+- In-game menu includes a "Controls" overlay that lists every shortcut (including sprite viewer combos)
 - Scoring system with per-alien values and 3-life structure
-
-### Galaga-inspired Goals (in progress)
-- Enemy entry swoops + dive-bomb behavior pulled from `GALAGA_SPEC.md`
-- Challenge / rally stages that reward accuracy streaks
-- Tractor-beam capture mechanic and dual-ship power-up
-- Credit/attract-mode flow with coin/1P/2P inputs
-- Bonus-life thresholds and rank indicators on HUD
 
 ### Advanced Features
 - **Sprite Sheet System**: Authentic arcade sprites loaded from JSON coordinate files
@@ -47,11 +41,11 @@ A work-in-progress recreation of the classic Space Invaders arcade game built wi
   - Platform switching without game restart
 - **Animated Sprites**: Alien animation with frame switching
 - **Comprehensive Logging**: Debug and info logging throughout the game
-- **Design Docs**: `docs/GALAGA_SPEC.md` (Galaga reference) and `docs/GAMEPLAY_OVERVIEW.md` (current systems)
+- **Design Docs**: `docs/space_invaders_spec.md` (original gameplay blueprint) and `docs/GAMEPLAY_OVERVIEW.md` (current systems)
 
 ## 📚 Gameplay Vision
-- `docs/GALAGA_SPEC.md` captures the Galaga mechanics we plan to graft onto this project: multi-wave progression, tractor beams, challenge stages, and attract/credit loops.
-- `docs/GAMEPLAY_OVERVIEW.md` explains how the current Space Invaders implementation works, making it easier to identify where Galaga systems will slot in.
+- `docs/space_invaders_spec.md` captures the original Space Invaders cabinet behavior (attract mode, scoring table, gameplay pacing) and is now our primary reference for future improvements.
+- `docs/GAMEPLAY_OVERVIEW.md` explains how the current Space Invaders implementation works, making it easier to track deltas from the spec.
 - `docs/SPRITES.md` catalogs every sprite in the JSON atlas and how the code uses it (handy when updating bunkers/FX).
 - `docs/space_invaders_start_screen.png` (and other reference PNGs in `docs/`) provide the visual targets for layout, colors, and HUD placement. Use them when adjusting positions or art.
 - Roadmap items below link directly back to these documents so design and implementation stay aligned.
@@ -265,6 +259,9 @@ To contribute:
 - **S+2**: View Atari 2600 sprites  
 - **S+3**: View Deluxe sprites
 - **S+4**: View Intellivision sprites
+- **S+5**: Show start-screen reference snapshot (from docs/space_invaders_start_screen.png)
+- **S+6**: Show gameplay reference snapshot (docs/spaceinvaders_gameplay.jpg)
+- **S+7**: Show gameplay (color) reference snapshot (docs/spaceinvaders_gameplay_color.png)
 - **← →**: Navigate between sprite pages
 - **R**: Return to game from sprite viewer
 
@@ -299,7 +296,7 @@ This is an unofficial fan project created for educational purposes only. It incl
 - ✅ Animated alien sprites + scaling fixes
 
 ### In Progress 🚧
-- 🚧 Map current systems to Galaga feature list (`GALAGA_SPEC.md`)
+- 🚧 Map current systems to Space Invaders cabinet spec (`docs/space_invaders_spec.md`)
 - 🚧 Prototype enemy swoop/dive behaviors using existing sprite assets
 - 🚧 Design credit/attract flow + HUD updates (scores, stage badges)
 - 🚧 Expand docs with migration steps (GAMEPLAY_OVERVIEW vs detailed gameplay)

@@ -255,9 +255,9 @@ Acceptance Criteria:
 3. **src/main.py** - Main game loop (start here)
 4. **tests/** - Test files show expected behavior
 
-### To Implement Galaga Features
-1. **[docs/GALAGA_SPEC.md](docs/GALAGA_SPEC.md)** - Complete Galaga spec
-2. **Look at existing enemies** - Pattern to follow
+### To Implement Spec Updates
+1. **[docs/space_invaders_spec.md](docs/space_invaders_spec.md)** - Cabinet reference
+2. **Look at existing enemies/systems** - Pattern to follow
 3. **Check related tests** - Understand expected behavior
 
 ### Pygame Docs

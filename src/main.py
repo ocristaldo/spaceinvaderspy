@@ -196,11 +196,17 @@ class Game:
         keys_pressed = pygame.key.get_pressed()
         
         # Check for sprite viewer key combinations (works both in game and sprite viewer)
-        platform = self.sprite_viewer.get_platform_from_key_combo(keys_pressed)
-        if platform:
-            if self.sprite_viewer.load_platform_sprites(platform):
+        stage_snapshot = self.sprite_viewer.get_stage_from_key_combo(keys_pressed)
+        if stage_snapshot:
+            if self.sprite_viewer.load_stage_snapshot(stage_snapshot):
                 self.viewing_sprites = True
-                logging.info(f"Switched to sprite viewer mode for {platform}")
+                logging.info("Loaded reference snapshot: %s", stage_snapshot)
+        else:
+            platform = self.sprite_viewer.get_platform_from_key_combo(keys_pressed)
+            if platform:
+                if self.sprite_viewer.load_platform_sprites(platform):
+                    self.viewing_sprites = True
+                    logging.info(f"Switched to sprite viewer mode for {platform}")
         
         # Handle sprite viewer navigation if currently viewing sprites
         if self.viewing_sprites:
@@ -227,6 +233,7 @@ class Game:
                 if event.key == pygame.K_r:
                     if self.viewing_sprites:
                         self.viewing_sprites = False
+                        self.sprite_viewer.reset_view()
                         logging.info("Exited sprite viewer mode")
                         continue
                     if self.game_over:
@@ -240,6 +247,9 @@ class Game:
                     if action == "start":
                         self.state_manager.change_state(GameState.PLAYING)
                         logging.info("Game started from menu")
+                    elif action == "controls":
+                        self.menu.show_controls()
+                        logging.info("Controls overlay opened from menu")
                     elif action == "quit":
                         self.running = False
                         logging.info("Game quit from menu")
