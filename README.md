@@ -74,6 +74,11 @@ cd spaceinvaderspy
 python3 -m pip install -r requirements.txt
 ```
 
+Quick start (macOS users)
+-------------------------
+
+This project includes a small helper script `workon.sh` that creates a virtualenv, installs dependencies, optionally runs tests, and drops you into an interactive shell with the venv active. See `QUICK_START.md` for usage and examples.
+
 ### Linux (Ubuntu/Debian)
 1. Install Python and required system packages:
 ```bash
