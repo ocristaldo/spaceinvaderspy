@@ -3,107 +3,107 @@
     "name": "invader_squid_jumbo_arcade_frame1",
     "platform": "arcade",
     "frame": 1,
-    "x": 355,
-    "y": 1163,
-    "width": 32,
-    "height": 32
+    "x": 7,
+    "y": 225,
+    "width": 16,
+    "height": 16
   },
   {
     "name": "invader_squid_jumbo_arcade_frame2",
     "platform": "arcade",
     "frame": 2,
-    "x": 355,
-    "y": 1195,
-    "width": 32,
-    "height": 32
+    "x": 40,
+    "y": 225,
+    "width": 16,
+    "height": 16
   },
   {
     "name": "invader_crab_jumbo_arcade_frame1",
     "platform": "arcade",
     "frame": 1,
-    "x": 391,
-    "y": 1163,
-    "width": 32,
-    "height": 32
+    "x": 73,
+    "y": 225,
+    "width": 22,
+    "height": 16
   },
   {
     "name": "invader_crab_jumbo_arcade_frame2",
     "platform": "arcade",
     "frame": 2,
-    "x": 391,
-    "y": 1195,
-    "width": 32,
-    "height": 32
+    "x": 107,
+    "y": 225,
+    "width": 22,
+    "height": 16
   },
   {
     "name": "invader_octopus_jumbo_arcade_frame1",
     "platform": "arcade",
     "frame": 1,
-    "x": 427,
-    "y": 1163,
-    "width": 32,
-    "height": 32
+    "x": 146,
+    "y": 225,
+    "width": 25,
+    "height": 16
   },
   {
     "name": "invader_octopus_jumbo_arcade_frame2",
     "platform": "arcade",
     "frame": 2,
-    "x": 427,
-    "y": 1195,
-    "width": 32,
-    "height": 32
+    "x": 179,
+    "y": 225,
+    "width": 25,
+    "height": 16
   },
   {
     "name": "player_cannon_jumbo_arcade_frame1",
     "platform": "arcade",
     "frame": 1,
-    "x": 265,
-    "y": 1404,
-    "width": 80,
-    "height": 52
+    "x": 277,
+    "y": 228,
+    "width": 26,
+    "height": 16
   },
   {
     "name": "ufo_jumbo_arcade_frame1",
     "platform": "arcade",
     "frame": 1,
-    "x": 163,
-    "y": 1250,
+    "x": 215,
+    "y": 224,
     "width": 48,
-    "height": 44
+    "height": 21
   },
   {
     "name": "barricade_arcade_full",
     "platform": "arcade",
     "frame": 1,
-    "x": 421,
-    "y": 1311,
-    "width": 96,
-    "height": 48
+    "x": 316,
+    "y": 213,
+    "width": 44,
+    "height": 32
   },
   {
     "name": "projectile_player_missile_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 480,
-    "y": 199,
-    "width": 1,
-    "height": 6
+    "x": 413,
+    "y": 277,
+    "width": 6,
+    "height": 12
   },
   {
     "name": "projectile_enemy_bomb_arcade_variant1",
     "platform": "arcade",
     "frame": 1,
-    "x": 383,
-    "y": 211,
-    "width": 4,
-    "height": 4
+    "x": 413,
+    "y": 277,
+    "width": 6,
+    "height": 12
   },
   {
     "name": "projectile_enemy_bomb_arcade_variant2",
     "platform": "arcade",
     "frame": 1,
-    "x": 391,
-    "y": 217,
+    "x": 413,
+    "y": 277,
     "width": 6,
     "height": 12
   },
@@ -120,91 +120,91 @@
     "name": "explosion_arcade_frame1",
     "platform": "arcade",
     "frame": 1,
-    "x": 7,
-    "y": 225,
-    "width": 16,
+    "x": 436,
+    "y": 276,
+    "width": 26,
     "height": 16
   },
   {
     "name": "explosion_arcade_frame2",
     "platform": "arcade",
     "frame": 2,
-    "x": 40,
-    "y": 225,
-    "width": 16,
+    "x": 436,
+    "y": 276,
+    "width": 26,
     "height": 16
   },
   {
     "name": "digit_0_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 215,
-    "y": 224,
-    "width": 6,
-    "height": 8
+    "x": 156,
+    "y": 266,
+    "width": 10,
+    "height": 14
   },
   {
     "name": "digit_1_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 221,
-    "y": 224,
+    "x": 178,
+    "y": 266,
     "width": 6,
-    "height": 8
+    "height": 14
   },
   {
     "name": "digit_2_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 227,
-    "y": 224,
-    "width": 6,
-    "height": 8
+    "x": 194,
+    "y": 266,
+    "width": 10,
+    "height": 14
   },
   {
     "name": "digit_3_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 233,
-    "y": 224,
-    "width": 6,
-    "height": 8
+    "x": 213,
+    "y": 266,
+    "width": 10,
+    "height": 14
   },
   {
     "name": "digit_4_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 239,
-    "y": 224,
-    "width": 6,
-    "height": 8
+    "x": 233,
+    "y": 266,
+    "width": 10,
+    "height": 14
   },
   {
     "name": "digit_5_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 245,
-    "y": 224,
-    "width": 6,
-    "height": 8
+    "x": 253,
+    "y": 266,
+    "width": 10,
+    "height": 14
   },
   {
     "name": "digit_6_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 251,
-    "y": 224,
-    "width": 6,
-    "height": 8
+    "x": 253,
+    "y": 266,
+    "width": 10,
+    "height": 14
   },
   {
     "name": "digit_7_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 257,
-    "y": 224,
-    "width": 6,
-    "height": 8
+    "x": 273,
+    "y": 266,
+    "width": 10,
+    "height": 14
   },
   {
     "name": "text_hi_score_arcade",
@@ -212,16 +212,16 @@
     "frame": 1,
     "x": 8,
     "y": 264,
-    "width": 64,
-    "height": 8
+    "width": 122,
+    "height": 14
   },
   {
     "name": "text_credit_arcade",
     "platform": "arcade",
     "frame": 1,
-    "x": 8,
-    "y": 280,
-    "width": 48,
-    "height": 8
+    "x": 22,
+    "y": 298,
+    "width": 90,
+    "height": 14
   }
 ]
