@@ -277,26 +277,19 @@ class Game:
             for bunker in bunker_list:
                 bunker.damage()
                 logging.debug("Bunker hit by bomb at %s", bunker.rect.topleft)
-        # bomb vs player
-        bombs_hit = pygame.sprite.spritecollide(self.player, self.bomb_group, True)
-        if bombs_hit:
-            # One or more bombs hit the player
-            self.lives -= len(bombs_hit)
-            logging.warning("Player hit! Lives left=%d", self.lives)
+        # bomb vs player - use deterministic rect-based collision check
+        # Debug: log rects to help diagnose collision issues in tests
+        logging.debug("Player rect: %s", getattr(self.player, 'rect', None))
+        for b in list(self.bomb_group):
+            logging.debug("Bomb rect: %s", getattr(b, 'rect', None))
+        collided_bombs = [b for b in list(self.bomb_group) if b.rect.colliderect(self.player.rect)]
+        if collided_bombs:
+            for bomb in collided_bombs:
+                bomb.kill()
+                self.lives -= 1
+                logging.warning("Player hit! Lives left=%d", self.lives)
             if self.lives <= 0:
                 self.game_over = True
-        else:
-            # Defensive fallback: in some test setups a rect-collision can be missed
-            # by the spritecollide call (for example due to rect alignment or
-            # image anchor differences). Check manually to be robust in tests.
-            for bomb in list(self.bomb_group):
-                if bomb.rect.colliderect(self.player.rect):
-                    bomb.kill()
-                    self.lives -= 1
-                    logging.warning("Player hit (fallback)! Lives left=%d", self.lives)
-                    if self.lives <= 0:
-                        self.game_over = True
-                    break
                 logging.info("Game over: player destroyed")
         if not self.alien_group:
             self.game_over = True
