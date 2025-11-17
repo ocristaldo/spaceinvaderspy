@@ -5,7 +5,6 @@ import unittest
 import pygame
 import sys
 import os
-import time
 
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))

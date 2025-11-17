@@ -11,10 +11,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from src.entities.player import Player
 from src.entities.alien import Alien
-from src.entities.bullet import Bullet, Bomb
+from src.entities.bullet import Bullet
 from src.entities.bunker import Bunker
-from src.entities.ufo import UFO
-from src import constants
 from src import config
 
 

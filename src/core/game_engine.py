@@ -1,12 +1,11 @@
 """
 Game Engine - Core game loop and coordination.
 """
-import logging
 import pygame
 from typing import Optional
 
 from ..utils.logger import setup_logger
-from .. import config, constants
+from .. import config
 
 
 class GameEngine:

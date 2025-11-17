@@ -1,5 +1,4 @@
 """Tests for the game state manager."""
-import pytest
 from src.systems.game_state_manager import GameStateManager, GameState
 
 

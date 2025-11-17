@@ -132,7 +132,8 @@ class Game:
         spacing_y = config.ALIEN_SPACING_Y
         rows = config.ALIEN_ROWS
         cols = config.ALIEN_COLUMNS
-        values = [30, 20, 20, 10, 10]  # Top row worth most points
+        base_values = [30, 20, 20, 10, 10]  # Top row worth most points
+        values = base_values[:rows]
 
         # Get sprite dimensions for centering
         from .utils.sprite_sheet import get_game_sprite
@@ -207,10 +208,10 @@ class Game:
                 if self.sprite_viewer.load_platform_sprites(platform):
                     self.viewing_sprites = True
                     logging.info(f"Switched to sprite viewer mode for {platform}")
-        
+
         # Handle sprite viewer navigation if currently viewing sprites
-            if self.viewing_sprites:
-                self.sprite_viewer.handle_navigation(keys_pressed)
+        if self.viewing_sprites:
+            self.sprite_viewer.handle_navigation(keys_pressed)
 
         # Process all pending pygame events
         for event in pygame.event.get():

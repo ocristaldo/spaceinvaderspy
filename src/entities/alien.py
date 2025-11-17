@@ -1,5 +1,4 @@
 """Alien entity - represents enemy invaders in the game."""
-import os
 import pygame
 from .. import constants
 from .. import config

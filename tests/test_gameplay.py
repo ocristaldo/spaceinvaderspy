@@ -30,7 +30,6 @@ class CollisionTest(unittest.TestCase):
         # Position bullet and alien to overlap for collision
         bullet.rect.center = alien.rect.center
         
-        current_level = game.level
         game.update()
         self.assertEqual(game.score, 10)
         self.assertGreater(len(game.alien_group), 0)

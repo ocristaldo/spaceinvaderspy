@@ -7,7 +7,7 @@ providing a centralized way to manage all game graphics using JSON coordinate da
 import pygame
 import os
 import json
-from typing import Dict, Tuple, Optional
+from typing import Dict, Optional
 from .logger import setup_logger
 
 

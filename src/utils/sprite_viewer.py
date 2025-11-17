@@ -7,7 +7,7 @@ This module provides functionality to display all sprites from a specific platfo
 import pygame
 import json
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 from .sprite_sheet import SpriteSheet, get_game_sprite
 from .logger import setup_logger
 from .. import config, constants
@@ -32,26 +32,13 @@ class SpriteViewer:
         self.tiny_font = pygame.font.Font(None, 12)
         
         # Platform configurations
+        # Only Arcade platform is supported (S+1). Other platforms removed by user request.
         self.platforms = {
             'arcade': {
                 'name': 'Arcade',
                 'json_file': 'SpaceInvaders.arcade.json',
                 'title_color': (255, 255, 0),  # Yellow
-            },
-            'atari': {
-                'name': 'Atari 2600',
-                'json_file': 'SpaceInvaders.atari.json',
-                'title_color': (255, 100, 100),  # Light red
-            },
-            'deluxe': {
-                'name': 'Atari 2600 Deluxe',
-                'json_file': 'SpaceInvaders.deluxe.json',
-                'title_color': (100, 255, 100),  # Light green
-            },
-            'intellivision': {
-                'name': 'Intellivision',
-                'json_file': 'SpaceInvaders.intellivision.json',
-                'title_color': (100, 100, 255),  # Light blue
+                'hotkey': pygame.K_1,
             }
         }
         
@@ -69,17 +56,17 @@ class SpriteViewer:
             'start_screen': {
                 'name': 'Start Screen',
                 'description': 'Title, score advance table, and credit prompt.',
-                'hotkey': pygame.K_5,
+                'hotkey': pygame.K_2,
             },
             'wave_ready': {
                 'name': 'Wave Ready',
                 'description': 'Player, bunkers, and full alien formation at the start of a level.',
-                'hotkey': pygame.K_6,
+                'hotkey': pygame.K_3,
             },
             'late_wave': {
                 'name': 'Late Wave',
                 'description': 'Aliens near the bunkers with bombs raining down.',
-                'hotkey': pygame.K_7,
+                'hotkey': pygame.K_4,
             },
         }
         self.stage_renderers = {
@@ -91,6 +78,12 @@ class SpriteViewer:
         # Key debouncing variables
         self.last_key_time = 0
         self.key_debounce_delay = 200  # milliseconds between key presses
+        # Prune platform configs where the required JSON file is absent (avoid crash on missing assets)
+        for key in list(self.platforms.keys()):
+            json_file = os.path.join(config.IMG_DIR, self.platforms[key]['json_file'])
+            if not os.path.isfile(json_file):
+                self.logger.warning("Platform '%s' unavailable (missing JSON: %s)", key, json_file)
+                del self.platforms[key]
     
     def load_platform_sprites(self, platform: str) -> bool:
         """
@@ -106,26 +99,30 @@ class SpriteViewer:
             self.logger.error(f"Unknown platform: {platform}")
             return False
         
-        self.clear_stage_snapshot()
+        self.clear_stage_preview()
         platform_config = self.platforms[platform]
         json_path = os.path.join(config.IMG_DIR, platform_config['json_file'])
         sprite_sheet_path = os.path.join(config.IMG_DIR, 'SpaceInvaders.png')
         
+        # Validate JSON file exists
+        if not os.path.isfile(json_path):
+            self.logger.error("Sprite JSON file for platform '%s' not found (%s).", platform, json_path)
+            return False
+
         try:
             # Load sprite sheet with JSON coordinates
             self.sprite_sheet = SpriteSheet(sprite_sheet_path, json_path)
-            
+
             # Load JSON data for display
             with open(json_path, 'r') as f:
                 self.sprites_data = json.load(f)
-            
+
             self.current_platform = platform
             self.current_page = 0  # Reset to first page when switching platforms
-            self.logger.info(f"Loaded {len(self.sprites_data)} sprites for {platform_config['name']}")
+            self.logger.info("Loaded %d sprites for %s", len(self.sprites_data), platform_config['name'])
             return True
-            
         except Exception as e:
-            self.logger.error(f"Failed to load {platform} sprites: {e}")
+            self.logger.error("Failed to load %s sprites: %s", platform, e)
             return False
     
     def draw_sprite_grid(self) -> None:
@@ -153,7 +150,7 @@ class SpriteViewer:
         self.screen.blit(title_surface, title_rect)
         
         # Instructions
-        instruction_text = "S+1/2/3/4: Switch platforms | ←→: Navigate pages | R: Return to game"
+        instruction_text = "S+1: Arcade | S+2/3/4: Stage previews | ←→: Navigate pages | R: Return to game"
         instruction_surface = self.tiny_font.render(instruction_text, True, (200, 200, 200))
         instruction_rect = instruction_surface.get_rect(centerx=surface_width // 2, y=28)
         self.screen.blit(instruction_surface, instruction_rect)
@@ -238,16 +235,15 @@ class SpriteViewer:
         Returns:
             Platform name or None if no valid combination
         """
-        if keys_pressed[pygame.K_s]:
-            if keys_pressed[pygame.K_1]:
-                return 'arcade'
-            elif keys_pressed[pygame.K_2]:
-                return 'atari'
-            elif keys_pressed[pygame.K_3]:
-                return 'deluxe'
-            elif keys_pressed[pygame.K_4]:
-                return 'intellivision'
-        
+        if not keys_pressed[pygame.K_s]:
+            return None
+
+        # Check configured platform hotkeys (only among available platforms)
+        for key, cfg in self.platforms.items():
+            hotkey = cfg.get('hotkey')
+            if hotkey is not None and keys_pressed[hotkey]:
+                return key
+
         return None
 
     def get_stage_from_key_combo(self, keys_pressed) -> Optional[str]:

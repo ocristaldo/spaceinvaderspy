@@ -195,6 +195,12 @@ py -m pytest -v
 python3 -m pytest -v
 ```
 
+Tip for headless environments (CI): set the SDL drivers to 'dummy' so pygame can initialize without a real display:
+
+```bash
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy python3 -m pytest -v
+```
+
 ## ⚙️ Configuration Tweaks
 
 You can tweak the arcade feel without editing code by setting environment variables:
@@ -256,12 +262,9 @@ To contribute:
 
 ### Sprite Viewer Controls
 - **S+1**: View Arcade sprites
-- **S+2**: View Atari 2600 sprites  
-- **S+3**: View Deluxe sprites
-- **S+4**: View Intellivision sprites
-- **S+5**: Render the “Start Screen” mock scene (title, score table, credit prompt)
-- **S+6**: Render the “Wave Ready” mock scene (player + bunkers + alien formation)
-- **S+7**: Render the “Late-Game” mock scene (aliens near bunkers, bombs mid-air)
+- **S+2**: Render the “Start Screen” mock scene (title, score table, credit prompt)
+- **S+3**: Render the “Wave Ready” mock scene (player + bunkers + alien formation)
+- **S+4**: Render the “Late-Game” mock scene (aliens near bunkers, bombs mid-air)
 - **← →**: Navigate between sprite pages
 - **R**: Return to game from sprite viewer
 

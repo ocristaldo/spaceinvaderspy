@@ -3,9 +3,8 @@ Unit tests for audio manager, high score manager, and extra lives system.
 """
 import pytest
 import os
-import json
 import tempfile
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.utils.audio_manager import AudioManager
 from src.utils.high_score_manager import HighScoreManager
 

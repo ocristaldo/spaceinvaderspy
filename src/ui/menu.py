@@ -13,10 +13,10 @@ class Menu:
         "P / ESC : Pause / Resume",
         "Q : Quit game",
         "R : Restart (game over) / exit sprite viewer",
-        "S + 1..4 : Sprite atlases (Arcade, Atari, Deluxe, Intellivision)",
-        "S + 5 : Render start-screen preview",
-        "S + 6 : Render wave-ready preview",
-        "S + 7 : Render late-wave preview",
+    "S + 1 : Sprite atlas (Arcade)",
+    "S + 2 : Render start-screen preview",
+    "S + 3 : Render wave-ready preview",
+    "S + 4 : Render late-wave preview",
     ]
 
     def __init__(self, font: pygame.font.Font):

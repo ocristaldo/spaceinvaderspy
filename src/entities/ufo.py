@@ -1,7 +1,6 @@
 """UFO entity - bonus mystery ship that appears periodically."""
 import pygame
 import random
-from typing import Tuple
 from .. import constants
 from .. import config
 from ..utils.logger import setup_logger
