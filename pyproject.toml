@@ -59,10 +59,10 @@ addopts = "-v --strict-markers"
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-
-[tool.pytest.ini_options.filterwarnings]
-"ignore::DeprecationWarning"
-"ignore::PendingDeprecationWarning"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
 
 [tool.coverage.run]
 source = ["src"]

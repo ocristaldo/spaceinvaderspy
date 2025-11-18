@@ -32,6 +32,7 @@ from .ui.font_manager import get_font
 from .ui.start_screen_demo import ScoreTableDemo, WaveFormationDemo
 from .ui.color_scheme import get_color, get_tint
 from .ui.sprite_digits import SpriteDigitWriter
+from .ui.level_themes import get_level_theme, LevelTheme
 from .systems.game_state_manager import GameStateManager, GameState
 from .utils.settings_manager import SettingsManager
 
@@ -76,6 +77,7 @@ class Game:
         self.game_over = False
         self.waiting_for_respawn = False
         self.level = 1
+        self.current_theme: LevelTheme = get_level_theme(self.level)
         self.wave_message_text = ""
         self.wave_message_timer = 0
         self.floating_texts = []
@@ -256,15 +258,35 @@ class Game:
         return group
 
     def _sprite_tint(self, key: str) -> Optional[Tuple[int, int, int]]:
-        """Get tint color for sprite or None if tinting disabled."""
+        """Get tint color for sprite from current theme or None if tinting disabled."""
         if not self.tint_enabled:
             return None
+
+        # Get color from current level theme
+        theme_colors = {
+            "player": self.current_theme.player,
+            "life_icon": self.current_theme.player,
+            "alien_squid": self.current_theme.alien_squid,
+            "alien_crab": self.current_theme.alien_crab,
+            "alien_octopus": self.current_theme.alien_octopus,
+            "ufo": self.current_theme.ufo,
+            "bunker": self.current_theme.bunker,
+            "bullet": self.current_theme.bullet,
+            "bomb_alien": self.current_theme.bomb_alien,
+            "bomb_ufo": self.current_theme.bomb_ufo,
+            "hud_text": self.current_theme.hud_text,
+        }
+
+        # Return theme color if available, otherwise use default
+        if key in theme_colors:
+            return theme_colors[key]
         return get_tint(key)
 
     def _alien_tint(self, value: int) -> Optional[Tuple[int, int, int]]:
-        """Get tint color for alien type."""
-        mapping = {30: "alien_squid", 20: "alien_crab", 10: "alien_octopus"}
-        return self._sprite_tint(mapping.get(value, "alien_octopus"))
+        """Get tint color for alien type from current theme."""
+        if not self.tint_enabled:
+            return None
+        return self.current_theme.get_alien_color(value)
 
     def _player_floor(self) -> int:
         """Calculate the y-coordinate where player should rest."""
@@ -861,11 +883,12 @@ class Game:
         self._game_over_return_time = pygame.time.get_ticks() + self.game_over_intro_delay_ms
         logging.info(reason)
 
-    def _start_next_wave(self):
+    def _start_next_wave(self) -> None:
         """Advance to the next wave when all aliens are cleared."""
         self.level += 1
+        self.current_theme = get_level_theme(self.level)
         bonus_speed = min(0.05 * (self.level - 1), 0.6)
-        self.wave_message_text = f"Level {self.level}"
+        self.wave_message_text = f"Level {self.level} - {self.current_theme.name}"
         self.wave_message_timer = pygame.time.get_ticks() + 2000
         self.level_start_ready_time = pygame.time.get_ticks() + self.level_start_delay_ms
         self.alien_group = self.create_aliens()
@@ -873,7 +896,7 @@ class Game:
         self.bomb_group.empty()
         self.ufo_group.empty()
         self._reset_alien_progression(speed_bonus=bonus_speed)
-        logging.info("Advanced to level %d", self.level)
+        logging.info("Advanced to level %d (%s)", self.level, self.current_theme.name)
 
     def _handle_resize(self, width: int, height: int):
         """Handle window resize events and keep the sprite viewer surface in sync."""
