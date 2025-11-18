@@ -1152,26 +1152,31 @@ class Game:
         # Mark game as over when showing continue screen
         self.game_over = True
 
+        # Store the current game mode for continue callbacks
+        was_two_player = self.two_player_mode
+
         def on_continue_1p():
             """Callback when player continues with 1-player."""
-            if self.credit_count > 0:
+            # 1P continue: requires 1 credit
+            if self.credit_count > 0 and not was_two_player:
                 self.credit_count -= 1
                 self.game_over = False  # Reset for new game
                 self.two_player_mode = False
+                # Continue from current level, don't reset
                 self.reset_game(start_playing=True)
-                logging.info("Game continued (1P) with credits remaining=%02d", self.credit_count)
+                logging.info("Game continued (1P) from level %d with credits remaining=%02d",
+                           self.level, self.credit_count)
 
         def on_continue_2p():
             """Callback when player continues with 2-player."""
-            # For continuing, we only need 1 credit (similar to 1P continue)
-            # This allows switching from 1P to 2P or vice versa on continue
-            if self.credit_count > 0:
-                self.credit_count -= 1
+            # 2P continue: requires 2 credits
+            if self.credit_count >= 2 and was_two_player:
+                self.credit_count -= 2
                 self.game_over = False  # Reset for new game
+                # Continue from current level, don't reset
                 self.start_two_player_game()
-                logging.info("Game continued (2P) with credits remaining=%02d", self.credit_count)
-            else:
-                logging.info("Cannot continue 2P - no credits available")
+                logging.info("Game continued (2P) from level %d with credits remaining=%02d",
+                           self.level, self.credit_count)
 
         def on_timeout():
             """Callback when countdown reaches 0."""
@@ -1183,7 +1188,8 @@ class Game:
             on_continue_1p=on_continue_1p,
             on_continue_2p=on_continue_2p,
             on_timeout=on_timeout,
-            credit_count=self.credit_count
+            credit_count=self.credit_count,
+            is_two_player_mode=was_two_player  # Pass mode info to screen
         )
 
     def _start_next_wave(self) -> None:

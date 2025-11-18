@@ -18,7 +18,8 @@ class ContinueScreen:
         on_continue_1p: Callable[[], None],
         on_continue_2p: Callable[[], None],
         on_timeout: Callable[[], None],
-        credit_count: int = 0
+        credit_count: int = 0,
+        is_two_player_mode: bool = False
     ):
         """
         Initialize the continue screen.
@@ -28,12 +29,14 @@ class ContinueScreen:
             on_continue_2p: Callback when player presses 2 to continue 2P
             on_timeout: Callback when countdown reaches 0
             credit_count: Current credit count
+            is_two_player_mode: Whether the game was in 2-player mode
         """
         self.logger = setup_logger(__name__)
         self.on_continue_1p = on_continue_1p
         self.on_continue_2p = on_continue_2p
         self.on_timeout = on_timeout
         self.credit_count = credit_count
+        self.is_two_player_mode = is_two_player_mode
 
         self.is_active = True
         self.countdown = 10  # 10 seconds countdown
@@ -64,25 +67,26 @@ class ContinueScreen:
         # This works because handle_events() in main.py already processed pygame.event.get()
         # We track state to only trigger on key press (not held down)
 
-        # 1 key: Continue 1-player game (if credits available)
-        if keys[pygame.K_1] and not self.last_keys_state[pygame.K_1]:
-            if self.credit_count > 0:
-                self.logger.info("Continue 1-Player selected")
-                self.is_active = False
-                self.on_continue_1p()
-            else:
-                self.logger.info("No credit available")
-        self.last_keys_state[pygame.K_1] = keys[pygame.K_1]
-
-        # 2 key: Continue 2-player game (if credits available)
-        if keys[pygame.K_2] and not self.last_keys_state[pygame.K_2]:
-            if self.credit_count > 0:
-                self.logger.info("Continue 2-Player selected")
-                self.is_active = False
-                self.on_continue_2p()
-            else:
-                self.logger.info("No credit available")
-        self.last_keys_state[pygame.K_2] = keys[pygame.K_2]
+        if self.is_two_player_mode:
+            # 2P mode: only allow key 2 to continue
+            if keys[pygame.K_2] and not self.last_keys_state[pygame.K_2]:
+                if self.credit_count >= 2:
+                    self.logger.info("Continue 2-Player selected")
+                    self.is_active = False
+                    self.on_continue_2p()
+                else:
+                    self.logger.info("Insufficient credits for 2P continue (need 2)")
+            self.last_keys_state[pygame.K_2] = keys[pygame.K_2]
+        else:
+            # 1P mode: only allow key 1 to continue
+            if keys[pygame.K_1] and not self.last_keys_state[pygame.K_1]:
+                if self.credit_count > 0:
+                    self.logger.info("Continue 1-Player selected")
+                    self.is_active = False
+                    self.on_continue_1p()
+                else:
+                    self.logger.info("Insufficient credits for 1P continue (need 1)")
+            self.last_keys_state[pygame.K_1] = keys[pygame.K_1]
 
     def update(self, dt_ms: int = 16) -> None:
         """
@@ -153,26 +157,30 @@ class ContinueScreen:
         # Instructions
         instr_y = credit_rect.bottom + 60
 
-        if self.credit_count > 0:
-            instr_text = small_font.render("Press 1 for 1-Player or 2 for 2-Player", True, (200, 200, 200))
-            instr_rect = instr_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
-            surface.blit(instr_text, instr_rect)
-
-            instr_y += instr_rect.height + 15
-            instr2_text = small_font.render("(1 credit for either mode)", True, (150, 200, 150))
-            instr2_rect = instr2_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
-            surface.blit(instr2_text, instr2_rect)
-
-            instr_y += instr2_rect.height + 20
-            instr3_text = small_font.render("C to insert more coins", True, (150, 150, 200))
-            instr3_rect = instr3_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
-            surface.blit(instr3_text, instr3_rect)
-        else:
-            instr_text = small_font.render("INSERT COIN TO CONTINUE", True, (255, 100, 100))
+        if self.is_two_player_mode:
+            # 2P mode instructions
+            needed_credits = 2 - self.credit_count
+            if self.credit_count >= 2:
+                instr_text = small_font.render("Press 2 to continue 2-Player game", True, (150, 200, 150))
+            else:
+                instr_text = small_font.render(f"Need {needed_credits} more credit(s)", True, (255, 150, 100))
             instr_rect = instr_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
             surface.blit(instr_text, instr_rect)
 
             instr_y += instr_rect.height + 20
-            instr2_text = small_font.render("Press C to insert credit", True, (150, 150, 200))
+            instr2_text = small_font.render("Press C to insert coin", True, (150, 150, 200))
+            instr2_rect = instr2_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
+            surface.blit(instr2_text, instr2_rect)
+        else:
+            # 1P mode instructions
+            if self.credit_count > 0:
+                instr_text = small_font.render("Press 1 to continue 1-Player game", True, (150, 200, 150))
+            else:
+                instr_text = small_font.render("INSERT COIN TO CONTINUE", True, (255, 100, 100))
+            instr_rect = instr_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
+            surface.blit(instr_text, instr_rect)
+
+            instr_y += instr_rect.height + 20
+            instr2_text = small_font.render("Press C to insert coin", True, (150, 150, 200))
             instr2_rect = instr2_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
             surface.blit(instr2_text, instr2_rect)
