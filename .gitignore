@@ -38,8 +38,6 @@ test_output/
 # Ignore data files
 data/
 # Ignore documentation files
-docs/
-# Ignore temporary files
 *.tmp
 # Ignore backup files
 *.bak
