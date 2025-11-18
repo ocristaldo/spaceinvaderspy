@@ -1251,12 +1251,7 @@ class Game:
                     keys = pygame.key.get_pressed()
                     self.continue_screen.handle_input(keys)
                     self.continue_screen.update(dt_ms=16)
-                    # Allow C key to insert credit during continue screen
-                    for event in pygame.event.get():
-                        if event.type == pygame.KEYDOWN and event.key == pygame.K_c:
-                            self._insert_credit()
-                            self.continue_screen.set_credit_count(self.credit_count)
-                            logging.info("Credit inserted during continue screen")
+                    # Note: C key for credit insertion during continue is handled in handle_events()
                 # Handle initials entry input
                 elif self.initials_entry_screen and self.initials_entry_screen.is_active:
                     keys = pygame.key.get_pressed()

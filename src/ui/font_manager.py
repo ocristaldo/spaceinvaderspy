@@ -29,6 +29,7 @@ FONT_PROFILES: Dict[str, FontSpec] = {
     # Menu chrome
     "menu_title": FontSpec(size=14, bold=True, min_size=18, scale_with_playfield=True),
     "menu_body": FontSpec(size=12, min_size=14, scale_with_playfield=True),
+    "menu_small": FontSpec(size=10, min_size=10, scale_with_playfield=True),
     # Menu overlays (section-specific)
     "menu_controls_main": FontSpec(name=None, size=12, min_size=12, scale_with_playfield=True),
     "menu_controls_hint": FontSpec(name=None, size=11, min_size=11),
