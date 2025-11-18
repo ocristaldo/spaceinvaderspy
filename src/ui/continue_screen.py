@@ -40,6 +40,12 @@ class ContinueScreen:
         self.countdown_timer = 0  # Milliseconds
         self.frame_count = 0
 
+        # Key state tracking to prevent repeated triggers
+        self.last_keys_state = {
+            pygame.K_1: False,
+            pygame.K_2: False,
+        }
+
     def set_credit_count(self, count: int) -> None:
         """Update credit count display."""
         self.credit_count = count
@@ -49,31 +55,34 @@ class ContinueScreen:
         Handle keyboard input on continue screen.
 
         Args:
-            keys: Pygame key pressed state tuple
+            keys: Pygame key pressed state tuple from pygame.key.get_pressed()
         """
         if not self.is_active:
             return
 
-        # Process pygame events for key presses
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                # 1 key: Continue 1-player game (if credits available)
-                if event.key == pygame.K_1:
-                    if self.credit_count > 0:
-                        self.logger.info("Continue 1-Player selected")
-                        self.is_active = False
-                        self.on_continue_1p()
-                    else:
-                        self.logger.info("No credit available")
+        # Use pygame.key.get_pressed() to detect key presses without consuming events
+        # This works because handle_events() in main.py already processed pygame.event.get()
+        # We track state to only trigger on key press (not held down)
 
-                # 2 key: Continue 2-player game (if credits available)
-                elif event.key == pygame.K_2:
-                    if self.credit_count > 0:
-                        self.logger.info("Continue 2-Player selected")
-                        self.is_active = False
-                        self.on_continue_2p()
-                    else:
-                        self.logger.info("No credit available")
+        # 1 key: Continue 1-player game (if credits available)
+        if keys[pygame.K_1] and not self.last_keys_state[pygame.K_1]:
+            if self.credit_count > 0:
+                self.logger.info("Continue 1-Player selected")
+                self.is_active = False
+                self.on_continue_1p()
+            else:
+                self.logger.info("No credit available")
+        self.last_keys_state[pygame.K_1] = keys[pygame.K_1]
+
+        # 2 key: Continue 2-player game (if credits available)
+        if keys[pygame.K_2] and not self.last_keys_state[pygame.K_2]:
+            if self.credit_count > 0:
+                self.logger.info("Continue 2-Player selected")
+                self.is_active = False
+                self.on_continue_2p()
+            else:
+                self.logger.info("No credit available")
+        self.last_keys_state[pygame.K_2] = keys[pygame.K_2]
 
     def update(self, dt_ms: int = 16) -> None:
         """
