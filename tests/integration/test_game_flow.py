@@ -93,18 +93,18 @@ class TestGameFlow(unittest.TestCase):
         """Test defeat condition when player loses all lives."""
         # Set player to 1 life
         self.game.lives = 1
-        
+
         # Simulate player getting hit
         from src.entities.bullet import Bomb
         bomb = Bomb((self.game.player.rect.centerx, self.game.player.rect.centery))
         self.game.bomb_group.add(bomb)
-        
+
         # Update to trigger collision
         self.game.update()
-        
-        # Should trigger game over
-        self.assertTrue(self.game.game_over)
+
+        # Should trigger game over when lives reach 0
         self.assertEqual(self.game.lives, 0)
+        self.assertTrue(self.game.game_over)
 
 
 class TestErrorScenarios(unittest.TestCase):

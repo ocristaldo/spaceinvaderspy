@@ -14,7 +14,7 @@ def test_bomb_collision_decrements_lives_and_triggers_game_over():
     pygame.display.set_mode((1, 1))
     game = Game()
 
-    # Set to one life to verify game_over when hit
+    # Set to one life to verify continue screen when hit
     game.lives = 1
 
     # Create a bomb at player's center to force collision
@@ -28,6 +28,5 @@ def test_bomb_collision_decrements_lives_and_triggers_game_over():
     game.update()
 
     # Post-update state should reflect collision handling
-
     assert game.lives == 0
     assert game.game_over

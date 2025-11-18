@@ -1149,10 +1149,14 @@ class Game:
 
     def _show_continue_screen(self) -> None:
         """Show the continue screen with countdown."""
+        # Mark game as over when showing continue screen
+        self.game_over = True
+
         def on_continue_1p():
             """Callback when player continues with 1-player."""
             if self.credit_count > 0:
                 self.credit_count -= 1
+                self.game_over = False  # Reset for new game
                 self.two_player_mode = False
                 self.reset_game(start_playing=True)
                 logging.info("Game continued (1P) with credits remaining=%02d", self.credit_count)
@@ -1161,6 +1165,7 @@ class Game:
             """Callback when player continues with 2-player."""
             if self.credit_count > 0:
                 self.credit_count -= 1
+                self.game_over = False  # Reset for new game
                 self.start_two_player_game()
                 logging.info("Game continued (2P) with credits remaining=%02d", self.credit_count)
 
