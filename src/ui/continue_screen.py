@@ -122,7 +122,7 @@ class ContinueScreen:
 
         # Get fonts
         title_font = get_font("menu_title")
-        text_font = get_font("menu_large")
+        text_font = get_font("demo_subtitle")  # Larger text for countdown
         small_font = get_font("menu_small")
 
         # Title
