@@ -52,8 +52,12 @@ class InitialsEntry:
         if not self.is_active:
             return
 
-        if not keys or len(keys) < 512:
-            self.logger.warning("Invalid keys tuple received in initials entry")
+        if not keys:
+            self.logger.debug("No keys received in initials entry")
+            return
+
+        if len(keys) < 512:
+            self.logger.warning(f"Keys tuple too short: {len(keys)}, expected 512")
             return
 
         # Use pygame.key.get_pressed() to detect key presses without consuming events
