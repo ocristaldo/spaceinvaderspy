@@ -11,6 +11,7 @@ from typing import Dict, Optional
 from .sprite_sheet import SpriteSheet, get_game_sprite
 from .logger import setup_logger
 from .. import config, constants
+from ..ui.font_manager import get_font
 
 
 class SpriteViewer:
@@ -27,9 +28,9 @@ class SpriteViewer:
         """
         self.screen = screen
         self.logger = setup_logger(__name__)
-        self.font = pygame.font.Font(None, 20)
-        self.small_font = pygame.font.Font(None, 14)
-        self.tiny_font = pygame.font.Font(None, 12)
+        self.font = get_font("spriteviewer_title")
+        self.small_font = get_font("spriteviewer_small")
+        self.tiny_font = get_font("spriteviewer_tiny")
         
         # Platform configurations
         # Only Arcade platform is supported (S+1). Other platforms removed by user request.
@@ -363,9 +364,9 @@ class SpriteViewer:
     def _render_start_screen_scene(self) -> pygame.Surface:
         surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
         surface.fill((0, 0, 0))
-        title_font = pygame.font.SysFont("monospace", 36, bold=True)
-        subtitle_font = pygame.font.SysFont("monospace", 20)
-        score_font = pygame.font.SysFont("monospace", 18)
+        title_font = get_font("spriteviewer_stage_title")
+        subtitle_font = get_font("spriteviewer_stage_subtitle")
+        score_font = get_font("spriteviewer_stage_score")
 
         surface.blit(title_font.render("SPACE INVADERS", True, (255, 255, 255)),
                      (config.BASE_WIDTH // 2 - 150, 40))
@@ -391,7 +392,7 @@ class SpriteViewer:
     def _render_wave_ready_scene(self) -> pygame.Surface:
         surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
         surface.fill((0, 0, 0))
-        info_font = pygame.font.SysFont("monospace", 20)
+        info_font = get_font("spriteviewer_stage_info")
         surface.blit(info_font.render("LEVEL 01", True, (255, 255, 0)), (20, 20))
         self._draw_ufo_lane(surface)
         self._draw_alien_rows(surface, top_y=80)
@@ -404,7 +405,7 @@ class SpriteViewer:
     def _render_late_wave_scene(self) -> pygame.Surface:
         surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
         surface.fill((0, 0, 0))
-        info_font = pygame.font.SysFont("monospace", 20)
+        info_font = get_font("spriteviewer_stage_info")
         surface.blit(info_font.render("LEVEL 04", True, (255, 120, 120)), (20, 20))
         self._draw_ufo_lane(surface)
         self._draw_alien_rows(surface, top_y=140, columns=7, spacing=12)

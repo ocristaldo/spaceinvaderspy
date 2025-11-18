@@ -6,6 +6,7 @@ from typing import Optional
 
 from ..utils.logger import setup_logger
 from .. import config
+from ..ui.font_manager import get_font
 
 
 class GameEngine:
@@ -30,7 +31,7 @@ class GameEngine:
             self.screen = pygame.display.set_mode(initial_size, pygame.RESIZABLE)
             pygame.display.set_caption("Space Invaders")
             self.clock = pygame.time.Clock()
-            self.font = pygame.font.SysFont("monospace", 16)
+            self.font = get_font("hud_main")
             self.logger.info("Pygame initialized successfully")
         except pygame.error as e:
             self.logger.error(f"Failed to initialize pygame: {e}")

@@ -25,6 +25,7 @@ from .utils.sprite_viewer import SpriteViewer
 from .utils.audio_manager import AudioManager
 from .utils.high_score_manager import HighScoreManager
 from .ui.menu import Menu
+from .ui.font_manager import get_font
 from .ui.start_screen_demo import ScoreTableDemo, WaveFormationDemo
 from .systems.game_state_manager import GameStateManager, GameState
 from .utils.settings_manager import SettingsManager
@@ -63,12 +64,8 @@ class Game:
         self.playfield_surface = pygame.Surface((self.logical_width, self.logical_height))
         self.window_width, self.window_height = self.screen.get_size()
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont("monospace", 16)
-        self.small_font = pygame.font.SysFont("monospace", 12)
-        menu_font_size = max(18, int(14 * config.PLAYFIELD_SCALE))
-        menu_body_size = max(14, int(12 * config.PLAYFIELD_SCALE))
-        self.menu_font = pygame.font.SysFont("monospace", menu_font_size)
-        self.menu_body_font = pygame.font.SysFont("monospace", menu_body_size)
+        self.font = get_font("hud_main")
+        self.small_font = get_font("hud_small")
         self.running = True
         self.game_over = False
         self.waiting_for_respawn = False
@@ -79,6 +76,9 @@ class Game:
         self.settings_manager = SettingsManager()
         self.level_start_delay_ms = 1500
         self.level_start_ready_time = 0
+        self.game_over_intro_delay_ms = 5000
+        self._game_over_return_time = None
+        self._game_over_processed = False
 
         # State management
         self.state_manager = GameStateManager()
@@ -109,7 +109,7 @@ class Game:
         # Sprite viewer for testing
         self.sprite_viewer = SpriteViewer(self.screen)
         self.viewing_sprites = False
-        self.menu = Menu(self.menu_font, self.menu_body_font)
+        self.menu = Menu()
         self.menu.update_options_state(self.audio_manager.enabled, self.settings_manager.intro_demo_enabled())
         self.score_demo = ScoreTableDemo()
         self.start_screen_demo = self.score_demo  # Backwards-compatibility for older tests/utilities
@@ -142,7 +142,7 @@ class Game:
         """Backwards-compatible string state for existing tests/utilities."""
         return self.state_manager.current_state.name
 
-    def reset_game(self):
+    def reset_game(self, start_playing: bool = True):
         """Reset the game to initial state."""
         self.game_over = False
         self.waiting_for_respawn = False
@@ -153,7 +153,9 @@ class Game:
         self.wave_message_text = "Ready!"
         self.wave_message_timer = pygame.time.get_ticks() + 2000
         self.level_start_ready_time = pygame.time.get_ticks() + self.level_start_delay_ms
-        self.state_manager.change_state(GameState.PLAYING)
+        self.state_manager.change_state(GameState.PLAYING if start_playing else GameState.MENU)
+        self._game_over_processed = False
+        self._game_over_return_time = None
         
         # Clear all sprite groups
         self.bullet_group.empty()
@@ -347,8 +349,7 @@ class Game:
                         logging.info("Exited sprite viewer mode")
                         continue
                     if self.game_over:
-                        self.reset_game()
-                        logging.info("Game restarted")
+                        self._return_to_intro_screen(trigger="key_event")
                         continue
 
                 if self.state_manager.current_state == GameState.ATTRACT:
@@ -580,9 +581,7 @@ class Game:
             self.lives -= len(hit_bombs)
             logging.warning("Player hit! Lives left=%d", self.lives)
             if self.lives <= 0:
-                self.game_over = True
-                self.state_manager.change_state(GameState.GAME_OVER)
-                logging.info("Game over: player destroyed")
+                self._enter_game_over_state("Game over: player destroyed")
             else:
                 self._handle_life_loss()
 
@@ -649,8 +648,15 @@ class Game:
 
     def _trigger_alien_victory(self, reason: str):
         """Set the game over state due to alien advancement."""
+        self._enter_game_over_state(reason)
+
+    def _enter_game_over_state(self, reason: str) -> None:
+        """Centralize transition into the GAME_OVER state."""
+        if self.game_over:
+            return
         self.game_over = True
         self.state_manager.change_state(GameState.GAME_OVER)
+        self._game_over_return_time = pygame.time.get_ticks() + self.game_over_intro_delay_ms
         logging.info(reason)
 
     def _start_next_wave(self):
@@ -846,17 +852,22 @@ class Game:
             
             # Handle game over state - show game over screen and wait for restart
             if self.game_over:
-                # Update high score on first game over frame
-                if not hasattr(self, '_game_over_processed'):
+                if not self._game_over_processed:
                     self.high_score_manager.update_score(self.score)
                     self._game_over_processed = True
-                
-                # Check for restart input without blocking the main loop
+                    logging.info("High score table updated after game over")
+
                 keys = pygame.key.get_pressed()
-                if keys[pygame.K_r]:
-                    self._game_over_processed = False
-                    self.reset_game()
-                    logging.info("Game restarted after game over")
+                if keys[pygame.K_q]:
+                    logging.info("Quit requested from game over overlay")
+                    self.running = False
+                elif keys[pygame.K_r]:
+                    self._return_to_intro_screen(trigger="key")
+                elif (
+                    self._game_over_return_time is not None
+                    and pygame.time.get_ticks() >= self._game_over_return_time
+                ):
+                    self._return_to_intro_screen(trigger="timer")
             
             # Maintain consistent frame rate (60 FPS)
             self.clock.tick(60)
@@ -905,6 +916,27 @@ class Game:
         self.playfield_surface.blit(final_score_text, final_score_rect)
         self.playfield_surface.blit(high_score_text, high_score_rect)
         self.playfield_surface.blit(restart_text, restart_rect)
+
+    def _return_to_intro_screen(self, trigger: str = "auto") -> None:
+        """Reset play state and jump back to the intro/attract mode."""
+        if not self.game_over:
+            return
+        logging.info("Returning to intro screen after game over (%s)", trigger)
+        self.reset_game(start_playing=False)
+        self.menu.update_options_state(self.audio_manager.enabled, self.settings_manager.intro_demo_enabled())
+        self.menu.hide_controls()
+        self.menu.hide_high_scores()
+        self.menu.hide_options()
+        self.menu.hide_credits()
+        self.demo_cycle_enabled = False
+        self.active_demo = None
+        self._game_over_processed = False
+        self._game_over_return_time = None
+        self.attract_last_activity_time = pygame.time.get_ticks()
+        if self.settings_manager.intro_demo_enabled():
+            self.start_intro_demo()
+        else:
+            self.state_manager.change_state(GameState.MENU)
 
     def _draw_life_lost_message(self):
         """Overlay prompting the player to continue after losing a life."""

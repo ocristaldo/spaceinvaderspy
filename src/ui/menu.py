@@ -1,8 +1,11 @@
+import logging
 import pygame
 from typing import Optional, List, Tuple, Dict
 from .. import config
 from ..utils.sprite_sheet import get_title_logo
-from .font_manager import get_font
+from .font_manager import get_font, get_menu_overlay_fonts
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Menu:
@@ -24,18 +27,18 @@ class Menu:
         "S + 4 : Late-wave preview",
     ]
 
+    OVERLAY_SECTIONS = ("controls", "options", "credits", "high_scores")
+
     def __init__(self, title_font: Optional[pygame.font.Font] = None, body_font: Optional[pygame.font.Font] = None):
         self.title_font = title_font or get_font("menu_title")
         self.body_font = body_font or get_font("menu_body")
-        self.overlay_font_sizes = {
-            "controls": 11,
-            "options": 11,
-            "credits": 11,
-            "high_scores": 11,
-        }
         self._section_fonts: Dict[str, Tuple[pygame.font.Font, pygame.font.Font]] = {}
-        for section in self.overlay_font_sizes:
-            self._rebuild_section_font(section)
+        for section in self.OVERLAY_SECTIONS:
+            try:
+                self._section_fonts[section] = get_menu_overlay_fonts(section)
+            except KeyError:
+                LOGGER.exception("Missing font profile for overlay section '%s'", section)
+                self._section_fonts[section] = (self.body_font, self.body_font)
         self.options = ["Start", "High Scores", "Controls", "Options", "Credits", "Quit"]
         self.selected = 0
         self.showing_controls = False
@@ -65,7 +68,12 @@ class Menu:
     def draw(self, surface: pygame.Surface):
         # Draw a simple centered menu
         w, h = surface.get_size()
-        title_rect = self._draw_logo(surface)
+        try:
+            title_rect = self._draw_logo(surface)
+        except Exception:  # pragma: no cover - defensive safety net
+            LOGGER.exception("Failed to render title logo; falling back to text layout")
+            self.title_sprite_raw = None
+            title_rect = self._draw_logo(surface)
 
         line_height = self.body_font.get_linesize() + 8
         total_height = len(self.options) * line_height
@@ -77,6 +85,14 @@ class Menu:
             start_y = max(0, max_top)
         else:
             start_y = start_candidate
+        LOGGER.debug(
+            "Menu layout: options=%d line_height=%d start_y=%d surface=%sx%s",
+            len(self.options),
+            line_height,
+            start_y,
+            w,
+            h,
+        )
         self._last_option_rects = []
         for i, opt in enumerate(self.options):
             color = (255, 255, 0) if i == self.selected else (200, 200, 200)
@@ -238,22 +254,6 @@ class Menu:
 
     def set_debug_borders(self, enabled: bool) -> None:
         self.debug_draw_borders = bool(enabled)
-
-    def _rebuild_section_font(self, section: str) -> None:
-        size = self.overlay_font_sizes.get(section, 10)
-        main = pygame.font.SysFont("monospace", size)
-        small = pygame.font.SysFont("monospace", max(6, size - 2))
-        self._section_fonts[section] = (main, small)
-
-    def set_overlay_font_size(self, section: str, size: int) -> None:
-        section = section.lower()
-        if section not in self.overlay_font_sizes:
-            raise KeyError(f"Unknown overlay section: {section}")
-        size = max(6, int(size))
-        if self.overlay_font_sizes[section] == size:
-            return
-        self.overlay_font_sizes[section] = size
-        self._rebuild_section_font(section)
 
     # --- Logo helpers -----------------------------------------------------------
     def _load_title_sprite(self) -> Optional[pygame.Surface]:
