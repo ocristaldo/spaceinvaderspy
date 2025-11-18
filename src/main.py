@@ -125,7 +125,7 @@ class Game:
         self.p2_lives_awarded = 0
 
         # Player-specific game state (for persisting game state when switching players)
-        # Will be fully initialized after aliens/bunkers are created
+        # Each player maintains independent state: first switch starts fresh, subsequent switches restore
         self.player_states = {
             1: {
                 'level': 1,
@@ -134,6 +134,7 @@ class Game:
                 'initial_alien_count': 0,
                 'aliens': None,
                 'bunkers': None,
+                'has_been_saved': False,  # Track if this player has ever been played
             },
             2: {
                 'level': 1,
@@ -142,6 +143,7 @@ class Game:
                 'initial_alien_count': 0,
                 'aliens': None,
                 'bunkers': None,
+                'has_been_saved': False,  # Track if this player has ever been played
             }
         }
 
@@ -248,12 +250,20 @@ class Game:
         self.p2_lives = constants.LIVES_NUMBER
         self.lives_awarded = 0
         self.p2_lives_awarded = 0
+
+        # Reset player states - each will start fresh on first switch
+        for player_num in [1, 2]:
+            self.player_states[player_num] = {
+                'level': 1,
+                'alien_direction': 1,
+                'alien_speed': config.ALIEN_START_SPEED,
+                'initial_alien_count': 0,
+                'aliens': None,
+                'bunkers': None,
+                'has_been_saved': False,
+            }
+
         self.reset_game(start_playing=True)
-
-        # Save initial state for both players
-        self._save_player_state(1)
-        self._save_player_state(2)
-
         logging.info("2-Player game started. Player 1 begins")
 
     def switch_player(self) -> None:
@@ -296,39 +306,49 @@ class Game:
             'initial_alien_count': self.initial_alien_count,
             'aliens': self.alien_group.copy(),
             'bunkers': self.bunker_group.copy(),
+            'has_been_saved': True,
         }
         logging.debug("Saved state for Player %d (Level %d, %d aliens)",
                       player_num, self.level, len(self.alien_group))
 
     def _restore_player_state(self, player_num: int) -> None:
-        """Restore a player's previously saved game state."""
+        """Restore a player's previously saved game state, or create fresh for first-time switch."""
         if not self.two_player_mode:
             return
 
         state = self.player_states[player_num]
 
-        # Restore game parameters
-        self.level = state['level']
-        self.alien_direction = state['alien_direction']
-        self.alien_speed = state['alien_speed']
-        self.initial_alien_count = state['initial_alien_count']
-        self.current_theme = get_level_theme(self.level)
-
-        # Restore sprite groups
-        if state['aliens'] is not None and len(state['aliens']) > 0:
-            self.alien_group = state['aliens'].copy()
-        else:
-            # First time for this player, create fresh aliens
+        # Check if this player has ever been played before
+        if not state['has_been_saved']:
+            # First time this player is playing - start fresh at level 1
+            self.level = 1
+            self.alien_direction = 1
+            self.alien_speed = config.ALIEN_START_SPEED
+            self.current_theme = get_level_theme(self.level)
             self.alien_group = self.create_aliens()
-
-        if state['bunkers'] is not None and len(state['bunkers']) > 0:
-            self.bunker_group = state['bunkers'].copy()
-        else:
-            # First time for this player, create fresh bunkers
             self.bunker_group = self.create_bunkers()
+            logging.info("Player %d starting fresh (first time)", player_num)
+        else:
+            # Player has been saved before - restore their exact state
+            self.level = state['level']
+            self.alien_direction = state['alien_direction']
+            self.alien_speed = state['alien_speed']
+            self.initial_alien_count = state['initial_alien_count']
+            self.current_theme = get_level_theme(self.level)
 
-        logging.debug("Restored state for Player %d (Level %d, %d aliens)",
-                      player_num, self.level, len(self.alien_group))
+            # Restore sprite groups from saved state
+            if state['aliens'] is not None and len(state['aliens']) > 0:
+                self.alien_group = state['aliens'].copy()
+            else:
+                self.alien_group = self.create_aliens()
+
+            if state['bunkers'] is not None and len(state['bunkers']) > 0:
+                self.bunker_group = state['bunkers'].copy()
+            else:
+                self.bunker_group = self.create_bunkers()
+
+            logging.debug("Restored saved state for Player %d (Level %d, %d aliens)",
+                          player_num, self.level, len(self.alien_group))
 
     def get_current_score(self) -> int:
         """Get the current player's score."""
