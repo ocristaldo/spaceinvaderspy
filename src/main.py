@@ -33,6 +33,7 @@ from .ui.start_screen_demo import ScoreTableDemo, WaveFormationDemo
 from .ui.color_scheme import get_color, get_tint
 from .ui.sprite_digits import SpriteDigitWriter
 from .ui.level_themes import get_level_theme, LevelTheme
+from .ui.initials_entry import InitialsEntry
 from .systems.game_state_manager import GameStateManager, GameState
 from .utils.settings_manager import SettingsManager
 
@@ -142,6 +143,7 @@ class Game:
         self.demo_cycle_enabled = False
         self.demo_cycle_index = 0
         self.active_demo = None
+        self.initials_entry_screen: Optional[InitialsEntry] = None
         self.alien_speed = config.ALIEN_START_SPEED
         self.initial_alien_count = len(self.alien_group)
         self.last_ufo_time = pygame.time.get_ticks()
@@ -980,7 +982,11 @@ class Game:
             self._draw_life_lost_message()
 
         if self.game_over:
-            self._draw_game_over_message()
+            # Draw initials entry screen if active, otherwise draw game over message
+            if self.initials_entry_screen and self.initials_entry_screen.is_active:
+                self.initials_entry_screen.draw(surface)
+            else:
+                self._draw_game_over_message()
 
         if self.debug_sprite_borders:
             self._draw_debug_sprite_borders(surface)
@@ -1061,21 +1067,42 @@ class Game:
             # Handle game over state - show game over screen and wait for restart
             if self.game_over:
                 if not self._game_over_processed:
-                    self.high_score_manager.update_score(self.score)
+                    # Check if this is a high score
+                    is_high_score = self.high_score_manager.check_high_score(self.score)
+                    if is_high_score or self.high_score_manager.is_high_score_position(self.score):
+                        # Show initials entry screen
+                        def on_initials_confirmed(initials: str):
+                            """Callback when initials are confirmed."""
+                            self.high_score_manager.update_score(self.score, initials, player=1)
+                            self.initials_entry_screen = None
+                            logging.info(f"High score saved: {self.score} by {initials}")
+
+                        self.initials_entry_screen = InitialsEntry(self.score, on_initials_confirmed)
+                    else:
+                        # Just save the score without initials entry
+                        self.high_score_manager.update_score(self.score, initials="---", player=1)
+
                     self._game_over_processed = True
                     logging.info("High score table updated after game over")
 
-                keys = pygame.key.get_pressed()
-                if keys[pygame.K_q]:
-                    logging.info("Quit requested from game over overlay")
-                    self.running = False
-                elif keys[pygame.K_r]:
-                    self._return_to_intro_screen(trigger="key")
-                elif (
-                    self._game_over_return_time is not None
-                    and pygame.time.get_ticks() >= self._game_over_return_time
-                ):
-                    self._return_to_intro_screen(trigger="timer")
+                # Handle initials entry input
+                if self.initials_entry_screen and self.initials_entry_screen.is_active:
+                    keys = pygame.key.get_pressed()
+                    self.initials_entry_screen.handle_input(keys)
+                    self.initials_entry_screen.update()
+                else:
+                    # Normal game over controls
+                    keys = pygame.key.get_pressed()
+                    if keys[pygame.K_q]:
+                        logging.info("Quit requested from game over overlay")
+                        self.running = False
+                    elif keys[pygame.K_r]:
+                        self._return_to_intro_screen(trigger="key")
+                    elif (
+                        self._game_over_return_time is not None
+                        and pygame.time.get_ticks() >= self._game_over_return_time
+                    ):
+                        self._return_to_intro_screen(trigger="timer")
             
             # Maintain consistent frame rate (60 FPS)
             self.clock.tick(60)
