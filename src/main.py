@@ -38,12 +38,33 @@ from .ui.continue_screen import ContinueScreen
 from .systems.game_state_manager import GameStateManager, GameState
 from .utils.settings_manager import SettingsManager
 
-logging.basicConfig(
-    level=logging.INFO,
-    filename="game.log",
-    filemode="w",
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
+import os
+
+# Check if DEBUG mode is enabled
+DEBUG_MODE = os.environ.get("SPACEINVADERS_DEBUG", "").lower() in ("1", "true", "yes")
+
+# Configure logging with both file and console output
+log_level = logging.DEBUG if DEBUG_MODE else logging.INFO
+log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+
+# File handler
+file_handler = logging.FileHandler("game.log", mode="w")
+file_handler.setLevel(log_level)
+file_handler.setFormatter(logging.Formatter(log_format))
+
+# Console handler (always show at least WARNING level)
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.WARNING if not DEBUG_MODE else logging.DEBUG)
+console_handler.setFormatter(logging.Formatter(log_format))
+
+# Root logger configuration
+root_logger = logging.getLogger()
+root_logger.setLevel(log_level)
+root_logger.addHandler(file_handler)
+root_logger.addHandler(console_handler)
+
+# Get logger for this module
+logging = logging.getLogger(__name__)
 
 
 def _install_global_exception_logger() -> None:
