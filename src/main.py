@@ -124,6 +124,27 @@ class Game:
         self.p2_lives = constants.LIVES_NUMBER
         self.p2_lives_awarded = 0
 
+        # Player-specific game state (for persisting game state when switching players)
+        # Will be fully initialized after aliens/bunkers are created
+        self.player_states = {
+            1: {
+                'level': 1,
+                'alien_direction': 1,
+                'alien_speed': config.ALIEN_START_SPEED,
+                'initial_alien_count': 0,
+                'aliens': None,
+                'bunkers': None,
+            },
+            2: {
+                'level': 1,
+                'alien_direction': 1,
+                'alien_speed': config.ALIEN_START_SPEED,
+                'initial_alien_count': 0,
+                'aliens': None,
+                'bunkers': None,
+            }
+        }
+
         self.player = Player(tint=self._sprite_tint("player"))
         self.player_group = pygame.sprite.GroupSingle(self.player)
         self._position_player()
@@ -228,30 +249,86 @@ class Game:
         self.lives_awarded = 0
         self.p2_lives_awarded = 0
         self.reset_game(start_playing=True)
+
+        # Save initial state for both players
+        self._save_player_state(1)
+        self._save_player_state(2)
+
         logging.info("2-Player game started. Player 1 begins")
 
     def switch_player(self) -> None:
-        """Switch to the other player in 2-player mode."""
+        """Switch to the other player in 2-player mode, preserving their game state."""
         if not self.two_player_mode:
             return
 
-        if self.current_player == 1:
+        old_player = self.current_player
+
+        # Save current player's state before switching
+        self._save_player_state(old_player)
+
+        # Switch player
+        if old_player == 1:
             self.current_player = 2
             logging.info("Switched to Player 2 (Score: %d, Lives: %d)", self.p2_score, self.p2_lives)
         else:
             self.current_player = 1
             logging.info("Switched to Player 1 (Score: %d, Lives: %d)", self.score, self.lives)
 
-        # Recreate aliens and bunkers for next player
-        self.alien_group = self.create_aliens()
-        self.bunker_group = self.create_bunkers()
-        self.alien_direction = 1
-        self._reset_alien_progression()
+        # Restore the new player's state
+        self._restore_player_state(self.current_player)
+
+        # Clear active projectiles and effects
         self.bullet_group.empty()
         self.bomb_group.empty()
         self.effects_group.empty()
         self.audio_manager.stop_ufo_loop()
         self._respawn_player()
+
+    def _save_player_state(self, player_num: int) -> None:
+        """Save the current player's game state (level, aliens, bunkers, etc.)."""
+        if not self.two_player_mode:
+            return
+
+        self.player_states[player_num] = {
+            'level': self.level,
+            'alien_direction': self.alien_direction,
+            'alien_speed': self.alien_speed,
+            'initial_alien_count': self.initial_alien_count,
+            'aliens': self.alien_group.copy(),
+            'bunkers': self.bunker_group.copy(),
+        }
+        logging.debug("Saved state for Player %d (Level %d, %d aliens)",
+                      player_num, self.level, len(self.alien_group))
+
+    def _restore_player_state(self, player_num: int) -> None:
+        """Restore a player's previously saved game state."""
+        if not self.two_player_mode:
+            return
+
+        state = self.player_states[player_num]
+
+        # Restore game parameters
+        self.level = state['level']
+        self.alien_direction = state['alien_direction']
+        self.alien_speed = state['alien_speed']
+        self.initial_alien_count = state['initial_alien_count']
+        self.current_theme = get_level_theme(self.level)
+
+        # Restore sprite groups
+        if state['aliens'] is not None and len(state['aliens']) > 0:
+            self.alien_group = state['aliens'].copy()
+        else:
+            # First time for this player, create fresh aliens
+            self.alien_group = self.create_aliens()
+
+        if state['bunkers'] is not None and len(state['bunkers']) > 0:
+            self.bunker_group = state['bunkers'].copy()
+        else:
+            # First time for this player, create fresh bunkers
+            self.bunker_group = self.create_bunkers()
+
+        logging.debug("Restored state for Player %d (Level %d, %d aliens)",
+                      player_num, self.level, len(self.alien_group))
 
     def get_current_score(self) -> int:
         """Get the current player's score."""
@@ -936,31 +1013,43 @@ class Game:
             logging.warning("Player %d hit! Lives left=%d", self.current_player, current_lives)
             self._spawn_explosion(self.player.rect.center)
             self.audio_manager.play_sound("explosion")
-            if current_lives <= 0:
-                # In 2-player mode, check if other player has lives
-                if self.two_player_mode:
-                    if self.current_player == 1:
-                        # P1 out of lives - check if P2 has lives
-                        if self.p2_lives > 0:
-                            logging.info("Player 1 out of lives. Switching to Player 2")
-                            self.switch_player()
-                        else:
-                            # Both out of lives - show continue screen
+
+            if self.two_player_mode:
+                # In 2-player mode, switch to other player on every hit
+                if self.current_player == 1:
+                    if self.p2_lives > 0:
+                        # P2 still has lives, switch to them
+                        logging.info("Player 1 hit! Switching to Player 2 (P2 lives: %d)", self.p2_lives)
+                        self.switch_player()
+                    else:
+                        # P2 is out of lives, P1 must continue
+                        if current_lives <= 0:
+                            # P1 also out of lives
+                            logging.info("Both players out of lives - showing continue screen")
                             self._show_continue_screen()
-                    else:  # current_player == 2
-                        # P2 out of lives - check if P1 has lives
-                        # Note: self.lives is P1 lives, self.p2_lives is P2 lives (not swapped on player switch)
-                        if self.lives > 0:
-                            logging.info("Player 2 out of lives. Switching to Player 1")
-                            self.switch_player()
                         else:
-                            # Both out of lives - show continue screen
+                            # P1 continues after being hit
+                            self._handle_life_loss()
+                else:  # current_player == 2
+                    if self.lives > 0:
+                        # P1 still has lives, switch to them
+                        logging.info("Player 2 hit! Switching to Player 1 (P1 lives: %d)", self.lives)
+                        self.switch_player()
+                    else:
+                        # P1 is out of lives, P2 must continue
+                        if current_lives <= 0:
+                            # P2 also out of lives
+                            logging.info("Both players out of lives - showing continue screen")
                             self._show_continue_screen()
-                else:
-                    # Single-player mode - show continue screen
-                    self._show_continue_screen()
+                        else:
+                            # P2 continues after being hit
+                            self._handle_life_loss()
             else:
-                self._handle_life_loss()
+                # Single-player mode
+                if current_lives <= 0:
+                    self._show_continue_screen()
+                else:
+                    self._handle_life_loss()
 
         # bomb vs bunker
         hits = pygame.sprite.groupcollide(self.bomb_group, self.bunker_group, True, False)
@@ -1443,11 +1532,6 @@ class Game:
             score2_digits = self.digit_writer.render(f"{self.p2_score:05d}")
             score2_digits_rect = score2_digits.get_rect(topright=(width - 10, values_y))
             surface.blit(score2_digits, score2_digits_rect)
-
-            # Draw current player indicator
-            player_indicator = self.small_font.render(f"PLAYER {self.current_player}", True, (255, 255, 0))
-            player_rect = player_indicator.get_rect(center=(width // 2, values_y + 20))
-            surface.blit(player_indicator, player_rect)
         else:
             # 1-player HUD: "SCORE [P1] HI-SCORE [HIGH] LEVEL [LEVEL]"
             score_label = self.small_font.render("SCORE", True, hud_color)
