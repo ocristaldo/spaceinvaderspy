@@ -1,9 +1,25 @@
 {
   "high_score": 1120,
   "scores": [
-    1120,
-    1090,
-    200,
-    70
+    {
+      "score": 1120,
+      "initials": "OAC",
+      "player": 1
+    },
+    {
+      "score": 1090,
+      "initials": "OAC",
+      "player": 1
+    },
+    {
+      "score": 200,
+      "initials": "OAC",
+      "player": 1
+    },
+    {
+      "score": 70,
+      "initials": "OAC",
+      "player": 1
+    }
   ]
 }
