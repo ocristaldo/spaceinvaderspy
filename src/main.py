@@ -12,6 +12,7 @@ educational purposes only. It includes no original assets or code from the
 """
 import logging
 import sys
+from typing import List, Optional, Tuple
 import pygame
 import random
 from . import constants
@@ -42,8 +43,9 @@ logging.basicConfig(
 )
 
 
-def _install_global_exception_logger():
-    def handle_exception(exc_type, exc_value, exc_traceback):
+def _install_global_exception_logger() -> None:
+    """Install a global exception handler for logging unhandled exceptions."""
+    def handle_exception(exc_type, exc_value, exc_traceback) -> None:
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
@@ -199,7 +201,8 @@ class Game:
         
         logging.info("Game reset complete")
 
-    def create_aliens(self):
+    def create_aliens(self) -> pygame.sprite.Group:
+        """Create alien formation and return sprite group."""
         group = pygame.sprite.Group()
         margin_y = config.ALIEN_MARGIN_Y
         spacing_y = config.ALIEN_SPACING_Y
@@ -240,7 +243,8 @@ class Game:
                 group.add(Alien(x, y, value, tint=self._alien_tint(value)))
         return group
 
-    def create_bunkers(self):
+    def create_bunkers(self) -> pygame.sprite.Group:
+        """Create bunkers and return sprite group."""
         group = pygame.sprite.Group()
         spacing = self.logical_width // (constants.BLOCK_NUMBER + 1)
         player_top = self.player.rect.top
@@ -251,23 +255,28 @@ class Game:
             group.add(Bunker(center_x, bunker_bottom, tint=tint))
         return group
 
-    def _sprite_tint(self, key: str):
+    def _sprite_tint(self, key: str) -> Optional[Tuple[int, int, int]]:
+        """Get tint color for sprite or None if tinting disabled."""
         if not self.tint_enabled:
             return None
         return get_tint(key)
 
-    def _alien_tint(self, value: int):
+    def _alien_tint(self, value: int) -> Optional[Tuple[int, int, int]]:
+        """Get tint color for alien type."""
         mapping = {30: "alien_squid", 20: "alien_crab", 10: "alien_octopus"}
         return self._sprite_tint(mapping.get(value, "alien_octopus"))
 
     def _player_floor(self) -> int:
+        """Calculate the y-coordinate where player should rest."""
         return self.logical_height - self.bottom_panel_height - 4
 
-    def _position_player(self):
+    def _position_player(self) -> None:
+        """Position player at bottom center of playfield."""
         if hasattr(self, "player") and self.player:
             self.player.rect.midbottom = (self.logical_width // 2, self._player_floor())
 
-    def _build_ui_assets(self):
+    def _build_ui_assets(self) -> None:
+        """Build UI asset surfaces (life icons, digits, etc)."""
         life_icon = get_game_sprite("player", config.SPRITE_SCALE, tint=self._sprite_tint("life_icon"))
         if life_icon.get_width() > 0:
             scale_factor = 0.8

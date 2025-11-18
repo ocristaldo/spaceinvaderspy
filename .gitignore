@@ -1,4 +1,7 @@
+# IDE settings (user-specific)
 .vscode/settings.json
+
+# Game settings (user-specific, but settings.default.json is tracked)
 settings.json
 *.pyc
 Space Invaders Color Edition.docx
@@ -30,9 +33,9 @@ dist/
 *.egg
 # Ignore test output files
 test_output/
-# Ignore configuration files
-*.cfg
-*.ini
+# Ignore configuration files (but keep tracked ones like pytest.ini)
+# setup.cfg would be ignored but we don't have it
+# Keep pytest.ini and coverage.ini tracked in version control
 # Ignore environment files
 .env
 # Ignore data files

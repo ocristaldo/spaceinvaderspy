@@ -13,7 +13,7 @@ from .logger import setup_logger
 
 
 class SettingsManager:
-    """Load and persist simple boolean/toggle options."""
+    """Load and persist simple boolean/toggle options with schema validation."""
 
     DEFAULTS = {
         "audio_enabled": False,  # Sound effects
@@ -21,6 +21,15 @@ class SettingsManager:
         "intro_demo_enabled": True,
         "debug_sprite_borders": False,
         "tint_enabled": False,
+    }
+
+    # Schema: key -> (type, description)
+    SCHEMA = {
+        "audio_enabled": (bool, "Enable sound effects"),
+        "music_enabled": (bool, "Enable background music"),
+        "intro_demo_enabled": (bool, "Auto-play intro demo on menu"),
+        "debug_sprite_borders": (bool, "Draw borders around sprites (debug)"),
+        "tint_enabled": (bool, "Apply color tints to sprites"),
     }
 
     def __init__(self, path: Optional[str] = None):
@@ -31,6 +40,30 @@ class SettingsManager:
         self.settings: Dict[str, Any] = {}
         self._load()
 
+    def _validate_setting(self, key: str, value: Any) -> bool:
+        """Validate a single setting against schema. Returns True if valid."""
+        if key not in self.SCHEMA:
+            self.logger.warning("Unknown setting key: %s (ignoring)", key)
+            return False
+        expected_type, description = self.SCHEMA[key]
+        if not isinstance(value, expected_type):
+            self.logger.warning(
+                "Setting '%s' has invalid type %s (expected %s). Ignoring.",
+                key,
+                type(value).__name__,
+                expected_type.__name__,
+            )
+            return False
+        return True
+
+    def _validate_settings(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate all settings, return cleaned dict with only valid entries."""
+        validated = {}
+        for key, value in data.items():
+            if self._validate_setting(key, value):
+                validated[key] = value
+        return validated
+
     def _load(self) -> None:
         """Load settings file, falling back to defaults on errors."""
         data = self.DEFAULTS.copy()
@@ -39,7 +72,13 @@ class SettingsManager:
                 with open(self.path, "r", encoding="utf-8") as fh:
                     file_data = json.load(fh)
                     if isinstance(file_data, dict):
-                        data.update(file_data)
+                        # Validate loaded settings
+                        validated_data = self._validate_settings(file_data)
+                        data.update(validated_data)
+                        if len(validated_data) < len(file_data):
+                            self.logger.info(
+                                "Settings file had invalid entries; using defaults for them."
+                            )
                     else:
                         self.logger.warning("Settings file malformed, using defaults.")
             else:
