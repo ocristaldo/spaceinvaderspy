@@ -1299,11 +1299,11 @@ class Game:
             self._draw_life_lost_message()
 
         if self.game_over:
-            # Draw continue screen if active, otherwise draw initials or game over message
-            if self.continue_screen and self.continue_screen.is_active:
-                self.continue_screen.draw(surface)
-            elif self.initials_entry_screen and self.initials_entry_screen.is_active:
+            # Draw initials entry or continue screen (initials has priority)
+            if self.initials_entry_screen and self.initials_entry_screen.is_active:
                 self.initials_entry_screen.draw(surface)
+            elif self.continue_screen and self.continue_screen.is_active:
+                self.continue_screen.draw(surface)
             else:
                 self._draw_game_over_message()
 
@@ -1413,17 +1413,17 @@ class Game:
                     self._game_over_processed = True
                     logging.info("High score table updated after game over")
 
-                # Handle continue screen input (has priority over initials/game over)
-                if self.continue_screen and self.continue_screen.is_active:
+                # Handle initials entry input (has priority over continue screen)
+                if self.initials_entry_screen and self.initials_entry_screen.is_active:
+                    keys = pygame.key.get_pressed()
+                    self.initials_entry_screen.handle_input(keys)
+                    self.initials_entry_screen.update()
+                # Handle continue screen input
+                elif self.continue_screen and self.continue_screen.is_active:
                     keys = pygame.key.get_pressed()
                     self.continue_screen.handle_input(keys)
                     self.continue_screen.update(dt_ms=16)
                     # Note: C key for credit insertion during continue is handled in handle_events()
-                # Handle initials entry input
-                elif self.initials_entry_screen and self.initials_entry_screen.is_active:
-                    keys = pygame.key.get_pressed()
-                    self.initials_entry_screen.handle_input(keys)
-                    self.initials_entry_screen.update()
                 else:
                     # Normal game over controls
                     keys = pygame.key.get_pressed()
