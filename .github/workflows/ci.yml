@@ -56,8 +56,9 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: coverage-report
+          name: coverage-report-${{ matrix.python-version }}
           path: coverage.xml
+          overwrite: true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         if: always()
