@@ -1480,12 +1480,25 @@ class Game:
                 icons_right = x + icon.get_width()
         else:
             icons_right = 10
-        status_text = self.small_font.render(
-            f"SFX {'ON' if self.sfx_enabled else 'OFF'}  MUSIC {'ON' if self.music_enabled else 'OFF'}",
-            True,
-            get_color("hud_text"),
-        )
-        surface.blit(status_text, (icons_right + 12, overlay_top + 8))
+
+        # Draw current player indicator in 2-player mode
+        if self.two_player_mode:
+            player_text = self.small_font.render(f"PLAYER {self.current_player}", True, (255, 255, 0))
+            surface.blit(player_text, (icons_right + 12, overlay_top + 6))
+            status_text = self.small_font.render(
+                f"SFX {'ON' if self.sfx_enabled else 'OFF'}  MUSIC {'ON' if self.music_enabled else 'OFF'}",
+                True,
+                get_color("hud_text"),
+            )
+            surface.blit(status_text, (icons_right + 12, overlay_top + 18))
+        else:
+            status_text = self.small_font.render(
+                f"SFX {'ON' if self.sfx_enabled else 'OFF'}  MUSIC {'ON' if self.music_enabled else 'OFF'}",
+                True,
+                get_color("hud_text"),
+            )
+            surface.blit(status_text, (icons_right + 12, overlay_top + 8))
+
         credit_text = self.credit_label_surface
         digits = self.digit_writer.render(f"{self.credit_count:02d}")
         label_height = credit_text.get_height() if credit_text else digits.get_height()
