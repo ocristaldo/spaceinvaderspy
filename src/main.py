@@ -107,11 +107,21 @@ class Game:
         self.audio_manager.set_music_enabled(self.music_enabled)
         self.high_score_manager = HighScoreManager()
 
+        # Single/2-player mode tracking
+        self.two_player_mode = False
+        self.current_player = 1  # Which player is currently playing (1 or 2)
+
+        # Player 1 scores and lives
         self.score = 0
         self.lives = constants.LIVES_NUMBER
         self.extra_lives_threshold = 20000  # Extra life at 20k, then every 70k
         self.extra_lives_interval = 70000
         self.lives_awarded = 0  # Track how many extra lives have been awarded
+
+        # Player 2 scores and lives (2-player mode only)
+        self.p2_score = 0
+        self.p2_lives = constants.LIVES_NUMBER
+        self.p2_lives_awarded = 0
 
         self.player = Player(tint=self._sprite_tint("player"))
         self.player_group = pygame.sprite.GroupSingle(self.player)
@@ -204,6 +214,64 @@ class Game:
         self.fast_invader_step = 0
         
         logging.info("Game reset complete")
+
+    def start_two_player_game(self) -> None:
+        """Initialize a 2-player alternating game."""
+        self.two_player_mode = True
+        self.current_player = 1
+        self.score = 0
+        self.lives = constants.LIVES_NUMBER
+        self.p2_score = 0
+        self.p2_lives = constants.LIVES_NUMBER
+        self.lives_awarded = 0
+        self.p2_lives_awarded = 0
+        self.reset_game(start_playing=True)
+        logging.info("2-Player game started. Player 1 begins")
+
+    def switch_player(self) -> None:
+        """Switch to the other player in 2-player mode."""
+        if not self.two_player_mode:
+            return
+
+        if self.current_player == 1:
+            self.current_player = 2
+            logging.info("Switched to Player 2 (Score: %d, Lives: %d)", self.p2_score, self.p2_lives)
+        else:
+            self.current_player = 1
+            logging.info("Switched to Player 1 (Score: %d, Lives: %d)", self.score, self.lives)
+
+        # Recreate aliens and bunkers for next player
+        self.alien_group = self.create_aliens()
+        self.bunker_group = self.create_bunkers()
+        self.alien_direction = 1
+        self._reset_alien_progression()
+        self.bullet_group.empty()
+        self.bomb_group.empty()
+        self.effects_group.empty()
+        self.audio_manager.stop_ufo_loop()
+        self._respawn_player()
+
+    def get_current_score(self) -> int:
+        """Get the current player's score."""
+        return self.score if self.current_player == 1 else self.p2_score
+
+    def get_current_lives(self) -> int:
+        """Get the current player's lives."""
+        return self.lives if self.current_player == 1 else self.p2_lives
+
+    def set_current_score(self, value: int) -> None:
+        """Set the current player's score."""
+        if self.current_player == 1:
+            self.score = value
+        else:
+            self.p2_score = value
+
+    def set_current_lives(self, value: int) -> None:
+        """Set the current player's lives."""
+        if self.current_player == 1:
+            self.lives = value
+        else:
+            self.p2_lives = value
 
     def create_aliens(self) -> pygame.sprite.Group:
         """Create alien formation and return sprite group."""
@@ -529,6 +597,26 @@ class Game:
 
                 # Menu navigation when in MENU state
                 if self.state_manager.current_state == GameState.MENU:
+                    # 1 key: Start 1-player game
+                    if event.key == pygame.K_1:
+                        if self.credit_count <= 0:
+                            logging.info("Insert credit to start")
+                            continue
+                        self.credit_count -= 1
+                        self.two_player_mode = False
+                        self.reset_game()
+                        logging.info("1-Player game started (credit remaining=%02d)", self.credit_count)
+                        continue
+                    # 2 key: Start 2-player game
+                    elif event.key == pygame.K_2:
+                        if self.credit_count <= 0:
+                            logging.info("Insert credit to start")
+                            continue
+                        self.credit_count -= 1
+                        self.start_two_player_game()
+                        logging.info("2-Player game started (credit remaining=%02d)", self.credit_count)
+                        continue
+
                     if self.menu.showing_options:
                         if event.key == pygame.K_d:
                             self.start_intro_demo(triggered_from_options=True, cycle=True)
@@ -801,11 +889,20 @@ class Game:
             hit_bombs = []
         if hit_bombs:
             self.lives -= len(hit_bombs)
-            logging.warning("Player hit! Lives left=%d", self.lives)
+            logging.warning("Player %d hit! Lives left=%d", self.current_player, self.lives)
             self._spawn_explosion(self.player.rect.center)
             self.audio_manager.play_sound("explosion")
             if self.lives <= 0:
-                self._enter_game_over_state("Game over: player destroyed")
+                # In 2-player mode, switch to other player if they have lives
+                if self.two_player_mode and self.current_player == 1 and self.p2_lives > 0:
+                    logging.info("Player 1 out of lives. Switching to Player 2")
+                    self.switch_player()
+                elif self.two_player_mode and self.current_player == 2 and self.score > 0:
+                    logging.info("Player 2 out of lives. Switching to Player 1")
+                    self.switch_player()
+                else:
+                    # Both players out of lives or single-player mode
+                    self._enter_game_over_state("Game over: player destroyed")
             else:
                 self._handle_life_loss()
 
@@ -1067,20 +1164,29 @@ class Game:
             # Handle game over state - show game over screen and wait for restart
             if self.game_over:
                 if not self._game_over_processed:
+                    # In 2-player mode, compare scores and save the winner's score
+                    if self.two_player_mode:
+                        winner_score = max(self.score, self.p2_score)
+                        winner_player = 1 if self.score >= self.p2_score else 2
+                        logging.info(f"2-Player game over. Winner: Player {winner_player} with {winner_score} points")
+                    else:
+                        winner_score = self.score
+                        winner_player = 1
+
                     # Check if this is a high score
-                    is_high_score = self.high_score_manager.check_high_score(self.score)
-                    if is_high_score or self.high_score_manager.is_high_score_position(self.score):
+                    is_high_score = self.high_score_manager.check_high_score(winner_score)
+                    if is_high_score or self.high_score_manager.is_high_score_position(winner_score):
                         # Show initials entry screen
                         def on_initials_confirmed(initials: str):
                             """Callback when initials are confirmed."""
-                            self.high_score_manager.update_score(self.score, initials, player=1)
+                            self.high_score_manager.update_score(winner_score, initials, player=winner_player)
                             self.initials_entry_screen = None
-                            logging.info(f"High score saved: {self.score} by {initials}")
+                            logging.info(f"High score saved: {winner_score} by {initials} (Player {winner_player})")
 
-                        self.initials_entry_screen = InitialsEntry(self.score, on_initials_confirmed)
+                        self.initials_entry_screen = InitialsEntry(winner_score, on_initials_confirmed)
                     else:
                         # Just save the score without initials entry
-                        self.high_score_manager.update_score(self.score, initials="---", player=1)
+                        self.high_score_manager.update_score(winner_score, initials="---", player=winner_player)
 
                     self._game_over_processed = True
                     logging.info("High score table updated after game over")
@@ -1192,34 +1298,74 @@ class Game:
         margin = 6
         hud_color = get_color("hud_text")
 
-        score_label = self.small_font.render("SCORE", True, hud_color)
-        hi_label = self.hi_label_surface or self.small_font.render("HI-SCORE", True, hud_color)
-        level_label = self.small_font.render("LEVEL", True, hud_color)
+        if self.two_player_mode:
+            # 2-player HUD: "SCORE<1> [P1] HI-SCORE [HIGH] SCORE<2> [P2]"
+            score1_label = self.small_font.render("SCORE<1>", True, hud_color)
+            hi_label = self.hi_label_surface or self.small_font.render("HI-SCORE", True, hud_color)
+            score2_label = self.small_font.render("SCORE<2>", True, hud_color)
 
-        label_height = max(score_label.get_height(), hi_label.get_height(), level_label.get_height())
+            label_height = max(score1_label.get_height(), hi_label.get_height(), score2_label.get_height())
 
-        score_label_y = margin + (label_height - score_label.get_height()) // 2
-        surface.blit(score_label, (10, score_label_y))
+            # Left: Player 1 score
+            score1_label_y = margin + (label_height - score1_label.get_height()) // 2
+            surface.blit(score1_label, (10, score1_label_y))
 
-        hi_label_y = margin + (label_height - hi_label.get_height()) // 2
-        hi_rect = hi_label.get_rect(midtop=(width // 2, hi_label_y))
-        surface.blit(hi_label, hi_rect)
+            # Center: Hi-score
+            hi_label_y = margin + (label_height - hi_label.get_height()) // 2
+            hi_rect = hi_label.get_rect(midtop=(width // 2, hi_label_y))
+            surface.blit(hi_label, hi_rect)
 
-        level_label_y = margin + (label_height - level_label.get_height()) // 2
-        level_label_rect = level_label.get_rect(topright=(width - 10, level_label_y))
-        surface.blit(level_label, level_label_rect)
+            # Right: Player 2 score
+            score2_label_y = margin + (label_height - score2_label.get_height()) // 2
+            score2_rect = score2_label.get_rect(topright=(width - 10, score2_label_y))
+            surface.blit(score2_label, score2_rect)
 
-        values_y = margin + label_height + 4
-        score_digits = self.digit_writer.render(f"{self.score:05d}")
-        surface.blit(score_digits, (10, values_y))
+            values_y = margin + label_height + 4
+            score1_digits = self.digit_writer.render(f"{self.score:05d}")
+            surface.blit(score1_digits, (10, values_y))
 
-        hi_digits = self.digit_writer.render(f"{self.high_score_manager.get_high_score():05d}")
-        hi_digits_rect = hi_digits.get_rect(midtop=(width // 2, values_y))
-        surface.blit(hi_digits, hi_digits_rect)
+            hi_digits = self.digit_writer.render(f"{self.high_score_manager.get_high_score():05d}")
+            hi_digits_rect = hi_digits.get_rect(midtop=(width // 2, values_y))
+            surface.blit(hi_digits, hi_digits_rect)
 
-        level_digits = self.digit_writer.render(f"{self.level:02d}")
-        level_digits_rect = level_digits.get_rect(topright=(width - 10, values_y))
-        surface.blit(level_digits, level_digits_rect)
+            score2_digits = self.digit_writer.render(f"{self.p2_score:05d}")
+            score2_digits_rect = score2_digits.get_rect(topright=(width - 10, values_y))
+            surface.blit(score2_digits, score2_digits_rect)
+
+            # Draw current player indicator
+            player_indicator = self.small_font.render(f"PLAYER {self.current_player}", True, (255, 255, 0))
+            player_rect = player_indicator.get_rect(center=(width // 2, values_y + 20))
+            surface.blit(player_indicator, player_rect)
+        else:
+            # 1-player HUD: "SCORE [P1] HI-SCORE [HIGH] LEVEL [LEVEL]"
+            score_label = self.small_font.render("SCORE", True, hud_color)
+            hi_label = self.hi_label_surface or self.small_font.render("HI-SCORE", True, hud_color)
+            level_label = self.small_font.render("LEVEL", True, hud_color)
+
+            label_height = max(score_label.get_height(), hi_label.get_height(), level_label.get_height())
+
+            score_label_y = margin + (label_height - score_label.get_height()) // 2
+            surface.blit(score_label, (10, score_label_y))
+
+            hi_label_y = margin + (label_height - hi_label.get_height()) // 2
+            hi_rect = hi_label.get_rect(midtop=(width // 2, hi_label_y))
+            surface.blit(hi_label, hi_rect)
+
+            level_label_y = margin + (label_height - level_label.get_height()) // 2
+            level_label_rect = level_label.get_rect(topright=(width - 10, level_label_y))
+            surface.blit(level_label, level_label_rect)
+
+            values_y = margin + label_height + 4
+            score_digits = self.digit_writer.render(f"{self.score:05d}")
+            surface.blit(score_digits, (10, values_y))
+
+            hi_digits = self.digit_writer.render(f"{self.high_score_manager.get_high_score():05d}")
+            hi_digits_rect = hi_digits.get_rect(midtop=(width // 2, values_y))
+            surface.blit(hi_digits, hi_digits_rect)
+
+            level_digits = self.digit_writer.render(f"{self.level:02d}")
+            level_digits_rect = level_digits.get_rect(topright=(width - 10, values_y))
+            surface.blit(level_digits, level_digits_rect)
 
         self._draw_bottom_panel(surface)
 
