@@ -17,7 +17,8 @@ class Menu:
         "SPACE (after death) : Respawn",
         "A : Toggle sound FX",
         "M : Toggle music",
-        "ENTER : Start (uses 1 credit)",
+        "1 : Start 1-Player game (uses 1 credit)",
+        "2 : Start 2-Player game (uses 1 credit)",
         "C : Insert credit",
         "D : Replay intro demo (menu options)",
         "I : Toggle intro demo autoplay (menu options)",
@@ -42,7 +43,7 @@ class Menu:
             except KeyError:
                 LOGGER.exception("Missing font profile for overlay section '%s'", section)
                 self._section_fonts[section] = (self.body_font, self.body_font)
-        self.options = ["Start", "High Scores", "Controls", "Options", "Credits", "Quit"]
+        self.options = ["1-Player", "2-Player", "High Scores", "Controls", "Options", "Credits", "Quit"]
         self.selected = 0
         self.showing_controls = False
         self.showing_high_scores = False

@@ -31,7 +31,7 @@ from .ui.menu import Menu
 from .ui.font_manager import get_font
 from .ui.start_screen_demo import ScoreTableDemo, WaveFormationDemo
 from .ui.color_scheme import get_color, get_tint
-from .ui.sprite_digits import SpriteDigitWriter
+from .ui.sprite_digits import FontDigitWriter
 from .ui.level_themes import get_level_theme, LevelTheme
 from .ui.initials_entry import InitialsEntry
 from .systems.game_state_manager import GameStateManager, GameState
@@ -385,7 +385,7 @@ class Game:
         self.credit_label_surface = get_game_sprite(
             "text_credit", config.SPRITE_SCALE, tint=self._sprite_tint("text_credit")
         )
-        self.digit_writer = SpriteDigitWriter(tint_enabled=self.tint_enabled)
+        self.digit_writer = FontDigitWriter(font_size=16)
         icon_height = self.life_icon_surface.get_height() if self.life_icon_surface else 16
         self.bottom_panel_height = max(36, icon_height + 12)
         if hasattr(self, "player"):
@@ -636,13 +636,21 @@ class Game:
                         self.start_intro_demo(triggered_from_options=True, cycle=True)
                         continue
                     action = self.menu.handle_key(event.key)
-                    if action == "start":
+                    if action == "1-player":
                         if self.credit_count <= 0:
                             logging.info("Insert credit to start")
                             continue
                         self.credit_count -= 1
+                        self.two_player_mode = False
                         self.reset_game()
-                        logging.info("Game started from menu (credit remaining=%02d)", self.credit_count)
+                        logging.info("1-Player game started from menu (credit remaining=%02d)", self.credit_count)
+                    elif action == "2-player":
+                        if self.credit_count <= 0:
+                            logging.info("Insert credit to start")
+                            continue
+                        self.credit_count -= 1
+                        self.start_two_player_game()
+                        logging.info("2-Player game started from menu (credit remaining=%02d)", self.credit_count)
                     elif action == "controls":
                         self.menu.show_controls()
                         logging.info("Controls overlay opened from menu")
