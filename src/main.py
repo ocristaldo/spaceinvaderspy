@@ -1415,9 +1415,13 @@ class Game:
 
                 # Handle initials entry input (has priority over continue screen)
                 if self.initials_entry_screen and self.initials_entry_screen.is_active:
-                    keys = pygame.key.get_pressed()
-                    self.initials_entry_screen.handle_input(keys)
-                    self.initials_entry_screen.update()
+                    try:
+                        keys = pygame.key.get_pressed()
+                        self.initials_entry_screen.handle_input(keys)
+                        self.initials_entry_screen.update()
+                    except Exception as e:
+                        logging.error(f"Error in initials entry: {e}", exc_info=True)
+                        self.initials_entry_screen = None
                 # Handle continue screen input
                 elif self.continue_screen and self.continue_screen.is_active:
                     keys = pygame.key.get_pressed()

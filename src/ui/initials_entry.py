@@ -52,38 +52,45 @@ class InitialsEntry:
         if not self.is_active:
             return
 
+        if not keys or len(keys) < 512:
+            self.logger.warning("Invalid keys tuple received in initials entry")
+            return
+
         # Use pygame.key.get_pressed() to detect key presses without consuming events
         # Track state to only trigger on key press (not held down)
 
         # Left/Right arrows to move between initial slots
-        if keys[pygame.K_LEFT] and not self.last_keys_state.get(pygame.K_LEFT, False):
-            if self.current_position > 0:
-                self.current_position -= 1
-        self.last_keys_state[pygame.K_LEFT] = keys[pygame.K_LEFT]
+        try:
+            if keys[pygame.K_LEFT] and not self.last_keys_state.get(pygame.K_LEFT, False):
+                if self.current_position > 0:
+                    self.current_position -= 1
+            self.last_keys_state[pygame.K_LEFT] = keys[pygame.K_LEFT]
 
-        if keys[pygame.K_RIGHT] and not self.last_keys_state.get(pygame.K_RIGHT, False):
-            if self.current_position < 2:
-                self.current_position += 1
-        self.last_keys_state[pygame.K_RIGHT] = keys[pygame.K_RIGHT]
+            if keys[pygame.K_RIGHT] and not self.last_keys_state.get(pygame.K_RIGHT, False):
+                if self.current_position < 2:
+                    self.current_position += 1
+            self.last_keys_state[pygame.K_RIGHT] = keys[pygame.K_RIGHT]
 
-        # Up/Down arrows to cycle character
-        if keys[pygame.K_UP] and not self.last_keys_state.get(pygame.K_UP, False):
-            self._cycle_character(direction=1)
-        self.last_keys_state[pygame.K_UP] = keys[pygame.K_UP]
+            # Up/Down arrows to cycle character
+            if keys[pygame.K_UP] and not self.last_keys_state.get(pygame.K_UP, False):
+                self._cycle_character(direction=1)
+            self.last_keys_state[pygame.K_UP] = keys[pygame.K_UP]
 
-        if keys[pygame.K_DOWN] and not self.last_keys_state.get(pygame.K_DOWN, False):
-            self._cycle_character(direction=-1)
-        self.last_keys_state[pygame.K_DOWN] = keys[pygame.K_DOWN]
+            if keys[pygame.K_DOWN] and not self.last_keys_state.get(pygame.K_DOWN, False):
+                self._cycle_character(direction=-1)
+            self.last_keys_state[pygame.K_DOWN] = keys[pygame.K_DOWN]
 
-        # Backspace to clear slot
-        if keys[pygame.K_BACKSPACE] and not self.last_keys_state.get(pygame.K_BACKSPACE, False):
-            self.initials[self.current_position] = "-"
-        self.last_keys_state[pygame.K_BACKSPACE] = keys[pygame.K_BACKSPACE]
+            # Backspace to clear slot
+            if keys[pygame.K_BACKSPACE] and not self.last_keys_state.get(pygame.K_BACKSPACE, False):
+                self.initials[self.current_position] = "-"
+            self.last_keys_state[pygame.K_BACKSPACE] = keys[pygame.K_BACKSPACE]
 
-        # Enter/Space to confirm
-        if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE]) and not self.last_keys_state.get("confirm", False):
-            self.confirm_initials()
-        self.last_keys_state["confirm"] = keys[pygame.K_RETURN] or keys[pygame.K_SPACE]
+            # Enter/Space to confirm
+            if (keys[pygame.K_RETURN] or keys[pygame.K_SPACE]) and not self.last_keys_state.get("confirm", False):
+                self.confirm_initials()
+            self.last_keys_state["confirm"] = keys[pygame.K_RETURN] or keys[pygame.K_SPACE]
+        except (IndexError, TypeError) as e:
+            self.logger.error(f"Error processing initials entry input: {e}", exc_info=True)
 
     def _cycle_character(self, direction: int = 1) -> None:
         """
