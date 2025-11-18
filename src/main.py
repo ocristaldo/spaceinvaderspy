@@ -34,6 +34,7 @@ from .ui.color_scheme import get_color, get_tint
 from .ui.sprite_digits import FontDigitWriter
 from .ui.level_themes import get_level_theme, LevelTheme
 from .ui.initials_entry import InitialsEntry
+from .ui.continue_screen import ContinueScreen
 from .systems.game_state_manager import GameStateManager, GameState
 from .utils.settings_manager import SettingsManager
 
@@ -146,7 +147,7 @@ class Game:
             self.tint_enabled,
             self.music_enabled,
         )
-        self.score_demo = ScoreTableDemo(tint_enabled=self.tint_enabled)
+        self.score_demo = ScoreTableDemo(tint_enabled=self.tint_enabled, credit_count=self.credit_count)
         self.start_screen_demo = self.score_demo  # Backwards-compatibility for older tests/utilities
         self.wave_demo = WaveFormationDemo(tint_enabled=self.tint_enabled)
         self.demo_cycle = [self.score_demo, self.wave_demo]
@@ -154,6 +155,7 @@ class Game:
         self.demo_cycle_index = 0
         self.active_demo = None
         self.initials_entry_screen: Optional[InitialsEntry] = None
+        self.continue_screen: Optional[ContinueScreen] = None
         self.alien_speed = config.ALIEN_START_SPEED
         self.initial_alien_count = len(self.alien_group)
         self.last_ufo_time = pygame.time.get_ticks()
@@ -901,16 +903,28 @@ class Game:
             self._spawn_explosion(self.player.rect.center)
             self.audio_manager.play_sound("explosion")
             if self.lives <= 0:
-                # In 2-player mode, switch to other player if they have lives
-                if self.two_player_mode and self.current_player == 1 and self.p2_lives > 0:
-                    logging.info("Player 1 out of lives. Switching to Player 2")
-                    self.switch_player()
-                elif self.two_player_mode and self.current_player == 2 and self.score > 0:
-                    logging.info("Player 2 out of lives. Switching to Player 1")
-                    self.switch_player()
+                # In 2-player mode, check if other player has lives
+                if self.two_player_mode:
+                    if self.current_player == 1:
+                        # P1 out of lives - check if P2 has lives
+                        if self.p2_lives > 0:
+                            logging.info("Player 1 out of lives. Switching to Player 2")
+                            self.switch_player()
+                        else:
+                            # Both out of lives - show continue screen
+                            self._show_continue_screen()
+                    else:  # current_player == 2
+                        # P2 out of lives - check if P1 has lives
+                        # Note: self.lives is P1 lives, self.p2_lives is P2 lives (not swapped on player switch)
+                        if self.lives > 0:
+                            logging.info("Player 2 out of lives. Switching to Player 1")
+                            self.switch_player()
+                        else:
+                            # Both out of lives - show continue screen
+                            self._show_continue_screen()
                 else:
-                    # Both players out of lives or single-player mode
-                    self._enter_game_over_state("Game over: player destroyed")
+                    # Single-player mode - show continue screen
+                    self._show_continue_screen()
             else:
                 self._handle_life_loss()
 
@@ -990,6 +1004,36 @@ class Game:
         self._game_over_return_time = pygame.time.get_ticks() + self.game_over_intro_delay_ms
         logging.info(reason)
 
+    def _show_continue_screen(self) -> None:
+        """Show the continue screen with countdown."""
+        def on_continue_1p():
+            """Callback when player continues with 1-player."""
+            if self.credit_count > 0:
+                self.credit_count -= 1
+                self.two_player_mode = False
+                self.reset_game(start_playing=True)
+                logging.info("Game continued (1P) with credits remaining=%02d", self.credit_count)
+
+        def on_continue_2p():
+            """Callback when player continues with 2-player."""
+            if self.credit_count > 0:
+                self.credit_count -= 1
+                self.start_two_player_game()
+                logging.info("Game continued (2P) with credits remaining=%02d", self.credit_count)
+
+        def on_timeout():
+            """Callback when countdown reaches 0."""
+            logging.info("Continue countdown expired, returning to menu")
+            self._return_to_intro_screen(trigger="continue_timeout")
+            self.continue_screen = None
+
+        self.continue_screen = ContinueScreen(
+            on_continue_1p=on_continue_1p,
+            on_continue_2p=on_continue_2p,
+            on_timeout=on_timeout,
+            credit_count=self.credit_count
+        )
+
     def _start_next_wave(self) -> None:
         """Advance to the next wave when all aliens are cleared."""
         self.level += 1
@@ -1063,9 +1107,10 @@ class Game:
         surface = self.playfield_surface
         surface.fill(get_color("background"))
 
-        # If in MENU state, draw the menu and return
+        # If in MENU state, draw the menu and credits
         if self.state_manager.current_state == GameState.MENU:
             self.menu.draw(surface)
+            self._draw_menu_credits(surface)
             self._present_playfield()
             return
 
@@ -1087,8 +1132,10 @@ class Game:
             self._draw_life_lost_message()
 
         if self.game_over:
-            # Draw initials entry screen if active, otherwise draw game over message
-            if self.initials_entry_screen and self.initials_entry_screen.is_active:
+            # Draw continue screen if active, otherwise draw initials or game over message
+            if self.continue_screen and self.continue_screen.is_active:
+                self.continue_screen.draw(surface)
+            elif self.initials_entry_screen and self.initials_entry_screen.is_active:
                 self.initials_entry_screen.draw(surface)
             else:
                 self._draw_game_over_message()
@@ -1199,8 +1246,19 @@ class Game:
                     self._game_over_processed = True
                     logging.info("High score table updated after game over")
 
+                # Handle continue screen input (has priority over initials/game over)
+                if self.continue_screen and self.continue_screen.is_active:
+                    keys = pygame.key.get_pressed()
+                    self.continue_screen.handle_input(keys)
+                    self.continue_screen.update(dt_ms=16)
+                    # Allow C key to insert credit during continue screen
+                    for event in pygame.event.get():
+                        if event.type == pygame.KEYDOWN and event.key == pygame.K_c:
+                            self._insert_credit()
+                            self.continue_screen.set_credit_count(self.credit_count)
+                            logging.info("Credit inserted during continue screen")
                 # Handle initials entry input
-                if self.initials_entry_screen and self.initials_entry_screen.is_active:
+                elif self.initials_entry_screen and self.initials_entry_screen.is_active:
                     keys = pygame.key.get_pressed()
                     self.initials_entry_screen.handle_input(keys)
                     self.initials_entry_screen.update()
@@ -1266,6 +1324,20 @@ class Game:
         self.playfield_surface.blit(high_score_text, high_score_rect)
         self.playfield_surface.blit(restart_text, restart_rect)
 
+    def _draw_menu_credits(self, surface: pygame.Surface) -> None:
+        """Draw credit count at the bottom of the menu screen."""
+        width, height = surface.get_size()
+
+        # Get font and color
+        credit_font = get_font("menu_small")
+        credit_color = (100, 255, 100) if self.credit_count > 0 else (255, 100, 100)
+
+        # Render credit text
+        credit_text = credit_font.render(f"CREDITS: {self.credit_count:02d}", True, credit_color)
+        credit_rect = credit_text.get_rect(centerx=width // 2, y=height - 40)
+
+        surface.blit(credit_text, credit_rect)
+
     def _return_to_intro_screen(self, trigger: str = "auto") -> None:
         """Reset play state and jump back to the intro/attract mode."""
         if not self.game_over:
@@ -1295,6 +1367,9 @@ class Game:
     def _insert_credit(self, amount: int = 1) -> None:
         self.credit_count = min(99, self.credit_count + max(1, amount))
         self.attract_last_activity_time = pygame.time.get_ticks()
+        # Update credit display in attract mode screens
+        if self.score_demo:
+            self.score_demo.set_credit_count(self.credit_count)
         logging.info("Credit inserted. Total=%02d", self.credit_count)
 
     def _spawn_explosion(self, position):
@@ -1402,7 +1477,8 @@ class Game:
         label_height = credit_text.get_height() if credit_text else digits.get_height()
         gap = 6 if credit_text else 0
         total_width = (credit_text.get_width() if credit_text else 0) + gap + digits.get_width()
-        start_x = width - total_width - 10
+        # Center credits on screen
+        start_x = (width - total_width) // 2
         start_y = overlay_top + 6
         if credit_text:
             surface.blit(credit_text, (start_x, start_y))

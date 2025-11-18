@@ -14,12 +14,13 @@ from .color_scheme import get_tint
 class ScoreTableDemo:
     """Score-table intro animation shown on startup."""
 
-    def __init__(self, tint_enabled: bool = False):
+    def __init__(self, tint_enabled: bool = False, credit_count: int = 0):
         self.title_font = get_font("demo_title")
         self.subtitle_font = get_font("demo_subtitle")
         self.entry_font = get_font("demo_entry")
         self.prompt_font = get_font("demo_prompt")
         self.tint_enabled = tint_enabled
+        self.credit_count = credit_count
 
         center_x = config.BASE_WIDTH // 2
         # Title marquee overlay – adjust width_ratio/height_ratio if you need
@@ -80,6 +81,10 @@ class ScoreTableDemo:
     def set_debug_borders(self, enabled: bool) -> None:
         self.debug_borders = bool(enabled)
 
+    def set_credit_count(self, count: int) -> None:
+        """Update the credit count display."""
+        self.credit_count = max(0, int(count))
+
     def update(self) -> None:
         if not self.running:
             return
@@ -119,10 +124,8 @@ class ScoreTableDemo:
         for state in self.entry_states:
             self._draw_entry(surface, state, now)
 
-        surface.blit(
-            self.subtitle_font.render("CREDIT 00", True, constants.WHITE),
-            self.credit_pos,
-        )
+        credit_text = self.subtitle_font.render(f"CREDIT {self.credit_count:02d}", True, constants.WHITE)
+        surface.blit(credit_text, self.credit_pos)
 
         if self.blink_visible:
             prompt = self.prompt_font.render("Press ENTER or SPACE to continue", True, (200, 200, 200))
