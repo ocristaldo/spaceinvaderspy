@@ -245,9 +245,9 @@
     "name": "digit_1",
     "platform": "arcade",
     "frame": 1,
-    "x": 178,
-    "y": 266,
-    "width": 6,
+    "x": 176,
+    "y": 265,
+    "width": 10,
     "height": 14,
     "description": "Arcade scoreboard digit 1 sprite (available for HUD work).",
     "validated": "Y"
@@ -295,17 +295,6 @@
     "height": 14,
     "description": "Arcade scoreboard digit 5 sprite (available for HUD work).",
     "validated": "Y"
-  },
-  {
-    "name": "digit_6",
-    "platform": "arcade",
-    "frame": 1,
-    "x": 253,
-    "y": 266,
-    "width": 10,
-    "height": 14,
-    "description": "Arcade scoreboard digit 6 sprite (available for HUD work).",
-    "validated": "N"
   },
   {
     "name": "digit_7",

@@ -32,12 +32,12 @@ FONT_PROFILES: Dict[str, FontSpec] = {
     # Menu overlays (section-specific)
     "menu_controls_main": FontSpec(name=None, size=12, min_size=12, scale_with_playfield=True),
     "menu_controls_hint": FontSpec(name=None, size=11, min_size=11),
-    "menu_high_scores_main": FontSpec(size=12),
-    "menu_high_scores_hint": FontSpec(size=12),
-    "menu_options_main": FontSpec(size=12),
-    "menu_options_hint": FontSpec(size=11),
-    "menu_credits_main": FontSpec(size=12),
-    "menu_credits_hint": FontSpec(size=11),
+    "menu_high_scores_main": FontSpec(size=18),
+    "menu_high_scores_hint": FontSpec(size=18),
+    "menu_options_main": FontSpec(size=16),
+    "menu_options_hint": FontSpec(size=16),
+    "menu_credits_main": FontSpec(size=16),
+    "menu_credits_hint": FontSpec(size=16),
     # In-game HUD
     "hud_main": FontSpec(size=16),
     "hud_small": FontSpec(size=12),

@@ -215,8 +215,8 @@ spaceinvaderspy/
 ├── src/                    # Source code
 │   ├── entities/          # Game entities (Player, Alien, Bullet, etc.)
 │   ├── utils/             # Utility modules (SpriteSheet, SpriteViewer, Logger)
+│   ├── ui/                # UI and menu systems
 │   ├── core/              # Core game systems
-│   ├── states/            # Game states
 │   ├── main.py            # Main game entry point
 │   ├── config.py          # Game configuration
 │   └── constants.py       # Game constants
@@ -224,9 +224,7 @@ spaceinvaderspy/
 │   └── images/           # Sprite images and JSON coordinate files
 │       ├── SpaceInvaders.png           # Main sprite sheet
 │       ├── SpaceInvaders.arcade.json   # Arcade sprite coordinates
-│       ├── SpaceInvaders.atari.json    # Atari 2600 coordinates
-│       ├── SpaceInvaders.deluxe.json   # Deluxe coordinates
-│       └── SpaceInvaders.intellivision.json # Intellivision coordinates
+│       └── SpaceInvaders.deluxe.json   # Deluxe variant coordinates
 ├── tests/                 # Unit and integration tests
 ├── docs/                  # Documentation
 ├── requirements.txt       # Python dependencies
@@ -299,7 +297,7 @@ This is an unofficial fan project created for educational purposes only. It incl
 ## ✉️ Contact
 
 - Report issues on GitHub
-- [Your contact information]
+- See the CONTRIBUTING.md file for development guidelines
 
 ## 🔜 Roadmap
 

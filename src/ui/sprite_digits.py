@@ -13,6 +13,7 @@ class SpriteDigitWriter:
     def __init__(self, scale: int | None = None, tint_enabled: bool = False):
         self.scale = scale or config.SPRITE_SCALE
         tint = get_tint('digit') if tint_enabled else None
+        self.digit_spacing = 1  # Small buffer so digits don't touch each other
         self.digits: Dict[str, pygame.Surface] = {}
         for value in range(8):
             sprite_name = f'digit_{value}'
@@ -31,9 +32,11 @@ class SpriteDigitWriter:
             pieces.append(surf)
             max_height = max(max_height, surf.get_height())
         width = sum(s.get_width() for s in pieces)
+        if pieces:
+            width += self.digit_spacing * (len(pieces) - 1)
         surface = pygame.Surface((max(1, width), max_height), pygame.SRCALPHA)
         x = 0
         for surf in pieces:
             surface.blit(surf, (x, max_height - surf.get_height()))
-            x += surf.get_width()
+            x += surf.get_width() + self.digit_spacing
         return surface

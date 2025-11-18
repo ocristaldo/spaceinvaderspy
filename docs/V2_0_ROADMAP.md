@@ -3,410 +3,294 @@
 **Status:** Planning Phase
 **Target Release:** Q1 2025
 **Current Version:** v1.0.0 ✅
+**Spec Reference:** `docs/space_invaders_spec.md`
 
 ---
 
 ## 📋 Overview
 
-v2.0 will transform Space Invaders from a classic recreation into a feature-rich, modern arcade experience with dynamic visuals, gameplay variety, and expanded mechanics. The release focuses on:
+v2.0 will complete a faithful recreation of the **original 1978 Space Invaders arcade game** according to the official game specifications. The focus is on implementing missing core features from the original game design while maintaining code quality and performance.
 
-1. **Dynamic Level Theming** - Vibrant, changing color schemes per level
-2. **Power-up System** - Strategic gameplay elements
-3. **Multiple Game Modes** - Endless, Time Attack, Arcade Perfect
-4. **Improved Difficulty** - Configurable difficulty levels with scaling mechanics
-5. **Auto-file Creation** - Robust gitignored file handling
-6. **Audio Enhancement** - Full SFX implementation and music integration
+**NO features outside the original 1978 game specification will be added.**
+
+### Core Features Required (From Spec)
+
+Based on `space_invaders_spec.md`, the game must include:
+
+1. **Attract Mode** - Title screen, score table, demo screens
+2. **Coin System** - Credits for starting games
+3. **2-Player Mode** - Alternating turn-based gameplay
+4. **High Score with Initials** - Player initials entry (1978+ feature)
+5. **Complete Game Loop** - Wave progression, lives system, scoring
+6. **Shield Mechanics** - Destructible bunkers with pixel-level damage
+7. **Audio** - Invader march sound (dynamic speed), laser/explosion effects, UFO siren
+8. **Exact Scoring** - Squid (30), Crab (20), Octopus (10), UFO (50/100/150/300), Extra life at 1500 pts
 
 ---
 
-## 🔧 Phase 0: Foundation & Cleanup (CRITICAL)
+## 🔧 Phase 0: Foundation & Critical Fixes
 
-Before v2.0 development begins, establish a solid base by completing critical refactoring and infrastructure improvements.
+Before v2.0 feature development, complete infrastructure and code quality work.
 
-### 0.1 Bug Fixes & Quick Wins
-- [x] Fix coverage.ini syntax error (line 10: `if __name__ == "__main__":`)
-- [x] Remove duplicate line in menu.py (line 55: `self.options_music_on = False`)
-- [ ] Update .vscode/settings.json to use pytest instead of unittest
-- [ ] Add `src/__init__.py` with `__version__ = "2.0.0"`
-- [ ] Create `settings.default.json` as tracked template
+### 0.1 Configuration & Infrastructure
+- [x] Update .vscode/settings.json to use pytest instead of unittest
+- [x] Add `src/__init__.py` with `__version__ = "2.0.0"`
+- [x] Create `settings.default.json` as tracked template
+- [x] Create `pyproject.toml` consolidating pytest, coverage, build configs
+- [x] Update .gitignore to properly exclude user settings but track defaults
+- [x] Add setup.py to enable `pip install -e .`
 
-**Estimated Time:** 30 minutes
-**Impact:** High - Fixes technical debt before new features
+**Impact:** High - Enables clean package management
 
-### 0.2 Configuration Infrastructure
-- [ ] Create `pyproject.toml` consolidating pytest, coverage, build configs
-- [ ] Create `settings.default.json` template with all default settings
-- [ ] Implement settings schema validation (use JSON schema or dataclass)
-- [ ] Update .gitignore to properly exclude user settings but track defaults
-- [ ] Add setup.py to enable `pip install -e .`
+### 0.2 Documentation Updates
+- [x] Update README.md (remove line 227 reference to deleted `src/states/`, remove placeholder on line 302)
+- [x] Remove references to deleted files (CLEANUP_SUMMARY.md, DOCS_GUIDE.md)
+- [ ] Create release process documentation
+- [x] Document sprite atlases:
+  - `SpaceInvaders.arcade.json` (343 lines) - **PRIMARY** sprite coordinates used by game
+  - `SpaceInvaders.deluxe.json` (164 lines) - Alternative variant for future expansion (not used)
+  - Removed: `atari.json`, `intellivision.json` (never existed, removed from README)
 
-**Estimated Time:** 90 minutes
-**Impact:** Medium - Improves packaging and configuration management
+**Impact:** Medium - Improves maintainability
 
-### 0.3 Code Quality & Organization
-- [ ] Audit `src/core/` modules (collision_manager, input_handler, game_engine) - integrate or remove
+### 0.3 Code Organization
+- [x] Audit `src/core/` modules - DECISION: Keep as legacy framework code (not used, but harmless)
+  - `collision_manager.py` - Unused framework, pygame.sprite.groupcollide() used directly in main.py
+  - `input_handler.py` - Unused framework, pygame.key.get_pressed() used directly in main.py
+  - `game_engine.py` - Unused framework, initialization handled directly in main.py
+  - **Status:** These can be removed in future refactoring but don't impact current code
 - [ ] Add missing type hints throughout codebase
 - [ ] Create comprehensive test fixtures in conftest.py
-- [ ] Add asset validation tests (verify sprites exist in atlases)
-- [ ] Document why duplicate sprite atlases exist (deluxe, atari, intellivision)
 
-**Estimated Time:** 180 minutes
 **Impact:** Medium - Reduces technical debt
 
-### 0.4 Documentation Updates
-- [ ] Update README.md (remove line 227 reference to `src/states/`, remove placeholder on line 302)
-- [ ] Document release process in docs/
-- [ ] Create Architecture Decision Records (ADRs) for core design choices
-- [ ] Update CONFIGURATION.md with all sources of truth for settings
-- [ ] Remove references to deleted files (CLEANUP_SUMMARY.md, DOCS_GUIDE.md)
+---
 
-**Estimated Time:** 120 minutes
-**Impact:** Medium - Improves maintainability and onboarding
+## 🎮 Phase 1: Core Gameplay Completeness (Weeks 1-3)
+
+### 1.1 High Score System with Player Initials
+
+**Spec Requirement:** "Space Invaders was one of the first games to save and display the highest score achieved, though in 1978 it did not yet allow entering player initials" → **NOTE: The original 1978 game did NOT have initials, but most arcade versions added this feature. We will add it as an enhancement of the core mechanic.**
+
+#### Tasks:
+- [ ] Modify `HighScoreManager` to store `(score, initials, player_number)` tuples
+- [ ] Create initials entry UI screen shown when game over occurs and score is high score
+- [ ] Allow player to enter 3 initials using keyboard (A-Z)
+- [ ] Save high score entries to `highscores.json` with format:
+  ```json
+  {
+    "scores": [
+      {"score": 5000, "initials": "AAA", "player": 1},
+      {"score": 4500, "initials": "BBB", "player": 2}
+    ]
+  }
+  ```
+- [ ] Update high score display to show initials next to scores
+- [ ] Handle both 1-player and 2-player high score entries
+
+**Spec Source:** `space_invaders_spec.md` lines 11, 139
+
+### 1.2 Coin/Credit System
+
+**Spec Requirement:** "C Key – Insert a 'coin' (credit) into the game. Pressing C simulates dropping a coin in the slot, adding one credit."
+
+#### Tasks:
+- [ ] Verify credit system is fully functional (already exists)
+- [ ] Ensure C key inserts credits (max 99)
+- [ ] Display credits prominently on attract mode and game over screen
+- [ ] Require credit > 0 to start game (1 or 2 player)
+- [ ] Deduct credit when starting game
+
+**Spec Source:** `space_invaders_spec.md` lines 17-23
+
+### 1.3 Two-Player Mode Implementation
+
+**Spec Requirement:** "2 Key – Start a 2-Player game... On the original machine, the two-player mode is an alternating play mode: Player 1 and Player 2 take turns"
+
+#### Tasks:
+- [ ] Implement alternating turn-based gameplay for P1 and P2
+- [ ] Track separate scores and lives for P1 and P2
+- [ ] Switch control between players when one loses a life
+- [ ] Display "PLAYER 1" and "PLAYER 2" indicators during gameplay
+- [ ] Show both players' scores on HUD: "SCORE<1> [P1_SCORE] HI-SCORE [HIGH] SCORE<2> [P2_SCORE]"
+- [ ] Both players continue until both are out of lives
+- [ ] After game over, compare scores and show which player won
+- [ ] Award high score to the player with best score
+
+**Spec Source:** `space_invaders_spec.md` lines 22-25, 89-95, 133
 
 ---
 
-## 🎨 Phase 1: Dynamic Level Theming (Weeks 1-2)
+## 📊 Phase 2: Audio Enhancement (Week 4)
 
-### Feature: Dynamic Color Schemes Per Level
+**Spec Requirement:** Complete audio system with dynamic sound effects and music from original
 
-Every level gets a unique, vibrant color palette that affects:
-- Player ship tint
-- Alien types (squid, crab, octopus) - new vibrant colors
-- Bunker colors
-- Bullet/bomb colors
-- Text and HUD elements
-- Background effects (optional parallax stars)
+### 2.1 Invader March Sound (Dynamic Tempo)
 
-### 1.1 Palette System Design
+- [ ] Verify invader march sound exists and plays during wave
+- [ ] Implement dynamic tempo: march speed increases as aliens die
+- [ ] Link march tempo to alien formation speed (should sync)
+- [ ] Ensure four-note loop plays continuously during wave
 
-Create `src/ui/level_themes.py`:
+**Spec Source:** `space_invaders_spec.md` lines 199-201, 209
 
-```python
-LEVEL_THEMES = {
-    1: {
-        "name": "Classic Green",
-        "player": (180, 255, 180),
-        "alien_squid": (100, 255, 100),
-        "alien_crab": (150, 200, 255),
-        "alien_octopus": (255, 255, 100),
-        "ufo": (255, 180, 180),
-        "bunker": (180, 200, 100),
-        "bullet": (255, 255, 255),
-        "bomb_alien": (255, 100, 100),
-        "bomb_ufo": (255, 150, 150),
-        "hud_text": (255, 255, 255),
-        "background_effect": None,
-    },
-    2: {
-        "name": "Neon Purple",
-        "player": (255, 100, 255),
-        # ... more vibrant colors
-    },
-    # ... up to 8 themes (cycles after)
-}
-```
+### 2.2 Sound Effects
 
-### 1.2 Implementation Tasks
-- [ ] Create level theme system with 8+ distinct palettes (vibrant colors)
-- [ ] Integrate themes with ColorScheme manager
-- [ ] Update all sprite tinting to use theme colors
-- [ ] Add theme preview in menu
-- [ ] Add optional background effects (stars, grid, glow)
-- [ ] Test theme transitions at level boundaries
+- [ ] Laser fire sound (player shoot)
+- [ ] Alien hit explosion sound
+- [ ] Player hit explosion sound (distinct from alien hit)
+- [ ] UFO siren sound (looping while UFO on screen)
+- [ ] UFO destruction sound (bonus sound)
+- [ ] Extra life sound/fanfare (when crossing 1500 pts)
+- [ ] Game start/over sounds
 
-**Estimated Time:** 240 minutes
-**Impact:** HIGH - Visual enhancement, core v2.0 feature
+**Spec Source:** `space_invaders_spec.md` lines 198-216
+
+### 2.3 Audio Implementation
+
+- [ ] Verify all sounds are in `assets/sounds/`
+- [ ] Create `AudioManager` if needed to handle sound scheduling
+- [ ] Ensure sounds don't clip or overlap inappropriately
+- [ ] Test audio sync with gameplay
 
 ---
 
-## 🎁 Phase 2: Power-up System (Weeks 2-3)
+## 🎨 Phase 3: Visual Polish (Week 5)
 
-### Feature: Collectible in-game power-ups
+### 3.1 Shield/Bunker Mechanics
 
-Power-ups spawn randomly when aliens die, fall from the top, and provide temporary benefits.
+**Spec Requirement:** "Shields are stationary obstacles... provide cover... shields get eroded at impact point. Small chunks are destroyed with each hit."
 
-### 2.1 Power-up Types
+#### Tasks:
+- [ ] Implement pixel-perfect shield damage (not just visual tinting)
+- [ ] Shields lose chunks where bullets/bombs hit
+- [ ] Track shield destruction state across wave
+- [ ] Regenerate shields fresh each wave
+- [ ] Handle shield removal when aliens descend below their level
 
-| Icon | Name | Effect | Duration | Spawn Rate |
-|------|------|--------|----------|-----------|
-| 🔫 | Rapid Fire | Fire up to 5 bullets at once | 8 seconds | 10% |
-| 🛡️ | Shield | Invincibility to bombs | 5 seconds | 8% |
-| 🐢 | Slow Time | Reduce alien speed by 50% | 6 seconds | 8% |
-| ✖️ | Multi-Shot | Fire 3 bullets in spread | 10 seconds | 12% |
-| ⭐ | 2x Score | Double points for kills | 5 seconds | 7% |
+**Spec Source:** `space_invaders_spec.md` lines 51-59
 
-### 2.2 Implementation Tasks
-- [ ] Create Power-up entity class (src/entities/powerup.py)
-- [ ] Implement power-up spawning logic in game engine
-- [ ] Create power-up collision detection
-- [ ] Implement each power-up effect with duration system
-- [ ] Add visual effects for power-up collection
-- [ ] Add SFX for power-up sounds
-- [ ] Display active power-ups on HUD
-- [ ] Test interaction with existing mechanics (bunkers, UFOs, etc.)
+### 3.2 Collision Detection & Hit Effects
 
-**Estimated Time:** 300 minutes
-**Impact:** HIGH - Core gameplay expansion
+- [ ] Verify bullet-alien collision works correctly
+- [ ] Verify bomb-player collision works correctly
+- [ ] Verify bomb-shield collision works correctly
+- [ ] Verify bullet-bomb collision (both destroyed)
+- [ ] Verify bullet-UFO collision works correctly
+- [ ] Ensure alien landing detection works (game over condition)
 
----
+**Spec Source:** `space_invaders_spec.md` lines 111-127
 
-## 📊 Phase 3: Multiple Game Modes (Weeks 3-4)
+### 3.3 Visual Feedback
 
-### Feature: Game mode selection before play
-
-Three distinct modes for different playstyles:
-
-#### 3.1 Arcade Perfect
-- Original rules, no assists
-- No power-ups
-- Classic scoring
-- Goal: High score
-
-#### 3.2 Endless Mode
-- Waves never end, difficulty scales indefinitely
-- Power-ups enabled
-- Wave counter continues past 8
-- Goal: Survive as long as possible
-
-#### 3.3 Time Attack
-- 60-second game duration
-- Score as many points as possible
-- Power-ups enabled
-- Goal: Highest score in time limit
-
-### 3.2 Implementation Tasks
-- [ ] Create GameMode enum and mode selection menu
-- [ ] Implement mode-specific logic in GameStateManager
-- [ ] Create UI screen for mode selection at game start
-- [ ] Implement Endless mode with infinite waves
-- [ ] Implement Time Attack mode with countdown timer
-- [ ] Adjust difficulty scaling per mode
-- [ ] Add leaderboards per mode (separate high scores)
-- [ ] Test all mode transitions and completions
-
-**Estimated Time:** 240 minutes
-**Impact:** HIGH - Replayability
+- [ ] Explosion sprite on alien hit (brief animation)
+- [ ] Player explosion when hit by bomb
+- [ ] UFO explosion when hit
+- [ ] Score display on UFO hit
+- [ ] Pause on alien destruction (16 frames per spec)
 
 ---
 
-## 🎚️ Phase 4: Difficulty Configuration (Weeks 4-5)
+## 🎯 Phase 4: Game Progression & Difficulty
 
-### Feature: In-game difficulty settings
+### 4.1 Wave/Level Progression
 
-### 4.1 Difficulty Levels
+**Spec Requirement:** "Each wave, the base speed of the aliens may incrementally increase... the alien formation begins a little lower on the screen... aliens drop bombs more frequently"
 
-| Level | Alien Speed | Bomb Rate | Bunker Health | Power-up Rate |
-|-------|------------|-----------|---------------|---------------|
-| Easy | 0.3x base | 0.5x base | 1.5x normal | 1.5x normal |
-| Normal | 1.0x base | 1.0x base | 1.0x normal | 1.0x normal |
-| Hard | 1.5x base | 1.5x base | 0.75x normal | 0.75x normal |
-| Insane | 2.0x base | 2.0x base | 0.5x normal | 0.5x normal |
+#### Tasks:
+- [ ] Implement progressive speed increase per wave
+- [ ] Implement progressive starting position lowering per wave
+- [ ] Implement progressive bomb fire rate increase per wave
+- [ ] Ensure difficulty increases but no new enemy types added
+- [ ] Confirm shields persist/reset properly per wave
 
-### 4.2 Implementation Tasks
-- [ ] Create difficulty setting interface in Options menu
-- [ ] Implement difficulty multipliers in game engine
-- [ ] Apply multipliers to alien speed calculations
-- [ ] Apply multipliers to bomb spawn rate
-- [ ] Apply multipliers to bunker health values
-- [ ] Apply multipliers to power-up spawn rates
-- [ ] Persist selected difficulty in settings.json
-- [ ] Add difficulty indicator to HUD
-- [ ] Test extreme cases (very easy, very hard)
+**Spec Source:** `space_invaders_spec.md` lines 161-169
 
-**Estimated Time:** 180 minutes
-**Impact:** MEDIUM - Accessibility and replayability
+### 4.2 Scoring & Bonus Life System
 
----
+- [ ] Verify scoring: Squid=30, Crab=20, Octopus=10, UFO=50/100/150/300
+- [ ] Implement extra life at 1500 points (configurable?)
+- [ ] Track extra lives properly
+- [ ] Verify score display updates in real-time
 
-## 🔊 Phase 5: Audio Enhancement (Weeks 5)
+**Spec Source:** `space_invaders_spec.md` lines 143-159
 
-### Feature: Full SFX implementation and music integration
+### 4.3 Game Over Conditions
 
-### 5.1 Missing Audio Effects
-- [ ] Verify all SFX files exist and load properly:
-  - shoot, explosion, invaderkilled
-  - fastinvader1-4 (movement cycle)
-  - ufo_lowpitch, ufo_highpitch
-  - extra_life, power-up_grab
-- [ ] Add new SFX:
-  - Power-up activation sound per type
-  - Level transition/theme change sound
-  - Difficulty warning sound (increasing danger)
-- [ ] Implement music tracks:
-  - Menu background (looping)
-  - Per-level background track (optional, cycles with theme)
-  - Game over/level complete jingles
-- [ ] Audio mixing and volume balancing
-- [ ] Create audio settings (Master, SFX, Music volume sliders)
+- [ ] Player loses all lives → Game Over
+- [ ] Any alien reaches bottom of screen → Immediate Game Over
+- [ ] Both conditions trigger return to attract mode
 
-### 5.2 Implementation Tasks
-- [ ] Complete AudioManager implementation
-- [ ] Add missing sound files to assets/audio/
-- [ ] Implement volume control in Options menu
-- [ ] Create audio theme integration with level themes
-- [ ] Test audio playback across all game states
-- [ ] Add audio mute functionality per channel
-
-**Estimated Time:** 150 minutes
-**Impact:** MEDIUM - Immersion
+**Spec Source:** `space_invaders_spec.md` lines 129-141
 
 ---
 
-## 🐛 Phase 6: Auto-File Creation & Robustness (Week 5)
+## 🧪 Phase 5: Testing & Quality Assurance
 
-### Feature: Games don't crash if gitignored files are missing
+### 5.1 Unit Tests
 
-### 6.1 File Management
-- [ ] Ensure `highscores.json` auto-creates with default structure
-- [ ] Ensure `settings.json` auto-creates from `settings.default.json`
-- [ ] Add file corruption detection and recovery
-- [ ] Add fallback defaults if files can't be written
+- [ ] Test HighScoreManager with initials
+- [ ] Test 2-player score tracking
+- [ ] Test credit system
+- [ ] Test wave progression
+- [ ] Test collision detection
 
-### 6.2 Implementation Tasks
-- [ ] Update HighScoreManager to create file if missing
-- [ ] Update SettingsManager to create file if missing
-- [ ] Create validation functions for JSON structure
-- [ ] Implement corruption recovery (reset to defaults)
-- [ ] Add logging for file creation/recovery events
-- [ ] Test on fresh installation (no existing files)
+### 5.2 Integration Tests
 
-**Estimated Time:** 90 minutes
-**Impact:** HIGH - Reliability
+- [ ] Full 1-player game flow
+- [ ] Full 2-player game flow
+- [ ] High score entry flow
+- [ ] Credit system flow
+- [ ] Sound timing sync
 
----
+### 5.3 Manual Testing
 
-## 📱 Phase 7: UI/UX Enhancements (Week 6)
-
-### Feature: Better menus and user experience
-
-### 7.1 Improvements
-- [ ] Create proper Pause menu (Resume/Quit/Options)
-- [ ] Settings menu in-game (not just config files)
-- [ ] Tutorial screen explaining controls and scoring
-- [ ] Wave preview (show next formation before it spawns)
-- [ ] Difficulty indicator on HUD
-- [ ] Active power-up display on HUD
-- [ ] Score milestone announcements ("500 points!", "1000 points!")
-- [ ] Screen shake effect on big events (UFO kill, level complete)
-
-### 7.2 Implementation Tasks
-- [ ] Design menu layouts (wireframes)
-- [ ] Implement pause menu state
-- [ ] Create in-game settings menu
-- [ ] Build tutorial/how-to-play screen
-- [ ] Implement screen effects (shake, flash)
-- [ ] Add status indicators to HUD
-- [ ] Test menu navigation and transitions
-
-**Estimated Time:** 240 minutes
-**Impact:** MEDIUM - User experience
+- [ ] Play multiple full games
+- [ ] Test all controls (arrows, space, C, 1, 2, P/ESC)
+- [ ] Verify audio sync with gameplay
+- [ ] Test attract mode loop
+- [ ] Test high score display
 
 ---
 
-## 🎮 Phase 8: Optional Advanced Features (Post-release)
+## ❌ Features NOT Being Added (Outside 1978 Spec)
 
-These are nice-to-haves that can be added after v2.0 if time/interest permits:
+The following features are explicitly **NOT included** in v2.0 as they are not in the original 1978 Space Invaders:
 
-### 8.1 Input Options
-- [ ] Gamepad/joystick support (SDL2 controllers)
-- [ ] Customizable key bindings
-- [ ] Mouse aim option
-- [ ] Touchscreen support (if needed)
-
-### 8.2 Leaderboard Features
-- [ ] Player name input (currently just scores)
-- [ ] Per-mode leaderboards (Arcade, Endless, Time Attack)
-- [ ] Achievements/badges system
-- [ ] Optional cloud sync (online leaderboards)
-
-### 8.3 Visual Enhancements
-- [ ] Parallax scrolling background (subtle stars)
-- [ ] Particle effects (better explosions)
-- [ ] Screen effects per level theme
-- [ ] Alt sprite styles (deluxe, retro, etc.)
-
-### 8.4 Accessibility
-- [ ] High contrast mode
-- [ ] Large font option
-- [ ] Color-blind friendly palettes
-- [ ] Screen reader support
-
-### 8.5 Replay & Analysis
-- [ ] Record game replays
-- [ ] Playback functionality
-- [ ] Stats tracking (longest wave, best combo, etc.)
+- ❌ Power-ups (not in 1978 original)
+- ❌ Multiple game modes beyond 1P/2P (not in 1978 original)
+- ❌ Difficulty settings (game difficulty is fixed progression per spec)
+- ❌ Dynamic level theming with vibrant colors (not in 1978 original - only overlay tints)
+- ❌ Boss battles or special events (not in 1978 original)
+- ❌ Weapons beyond single shot (not in 1978 original)
+- ❌ New enemy types (not in 1978 original - 3 types only)
+- ❌ In-game pause menu with settings (not in 1978 original)
+- ❌ Tutorial/how-to screens (not in 1978 original)
 
 ---
 
-## 📊 Testing & QA (Throughout All Phases)
+## 📋 Summary
 
-### Test Coverage Requirements
-- [ ] Unit tests for all new features (maintain 100% coverage)
-- [ ] Integration tests for mode transitions
-- [ ] Power-up interaction tests (with bunkers, aliens, bombs)
-- [ ] Difficulty scaling validation tests
-- [ ] Theme transition tests
-- [ ] File corruption recovery tests
-- [ ] Audio playback tests (mocked in CI)
-- [ ] Manual gameplay testing on multiple platforms
-
-### QA Checklist
-- [ ] Test on Windows 10/11
-- [ ] Test on macOS (Intel + Apple Silicon)
-- [ ] Test on Linux
-- [ ] Test on Raspberry Pi (if supported)
-- [ ] Test with various screen sizes and scales
-- [ ] Test all mode combinations
-- [ ] Test all difficulty levels
-- [ ] Test power-up interactions
-- [ ] Verify no regressions in v1.0 features
-- [ ] Performance profiling (60 FPS target)
+| Phase | Feature | Priority | Status |
+|-------|---------|----------|--------|
+| 0 | Infrastructure | CRITICAL | ✅ **80% Complete** |
+| 0.1 | Configuration | CRITICAL | ✅ Done |
+| 0.2 | Documentation | MEDIUM | ⏳ In Progress |
+| 0.3 | Code Organization | MEDIUM | ✅ Audited |
+| 1.1 | High Score + Initials | HIGH | ⏳ Pending |
+| 1.2 | Coin/Credit System | HIGH | ✅ Mostly Done |
+| 1.3 | 2-Player Mode | HIGH | ⏳ Pending |
+| 2 | Audio Enhancement | HIGH | ⏳ Pending |
+| 3 | Visual Polish | MEDIUM | ⏳ Pending |
+| 4 | Wave Progression | HIGH | ⏳ In Progress |
+| 5 | Testing | CRITICAL | ⏳ Pending |
 
 ---
 
-## 📈 Release Checklist
+## Notes
 
-### Pre-Release
-- [ ] All Phase 0-7 tasks completed
-- [ ] 100% test coverage maintained
-- [ ] All tests passing (CI green)
-- [ ] Documentation updated
-- [ ] RELEASE_NOTES.md written
-- [ ] Version bumped to 2.0.0
-- [ ] Git tags created
-- [ ] Performance benchmarks completed
-
-### Release
-- [ ] Tag commit with v2.0.0
-- [ ] Generate release notes
-- [ ] Upload artifacts
-- [ ] Create GitHub release
-- [ ] Announce on project channels
-
-### Post-Release
-- [ ] Monitor bug reports
-- [ ] Plan v2.1 with community feedback
-- [ ] Consider Phase 8 features based on user interest
-
----
-
-## 🎯 Success Metrics
-
-- [ ] v2.0.0 released with all Phases 1-7 complete
-- [ ] No regressions from v1.0.0
-- [ ] 100% test coverage maintained
-- [ ] All game modes fully functional
-- [ ] Dynamic themes visible and polished
-- [ ] Power-ups balanced and fun
-- [ ] Zero crashes on fresh installs
-- [ ] Performance: 60 FPS on target platforms
-
----
-
-## 📝 Related Documentation
-
-- See `docs/ROADMAP.md` for v2.1+ plans
-- See `docs/GAMEPLAY_OVERVIEW.md` for current implementation details
-- See `docs/CONFIGURATION.md` for settings reference
-- See `docs/space_invaders_spec.md` for arcade accuracy goals
-
+- All features must align with `space_invaders_spec.md`
+- No scope creep beyond the 1978 original game
+- Focus on accuracy and faithful recreation
+- Keep code clean and maintainable
+- Comprehensive testing before release
