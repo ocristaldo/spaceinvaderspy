@@ -41,10 +41,66 @@ This document walks through every major component of the Space Invaders Python c
    - A semi-transparent overlay displays “GAME OVER” with restart instructions. Holding `R` resets all actors via `reset_game()`.
 
 ## 4. Player Mechanics
+
+### Single-Player Mode (1P)
 - **Movement:** Horizontal only, speed 5 pixels per frame, constrained to the playfield (`rect.clamp_ip`).
 - **Fire Control:** One bullet on screen at a time (classic rule). Bullets spawn from `Player.get_bullet_spawn_position()` (ship mid-top).
 - **Lives:** Starts with `constants.LIVES_NUMBER` (3). Bomb hits decrement lives; no invulnerability window yet.
 - **Scoring:** Destroying aliens adds their `value` (30/20/10). UFO awards a random 50–300 points. HUD updates immediately.
+- **Game Over:** When player loses all 3 lives, continue screen displays with 10-second countdown. No continue = return to menu.
+
+### Two-Player Mode (2P)
+Two-player mode enables alternating arcade-style gameplay with independent game state per player.
+
+#### Game Start & Credit System
+- Requires **2 credits** to start a 2P game (1 credit per player).
+- Credit insertion: Press `C` in attract mode or menu.
+- Game begins with Player 1; Player 2 waits to play.
+
+#### Hit-Based Player Switching
+- **On every bomb hit**, the game automatically switches to the other player (if they have lives remaining).
+- Example flow:
+  1. Player 1 starts at level 1 with 3 lives
+  2. Player 1 gets hit → lives: 2 → **switches to Player 2** (fresh start at level 1, 3 lives)
+  3. Player 2 gets hit → lives: 2 → **switches to Player 1** (returns to level, alien positions where P1 left off)
+  4. Player 1 continues their game session
+- **Edge case:** If one player has 0 lives, the other player continues solo until they also reach 0 lives.
+
+#### Independent Game State Persistence
+Each player maintains **completely independent game state** including:
+- **Level Progress:** P1 and P2 can be on different levels simultaneously.
+- **Alien Positions:** Each player's alien formation is saved when they switch out, restored when they return.
+- **Alien Direction & Speed:** Movement state is preserved per player.
+- **Bunker Damage:** Each player has independent bunker states; damage to P1's bunkers doesn't affect P2.
+- **Score:** Tracked separately; aliens/UFO kills only score for current player.
+
+#### First-Time Switch Behavior
+When switching to a player for the **first time in a 2P session**:
+- That player starts **fresh** at level 1 with new aliens and bunkers.
+- Example: P1 advances to level 2, then switches to P2 → P2 starts at level 1 (not P1's level 2).
+
+#### Subsequent Switches
+Once a player has been played, switching back **restores their exact saved state**:
+- Level, alien positions, alien direction, alien speed, bunker states all return to their last moment.
+- Example: P1 reaches level 3, switches to P2 (who plays level 1), then switches back to P1 → P1 resumes at level 3.
+
+#### Game Over Condition
+Game is over only when **both players** have 0 lives:
+- If P1 has 0 lives but P2 has lives, P2 continues to play solo.
+- If P2 has 0 lives but P1 has lives, P1 continues to play solo.
+- Once both reach 0 lives, the **continue screen** appears.
+
+#### Continue Screen (10-Second Countdown)
+After both players are out of lives:
+- Press `1` to continue as 1-player (if credits available).
+- Press `2` to continue as 2-player (if credits available).
+- Press `C` to insert additional credits during countdown.
+- Auto-timeout: 10 seconds → return to menu.
+
+#### HUD Updates for 2P Mode
+- **Score Header:** Shows both "SCORE<1>" and "SCORE<2>" on the scoreboard.
+- **Player Indicator:** Bottom HUD displays "PLAYER 1" or "PLAYER 2" in yellow to show who's currently playing.
+- **Lives Display:** Shows current player's lives only.
 
 ## 5. Enemy Mechanics
 ### Alien Formation
