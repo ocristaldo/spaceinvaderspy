@@ -1,26 +1,35 @@
 # 👾 Space Invaders Python Clone
 
-**v1.0.0 - RELEASED** ✅
+**v1.1.0 - FEATURE RELEASE** ✅
 
-A faithful recreation of the 1978 Space Invaders arcade game built with Python and Pygame. Features classic single-player gameplay with 8 difficulty waves, cabinet-accurate HUD, persistent high scores, audio effects, and modern quality-of-life features.
+A faithful recreation of the 1978 Space Invaders arcade game built with Python and Pygame. Now with **2-player alternating mode**, hit-based player switching, and independent game state persistence. Features classic single-player gameplay with 8 difficulty waves, cabinet-accurate HUD, persistent high scores, audio effects, and modern quality-of-life features.
 
 ## 🎯 Project Status
 
-**Current:** v1.0.0 Released ✅ | **Next:** v2.0 (Dynamic themes, power-ups, multiple modes)
+**Current:** v1.1.0 Released ✅ (2-Player Mode Added) | **Next:** v2.0 (Dynamic themes, power-ups, enhanced modes)
 **For full details, see [docs/V2_0_ROADMAP.md](docs/V2_0_ROADMAP.md), [docs/REFACTORING_GUIDE.md](docs/REFACTORING_GUIDE.md), [docs/PROJECT.md](docs/PROJECT.md), or [docs/STATUS.md](docs/STATUS.md)**
 
 ### Quick Stats
-- ✅ Core game fully playable (single-player, 8 waves)
-- ✅ Cabinet-accurate HUD with sprite digits
-- ✅ Persistent high scores (top 10)
+- ✅ Core game fully playable (1P and 2P modes, 8 waves)
+- ✅ **2-Player Mode:** Alternating play with independent state persistence
+- ✅ **Hit-Based Switching:** Players switch on every bomb hit (not just on death)
+- ✅ Cabinet-accurate HUD with sprite digits and player indicator
+- ✅ Persistent high scores (top 10 with player initials)
 - ✅ Audio system (SFX + music, toggleable)
-- ✅ 71/71 tests passing, zero crashes
+- ✅ 77/85 tests passing, comprehensive 2P test coverage
 
 ## 🎮 Current Features
 
 ### Core Gameplay (today)
 - Classic Space Invaders loop: marching formations, incremental speed-ups
 - Multi-wave progression with a visible level counter (aliens respawn faster each wave)
+- **Single-Player Mode:** Classic 1P experience with lives, scoring, and progression
+- **Two-Player Mode:** Alternating play with independent game state
+  - Hit-based switching: players alternate on every bomb hit
+  - Independent levels and game progression per player
+  - Each player maintains their own alien/bunker state
+  - First-time switch starts fresh, subsequent switches restore saved state
+  - Requires 2 credits (1 credit per player)
 - Configurable logical playfield scale (`SPACEINVADERS_SCALE`, default 2×) with automatic letterboxing so you can resize or zoom to taste
 - Player ship controls (left/right movement, authentic single-shot firing — raise the limit with `SPACEINVADERS_PLAYER_SHOTS` if you prefer modern pacing)
 - Destructible bunkers for defense (now spaced farther from the cannon to avoid overlap)
@@ -29,6 +38,7 @@ A faithful recreation of the 1978 Space Invaders arcade game built with Python a
 - Animated attract/demo sequence (the classic S+2-style screen) with aliens dropping into formation before returning to the menu
 - In-game menu includes a "Controls" overlay that lists every shortcut (including sprite viewer combos) and persists audio/demo settings
 - Scoring system with per-alien values and 3-life structure
+- **Player Indicator:** Shows current player in 2P mode (bottom HUD panel)
 
 ### Advanced Features
 - **Sprite Sheet System**: Authentic arcade sprites loaded from JSON coordinate files
@@ -262,13 +272,29 @@ To contribute:
 Fonts are centralized in `src/ui/font_manager.py`. Update the `FONT_PROFILES` map there to change sizes per stage (menu, overlays, demos, wave info) without hunting through each screen.
 
 ### Basic Controls
+
+#### Gameplay
 - **Left Arrow/Right Arrow**: Move player ship
 - **Space**: Fire bullet (default: one bullet at a time)
 - **Space (after losing a life)**: Respawn and resume play when prompted
+- **C**: Insert credit (coin)
+
+#### Menu/Options (Attract Mode)
+- **1**: Start 1-Player game (requires 1 credit)
+- **2**: Start 2-Player game (requires 2 credits)
+- **Enter**: Enter menu from attract mode
 - **D (from Options)**: Replay the intro demo animation
 - **I (from Options)**: Toggle intro demo autoplay (persists to disk)
+
+#### Game Flow
 - **R**: Restart game (when game over) or exit sprite viewer
 - **Q**: Quit game
+
+#### 2-Player Mode
+- **Player 1 & 2 both share controls:** Left/Right/Space keys
+- **Auto-switching:** Players automatically alternate on every bomb hit
+- **State Persistence:** Each player's level, aliens, and bunkers are saved independently
+- **Continue Screen:** Shows after both players are out of lives (10-second countdown with 1/2 keys)
 
 ### Sprite Viewer Controls
 - **S+1**: View Arcade sprites
@@ -307,17 +333,21 @@ This is an unofficial fan project created for educational purposes only. It incl
 - ✅ Interactive sprite viewer with pagination
 - ✅ Comprehensive logging system and gameplay documentation
 - ✅ Animated alien sprites + scaling fixes
+- ✅ **Credit system with 1P/2P alternating-play support** (v1.1.0)
+- ✅ **Hit-based player switching on every bomb hit** (v1.1.0)
+- ✅ **Independent game state persistence per player** (v1.1.0)
+- ✅ **Persistent high scores with player initials** (v1.1.0)
 
 ### In Progress 🚧
 - 🚧 Map current systems to Space Invaders cabinet spec (`docs/space_invaders_spec.md`)
 - 🚧 Prototype enemy swoop/dive behaviors using existing sprite assets
-- 🚧 Design credit/attract flow + HUD updates (scores, stage badges)
-- 🚧 Expand docs with migration steps (GAMEPLAY_OVERVIEW vs detailed gameplay)
+- 🚧 Enhanced HUD layouts for different game modes
+- 🚧 Comprehensive test coverage for menu/UI systems
 
 ### Planned 📋
 - 📋 Challenge stages & accuracy bonus tallies
 - 📋 Tractor-beam capture + dual-ship firing mode
 - 📋 Enemy bullet patterns & varied formations (butterflies, boss ships)
-- 📋 Sound effects, music, and attract-mode cues
-- 📋 Credit system with 1P/2P alternating-play support
-- 📋 Persistent high scores + bonus-life thresholds (20k/70k etc.)
+- 📋 Sound effects, music, and attract-mode cues (v2.0)
+- 📋 Dynamic level themes with vibrant colors (v2.0)
+- 📋 Power-ups and special items (v2.0)
