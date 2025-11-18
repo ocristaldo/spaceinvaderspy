@@ -138,7 +138,7 @@ class InitialsEntry:
 
         # Get fonts
         title_font = get_font("menu_title")
-        text_font = get_font("menu_large")
+        text_font = get_font("menu_body")
         small_font = get_font("menu_small")
 
         # Title
