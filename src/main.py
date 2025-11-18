@@ -11,6 +11,7 @@ educational purposes only. It includes no original assets or code from the
 1978 release and is not endorsed by the trademark holders.
 """
 import logging
+import sys
 import pygame
 import random
 from . import constants
@@ -34,6 +35,19 @@ logging.basicConfig(
     filemode="w",
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
+
+
+def _install_global_exception_logger():
+    def handle_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        logging.critical("Unhandled exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+    sys.excepthook = handle_exception
+
+
+_install_global_exception_logger()
 
 
 class Game:

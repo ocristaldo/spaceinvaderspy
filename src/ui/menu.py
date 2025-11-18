@@ -2,6 +2,7 @@ import pygame
 from typing import Optional, List, Tuple, Dict
 from .. import config
 from ..utils.sprite_sheet import get_title_logo
+from .font_manager import get_font
 
 
 class Menu:
@@ -23,12 +24,18 @@ class Menu:
         "S + 4 : Late-wave preview",
     ]
 
-    def __init__(self, title_font: pygame.font.Font, body_font: pygame.font.Font):
-        self.title_font = title_font
-        self.body_font = body_font
-        overlay_size = max(10, int(body_font.get_height() * 0.8))
-        self.overlay_font = pygame.font.SysFont("monospace", overlay_size)
-        self.overlay_small_font = pygame.font.SysFont("monospace", max(8, overlay_size - 2))
+    def __init__(self, title_font: Optional[pygame.font.Font] = None, body_font: Optional[pygame.font.Font] = None):
+        self.title_font = title_font or get_font("menu_title")
+        self.body_font = body_font or get_font("menu_body")
+        self.overlay_font_sizes = {
+            "controls": 11,
+            "options": 11,
+            "credits": 11,
+            "high_scores": 11,
+        }
+        self._section_fonts: Dict[str, Tuple[pygame.font.Font, pygame.font.Font]] = {}
+        for section in self.overlay_font_sizes:
+            self._rebuild_section_font(section)
         self.options = ["Start", "High Scores", "Controls", "Options", "Credits", "Quit"]
         self.selected = 0
         self.showing_controls = False
@@ -99,15 +106,16 @@ class Menu:
         header = self.title_font.render("Controls & Shortcuts", True, (255, 255, 0))
         surface.blit(header, header.get_rect(center=(w // 2, int(h * 0.15))))
 
+        overlay_font, overlay_small = self._section_fonts["controls"]
         left_margin = int(w * 0.1)
         top = int(h * 0.25)
-        line_spacing = self.overlay_font.get_linesize() + 4
+        line_spacing = overlay_font.get_linesize() + 4
         for idx, line in enumerate(self.CONTROL_LINES):
-            text = self.overlay_font.render(line, True, (230, 230, 230))
+            text = overlay_font.render(line, True, (230, 230, 230))
             text_rect = text.get_rect(topleft=(left_margin, top + idx * line_spacing))
             surface.blit(text, text_rect)
 
-        hint = self.overlay_small_font.render("Press ESC or ENTER to return", True, (180, 180, 180))
+        hint = overlay_small.render("Press ESC or ENTER to return", True, (180, 180, 180))
         surface.blit(hint, hint.get_rect(center=(w // 2, h - 50)))
 
     def show_controls(self):
@@ -130,11 +138,12 @@ class Menu:
         header = self.title_font.render("High Scores", True, (255, 255, 0))
         surface.blit(header, header.get_rect(center=(w // 2, h // 6)))
 
+        font, small = self._section_fonts["high_scores"]
         for idx, score in enumerate(self.high_scores[:10]):
-            line = self.overlay_font.render(f"{idx + 1}. {score}", True, (230, 230, 230))
-            surface.blit(line, line.get_rect(center=(w // 2, h // 4 + idx * (self.overlay_font.get_linesize() + 4))))
+            line = font.render(f"{idx + 1}. {score}", True, (230, 230, 230))
+            surface.blit(line, line.get_rect(center=(w // 2, h // 4 + idx * (font.get_linesize() + 4))))
 
-        hint = self.overlay_small_font.render("Press ESC or ENTER to return", True, (180, 180, 180))
+        hint = small.render("Press ESC or ENTER to return", True, (180, 180, 180))
         surface.blit(hint, hint.get_rect(center=(w // 2, h - 60)))
 
     def show_credits(self):
@@ -164,6 +173,7 @@ class Menu:
         header = self.title_font.render("Credits", True, (255, 255, 0))
         surface.blit(header, header.get_rect(center=(w // 2, h // 6)))
 
+        font, small = self._section_fonts["credits"]
         lines = [
             "SpaceInvadersPy",
             "Inspired by the 1978 arcade classic",
@@ -171,8 +181,8 @@ class Menu:
             "Press ESC or ENTER to return",
         ]
         for idx, line in enumerate(lines):
-            text = self.overlay_font.render(line, True, (230, 230, 230))
-            surface.blit(text, text.get_rect(center=(w // 2, h // 4 + idx * (self.overlay_font.get_linesize() + 4))))
+            text = font.render(line, True, (230, 230, 230))
+            surface.blit(text, text.get_rect(center=(w // 2, h // 4 + idx * (font.get_linesize() + 4))))
 
     def _draw_options_overlay(self, surface: pygame.Surface):
         overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
@@ -183,16 +193,17 @@ class Menu:
         header = self.title_font.render("Options", True, (255, 255, 0))
         surface.blit(header, header.get_rect(center=(w // 2, h // 6)))
 
+        font, small = self._section_fonts["options"]
         items = self._option_items()
         start_y = h // 4
-        line_height = self.overlay_font.get_linesize() + 6
+        line_height = font.get_linesize() + 6
         for idx, (label, _) in enumerate(items):
             color = (255, 255, 0) if idx == self.options_selection else (230, 230, 230)
-            text = self.overlay_font.render(label, True, color)
+            text = font.render(label, True, color)
             rect = text.get_rect(center=(w // 2, start_y + idx * line_height))
             surface.blit(text, rect)
 
-        hint = self.overlay_small_font.render("Use ↑/↓ + ENTER (ESC to exit)", True, (180, 180, 180))
+        hint = small.render("Use ↑/↓ + ENTER (ESC to exit)", True, (180, 180, 180))
         surface.blit(hint, hint.get_rect(center=(w // 2, h - 60)))
 
     def handle_key(self, key: int) -> Optional[str]:
@@ -228,6 +239,22 @@ class Menu:
     def set_debug_borders(self, enabled: bool) -> None:
         self.debug_draw_borders = bool(enabled)
 
+    def _rebuild_section_font(self, section: str) -> None:
+        size = self.overlay_font_sizes.get(section, 10)
+        main = pygame.font.SysFont("monospace", size)
+        small = pygame.font.SysFont("monospace", max(6, size - 2))
+        self._section_fonts[section] = (main, small)
+
+    def set_overlay_font_size(self, section: str, size: int) -> None:
+        section = section.lower()
+        if section not in self.overlay_font_sizes:
+            raise KeyError(f"Unknown overlay section: {section}")
+        size = max(6, int(size))
+        if self.overlay_font_sizes[section] == size:
+            return
+        self.overlay_font_sizes[section] = size
+        self._rebuild_section_font(section)
+
     # --- Logo helpers -----------------------------------------------------------
     def _load_title_sprite(self) -> Optional[pygame.Surface]:
         try:
@@ -241,8 +268,8 @@ class Menu:
         if canvas_size in self._title_cache:
             return self._title_cache[canvas_size]
         raw = self.title_sprite_raw
-        max_width = max(1, int(canvas_size[0] * 0.6))
-        max_height = max(1, int(canvas_size[1] * 0.35))
+        max_width = max(1, int(canvas_size[0] * 0.5))
+        max_height = max(1, int(canvas_size[1] * 0.25))
         width, height = raw.get_size()
         scale = min(max_width / width, max_height / height)
         scale = max(scale, 0.1)

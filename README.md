@@ -249,6 +249,18 @@ To contribute:
 
 ## 🎯 Game Controls
 
+### Stage Acronyms
+- **TD** – Title Demo (score table attract screen)
+- **WD** – Wave Demo (gameplay-style attract slide)
+- **MM** – Main Menu
+- **OP** – Options overlay
+- **GP** – Gameplay (active playfield)
+- **PA** – Pause overlay/state
+- **GO** – Game Over overlay/state
+
+### UI Font Profiles
+Fonts are centralized in `src/ui/font_manager.py`. Update the `FONT_PROFILES` map there to change sizes per stage (menu, overlays, demos, wave info) without hunting through each screen.
+
 ### Basic Controls
 - **Left Arrow/Right Arrow**: Move player ship
 - **Space**: Fire bullet (default: one bullet at a time)

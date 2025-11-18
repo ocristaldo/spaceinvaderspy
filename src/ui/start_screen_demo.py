@@ -7,20 +7,27 @@ import pygame
 
 from .. import config, constants
 from ..utils.sprite_sheet import get_game_sprite, get_title_logo
+from .font_manager import get_font
 
 
 class ScoreTableDemo:
     """Score-table intro animation shown on startup."""
 
     def __init__(self):
-        self.title_font = pygame.font.SysFont("monospace", 36, bold=True)
-        self.subtitle_font = pygame.font.SysFont("monospace", 20)
-        self.entry_font = pygame.font.SysFont("monospace", 18)
-        self.prompt_font = pygame.font.SysFont("monospace", 16)
+        self.title_font = get_font("demo_title")
+        self.subtitle_font = get_font("demo_subtitle")
+        self.entry_font = get_font("demo_entry")
+        self.prompt_font = get_font("demo_prompt")
 
         center_x = config.BASE_WIDTH // 2
+        # Title marquee overlay – adjust width_ratio/height_ratio if you need
+        # to reclaim more space for the alien animation.
         self.logo_surface, self.logo_rect = _make_logo_surface(
-            config.BASE_WIDTH, config.BASE_HEIGHT, top_margin=24, width_ratio=0.65, height_ratio=0.65
+            config.BASE_WIDTH,
+            config.BASE_HEIGHT,
+            top_margin=24,
+            width_ratio=0.5,
+            height_ratio=0.25,
         )
         subtitle_top = (self.logo_rect.bottom + 24) if self.logo_rect else 110
         self.subtitle_pos = (center_x - 150, subtitle_top)
@@ -157,9 +164,9 @@ class WaveFormationDemo:
     """Wave-ready mock scene where aliens fall into formation."""
 
     def __init__(self):
-        self.title_font = pygame.font.SysFont("monospace", 28, bold=True)
-        self.info_font = pygame.font.SysFont("monospace", 18)
-        self.prompt_font = pygame.font.SysFont("monospace", 16)
+        self.title_font = get_font("demo_subtitle")
+        self.info_font = get_font("wave_info")
+        self.prompt_font = get_font("demo_prompt")
 
         self.background = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT))
         self._build_background()
@@ -253,7 +260,7 @@ class WaveFormationDemo:
     def _build_background(self) -> None:
         self.background.fill(constants.BLACK)
         center_x = config.BASE_WIDTH // 2
-        text_top = 20
+        text_top = 16
         self.background.blit(
             self.info_font.render("SCORE <1>      HI-SCORE      SCORE <2>", True, (180, 180, 180)),
             (40, text_top),
@@ -324,10 +331,17 @@ def _make_logo_surface(
     canvas_width: int,
     canvas_height: int,
     top_margin: int = 24,
-    width_ratio: float = 0.6,
-    height_ratio: float = 0.65,
+    width_ratio: float = 0.5,
+    height_ratio: float = 0.25,
 ):
-    """Create a scaled marquee logo surface centered near the top of the canvas."""
+    """
+    Create a scaled marquee logo surface centered near the top of the canvas.
+
+    width_ratio / height_ratio describe the maximum portion of the playfield
+    the sprite may occupy (e.g. width_ratio=0.55 means clamp to 55% of the
+    available width before scaling down). Lower these values if the logo is
+    covering too much of the alien animation.
+    """
     try:
         raw = get_title_logo(scale=config.SPRITE_SCALE)
     except Exception:
