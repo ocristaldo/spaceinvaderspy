@@ -7,7 +7,7 @@ providing a centralized way to manage all game graphics using JSON coordinate da
 import pygame
 import os
 import json
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from .logger import setup_logger
 
 
@@ -38,7 +38,13 @@ class SpriteSheet:
     def _load_sprite_sheet(self) -> None:
         """Load the sprite sheet image from file."""
         try:
-            self.sprite_sheet = pygame.image.load(self.filename).convert_alpha()
+            image = pygame.image.load(self.filename)
+            try:
+                if pygame.display.get_init() and pygame.display.get_surface():
+                    image = image.convert_alpha()
+            except pygame.error:
+                self.logger.debug("Display surface not ready; skipping convert_alpha on %s", self.filename)
+            self.sprite_sheet = image
             self.logger.info(f"Loaded sprite sheet: {self.filename}")
             self.logger.debug(f"Sprite sheet size: {self.sprite_sheet.get_size()}")
         except (pygame.error, FileNotFoundError, OSError) as e:
@@ -139,40 +145,63 @@ class SpriteSheet:
 
 # Mapping from game entity names to arcade JSON sprite names
 ARCADE_SPRITE_MAPPING = {
-    # Player ship sprites
-    'player': 'player_cannon_jumbo_arcade_frame1',
-    # No explosion sprite in JSON, fallback to explosion_arcade_frame1
-    'player_explosion': 'explosion_arcade_frame1',
-
-    # Alien sprites (different types and animation frames)
-    'alien_squid_1': 'invader_squid_jumbo_arcade_frame1',
-    'alien_squid_2': 'invader_squid_jumbo_arcade_frame2',
-    'alien_crab_1': 'invader_crab_jumbo_arcade_frame1',
-    'alien_crab_2': 'invader_crab_jumbo_arcade_frame2',
-    'alien_octopus_1': 'invader_octopus_jumbo_arcade_frame1',
-    'alien_octopus_2': 'invader_octopus_jumbo_arcade_frame2',
+    # Player & FX
+    'player': 'player',
+    'explosion': 'explosion',
+    'explosion_alt': 'explosion_alt',
+    'cannon_broken': 'cannon_broken',
 
     # UFO (mystery ship)
-    'ufo': 'ufo_jumbo_arcade_frame1',
+    'ufo': 'ufo',
+
+    # Alien sprites (different types and animation frames)
+    'alien_squid_1': 'alien_squid_1',
+    'alien_squid_2': 'alien_squid_2',
+    'alien_crab_1': 'alien_crab_1',
+    'alien_crab_2': 'alien_crab_2',
+    'alien_octopus_1': 'alien_octopus_1',
+    'alien_octopus_2': 'alien_octopus_2',
 
     # Projectiles
-    'bullet': 'projectile_player_missile_arcade',
-    'bomb_1': 'projectile_enemy_bomb_arcade_variant1',
-    'bomb_2': 'projectile_enemy_bomb_arcade_variant2',
-    'bomb_3': 'projectile_enemy_bomb_arcade_variant3',
+    'bullet': 'bullet',
+    'bomb_1': 'bomb_1',
+    'bomb_2': 'bomb_2',
+    'bomb_3': 'bomb_3',
 
     # Bunker pieces (for destructible bunkers)
-    'bunker_full': 'barricade_arcade_full',
-    'bunker_damaged_1': 'barricade_arcade_full',  # No damaged variants in JSON
-    'bunker_damaged_2': 'barricade_arcade_full',
-    'bunker_damaged_3': 'barricade_arcade_full',
+    'bunker_full': 'bunker_full',
+    'bunker_damaged_1': 'bunker_full',  # No damaged variants in JSON yet
+    'bunker_damaged_2': 'bunker_full',
+    'bunker_damaged_3': 'bunker_full',
+    # Placeholder mappings for future bunker/cannon art
+    'bunker_full_v2': 'bunker_full_v2',
+    'bunker_broken_1': 'bunker_broken_1',
+    'bunker_broken_2': 'bunker_broken_2',
+    'bunker_broken_3': 'bunker_broken_3',
+    'bunker_broken_4': 'bunker_broken_4',
 
-    # Explosion sprites
-    'explosion': 'explosion_arcade_frame1',
+    # Decorative text / digits (exposed for future HUD polish)
+    'digit_0': 'digit_0',
+    'digit_1': 'digit_1',
+    'digit_2': 'digit_2',
+    'digit_3': 'digit_3',
+    'digit_4': 'digit_4',
+    'digit_5': 'digit_5',
+    'digit_6': 'digit_6',
+    'digit_7': 'digit_7',
+    'text_hi_score': 'text_hi_score',
+    'text_credit': 'text_credit',
 
     # UI elements
-    'title_logo': 'title_logo_marquee',
+    'title_logo': 'title_logo',
 }
+
+_tint_cache: Dict[Tuple[str, int, Tuple[int, int, int]], pygame.Surface] = {}
+
+
+def clear_tint_cache() -> None:
+    """Forget any cached tinted surfaces."""
+    _tint_cache.clear()
 
 
 def _get_shared_sprite_sheet() -> SpriteSheet:
@@ -185,13 +214,23 @@ def _get_shared_sprite_sheet() -> SpriteSheet:
     return _get_shared_sprite_sheet._sheet
 
 
-def get_game_sprite(sprite_name: str, scale: int = 2) -> pygame.Surface:
+def _apply_tint(surface: pygame.Surface, tint_color: Tuple[int, int, int]) -> pygame.Surface:
+    """Return a tinted copy of the surface without affecting black pixels."""
+    tinted = surface.copy()
+    overlay = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
+    overlay.fill((*tint_color, 255))
+    tinted.blit(overlay, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+    return tinted
+
+
+def get_game_sprite(sprite_name: str, scale: int = 2, tint: Optional[Tuple[int, int, int]] = None) -> pygame.Surface:
     """
     Get a specific game sprite by name using arcade JSON coordinates.
     
     Args:
         sprite_name: Name of the sprite (key in ARCADE_SPRITE_MAPPING)
         scale: Scale factor for the sprite
+        tint: Optional RGB tuple used to recolor non-black pixels
     
     Returns:
         pygame.Surface containing the requested sprite
@@ -205,6 +244,14 @@ def get_game_sprite(sprite_name: str, scale: int = 2) -> pygame.Surface:
         placeholder = pygame.Surface((16 * scale, 16 * scale), pygame.SRCALPHA)
         placeholder.fill((255, 0, 255))
         return placeholder
+    
+    if tint is not None:
+        tint_tuple = tuple(int(c) for c in tint[:3])
+        cache_key = (arcade_sprite_name, scale, tint_tuple)
+        if cache_key not in _tint_cache:
+            base_surface = sheet.get_sprite_by_name(arcade_sprite_name, scale)
+            _tint_cache[cache_key] = _apply_tint(base_surface, tint_tuple)
+        return _tint_cache[cache_key].copy()
     
     return sheet.get_sprite_by_name(arcade_sprite_name, scale)
 

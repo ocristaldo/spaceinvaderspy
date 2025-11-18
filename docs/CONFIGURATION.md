@@ -10,6 +10,7 @@ setting controls.
 |------|------|-------------|
 | Global rendering/gameplay constants | `src/config.py` | Screen sizes, scaling, alien spacing, speed/pacing defaults. |
 | Persistent user toggles | `settings.json` | Runtime settings saved between sessions (audio, debug borders, intro demo). |
+| Color palette + sprite tints | `src/ui/color_scheme.py` | Central location for HUD colors and per-sprite tint defaults. |
 | Font catalog | `src/ui/font_manager.py` | Single source of truth for menu/HUD/demo font style + sizing. |
 | Sprite atlas definitions | `assets/images/SpaceInvaders.arcade.json` | Coordinate + metadata for every sprite extracted by `SpriteSheet`. |
 | Sprite documentation | `docs/SPRITES.md` | Human-readable explanation of sprite usage plus maintenance notes. |
@@ -44,15 +45,18 @@ preferences between sessions.
 {
   "audio_enabled": false,
   "debug_sprite_borders": true,
-  "intro_demo_enabled": true
+  "intro_demo_enabled": true,
+  "tint_enabled": false
 }
 ```
 
 | Key | Effect | Change via |
 |-----|--------|-----------|
-| `audio_enabled` | Toggles `AudioManager` playback. | Press `A` in-game or edit JSON. |
+| `audio_enabled` | Toggles sound FX (shoot, invader killed, explosions, etc.). | Press `A` or Options → Sound FX. |
+| `music_enabled` | Toggles the attract/menu music loop. | Press `M` or Options → Music. |
 | `debug_sprite_borders` | Draws debug rectangles around sprites/menu elements. | Options overlay or edit JSON. |
 | `intro_demo_enabled` | Controls whether the attract loop should auto-run after idling. | Options overlay or edit JSON. |
+| `tint_enabled` | Enables the per-sprite tint system (aliens/UFO/bunkers/lives icons). | Options overlay → “Sprite tint” or edit JSON. |
 
 Resetting/removing this file will regenerate defaults on next launch.
 
@@ -102,6 +106,15 @@ When adding art:
 3. Update `src/utils/sprite_sheet.ARCADE_SPRITE_MAPPING` (and optionally
    `docs/SPRITES.md`) so code can request the sprite by logical name.
 4. Run the layout/unit tests to confirm nothing else shifted.
+
+## Color & Tint Controls (`src/ui/color_scheme.py`)
+
+HUD colors and sprite tint defaults live in `src/ui/color_scheme.py`. Each entry can be tweaked without touching game logic:
+
+- `default_theme` controls HUD text, divider lines, and background color.
+- `sprite_tints` defines the tint color for each sprite category (`player`, `alien_squid`, `ufo`, etc).
+- Call `get_game_sprite(..., tint=...)` to apply the configured color; the new tint system automatically leaves black pixels untouched so the cabinet-style background is preserved.
+- Players can toggle tinting at runtime via the **Options → Sprite tint** entry (stored in `settings.json` under `tint_enabled`).
 
 ## Testing Your Changes
 

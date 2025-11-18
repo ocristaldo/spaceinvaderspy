@@ -13,7 +13,7 @@ class Alien(pygame.sprite.Sprite):
     have different point values and sprite animations.
     """
 
-    def __init__(self, x: int, y: int, value: int):
+    def __init__(self, x: int, y: int, value: int, tint=None):
         """
         Initialize an alien sprite.
         
@@ -38,13 +38,13 @@ class Alien(pygame.sprite.Sprite):
             # Load sprite from sprite sheet
             from ..utils.sprite_sheet import get_game_sprite
             sprite_name = sprite_map.get(value, 'alien_octopus_1')
-            self.image = get_game_sprite(sprite_name, config.SPRITE_SCALE)
+            self.image = get_game_sprite(sprite_name, config.SPRITE_SCALE, tint=tint)
             
             # Store both animation frames for later use
             frame1_name = sprite_name
             frame2_name = sprite_name.replace('_1', '_2')
-            self.frame1 = get_game_sprite(frame1_name, config.SPRITE_SCALE)
-            self.frame2 = get_game_sprite(frame2_name, config.SPRITE_SCALE)
+            self.frame1 = get_game_sprite(frame1_name, config.SPRITE_SCALE, tint=tint)
+            self.frame2 = get_game_sprite(frame2_name, config.SPRITE_SCALE, tint=tint)
             
         except Exception as e:
             # Fallback to colored rectangles if sprite loading fails

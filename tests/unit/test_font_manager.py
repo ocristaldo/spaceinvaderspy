@@ -10,6 +10,7 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 @pytest.fixture(autouse=True)
 def init_pygame():
     pygame.init()
+    pygame.display.set_mode((1, 1))  # Create minimal display for font rendering
     yield
     pygame.quit()
 

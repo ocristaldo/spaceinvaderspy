@@ -16,7 +16,7 @@ class TestAudioManager:
         """Audio should be muted by default."""
         with patch('pygame.mixer.init'):
             manager = AudioManager()
-            assert manager.enabled is False
+            assert manager.sfx_enabled is False
 
     def test_toggle_audio(self):
         """Toggling audio should switch state."""
@@ -24,11 +24,11 @@ class TestAudioManager:
             with patch('pygame.mixer.stop'):
                 with patch('pygame.mixer.music.stop'):
                     manager = AudioManager()
-                    assert manager.enabled is False
+                    assert manager.sfx_enabled is False
                     manager.toggle_audio()
-                    assert manager.enabled is True
+                    assert manager.sfx_enabled is True
                     manager.toggle_audio()
-                    assert manager.enabled is False
+                    assert manager.sfx_enabled is False
 
     def test_volume_bounds(self):
         """Volume should be clamped to 0.0-1.0 range."""

@@ -49,22 +49,20 @@ class Bomb(pygame.sprite.Sprite):
     Multiple bombs can be active simultaneously.
     """
 
-    def __init__(self, pos: Tuple[int, int]):
+    def __init__(self, pos: Tuple[int, int], sprite_name: str = 'bomb_1', tint=None):
         """
         Initialize an alien bomb.
         
         Args:
             pos: Starting position (x, y) for the bomb
+            sprite_name: Sprite identifier (aliens use `bomb_1`, UFOs use `bomb_2`)
         """
         super().__init__()
         self.logger = setup_logger(__name__)
         try:
-            # Load bomb sprite from sprite sheet (randomly choose bomb type)
-            import random
+            # Load bomb sprite from sprite sheet
             from ..utils.sprite_sheet import get_game_sprite
-            bomb_types = ['bomb_1', 'bomb_2', 'bomb_3']
-            bomb_sprite = random.choice(bomb_types)
-            self.image = get_game_sprite(bomb_sprite, config.SPRITE_SCALE)
+            self.image = get_game_sprite(sprite_name, config.SPRITE_SCALE, tint=tint)
         except Exception:
             # Fallback to simple rectangle
             self.image = pygame.Surface((2, 8))

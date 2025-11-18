@@ -1,261 +1,354 @@
 [
   {
-    "name": "invader_squid_jumbo_arcade_frame1",
+    "name": "cannon_broken",
     "platform": "arcade",
     "frame": 1,
-    "x": 7,
-    "y": 225,
-    "width": 16,
+    "x": 367,
+    "y": 275,
+    "width": 31,
     "height": 16,
-    "description": "Alien row 1 (squid) animation frame 1 used by alien formation."
+    "description": "Placeholder for broken cannon sprite shown on player death screens.",
+    "validated": "N"
   },
   {
-    "name": "invader_squid_jumbo_arcade_frame2",
-    "platform": "arcade",
-    "frame": 2,
-    "x": 40,
-    "y": 225,
-    "width": 16,
-    "height": 16,
-    "description": "Alien row 1 (squid) animation frame 2 used in Alien.animate()."
-  },
-  {
-    "name": "invader_crab_jumbo_arcade_frame1",
+    "name": "explosion",
     "platform": "arcade",
     "frame": 1,
-    "x": 73,
-    "y": 225,
-    "width": 22,
+    "x": 436,
+    "y": 276,
+    "width": 26,
     "height": 16,
-    "description": "Alien row 2/3 (crab) animation frame 1."
+    "description": "Generic explosion graphic used for placeholder FX.",
+    "validated": "Y"
   },
   {
-    "name": "invader_crab_jumbo_arcade_frame2",
+    "name": "explosion_alt",
     "platform": "arcade",
     "frame": 2,
-    "x": 107,
-    "y": 225,
-    "width": 22,
+    "x": 436,
+    "y": 276,
+    "width": 26,
     "height": 16,
-    "description": "Alien row 2/3 (crab) animation frame 2."
+    "validated": "Y",
+    "description": "Alternate explosion frame for animation experiments."
   },
   {
-    "name": "invader_octopus_jumbo_arcade_frame1",
-    "platform": "arcade",
-    "frame": 1,
-    "x": 146,
-    "y": 225,
-    "width": 25,
-    "height": 16,
-    "description": "Alien row 4/5 (octopus) animation frame 1."
-  },
-  {
-    "name": "invader_octopus_jumbo_arcade_frame2",
-    "platform": "arcade",
-    "frame": 2,
-    "x": 179,
-    "y": 225,
-    "width": 25,
-    "height": 16,
-    "description": "Alien row 4/5 (octopus) animation frame 2."
-  },
-  {
-    "name": "player_cannon_jumbo_arcade_frame1",
+    "name": "player",
     "platform": "arcade",
     "frame": 1,
     "x": 277,
     "y": 228,
     "width": 26,
     "height": 16,
-    "description": "Player cannon sprite rendered in src/entities/player.py."
+    "description": "Player cannon sprite rendered in src/entities/player.py.",
+    "validated": "Y"
   },
   {
-    "name": "ufo_jumbo_arcade_frame1",
+    "name": "ufo",
     "platform": "arcade",
     "frame": 1,
     "x": 215,
     "y": 224,
     "width": 48,
     "height": 21,
-    "description": "Mystery ship sprite drawn by src/entities/ufo.py."
+    "description": "Mystery ship sprite drawn by src/entities/ufo.py.",
+    "validated": "Y"
   },
   {
-    "name": "barricade_arcade_full",
+    "name": "alien_crab_1",
+    "platform": "arcade",
+    "frame": 1,
+    "x": 73,
+    "y": 225,
+    "width": 22,
+    "height": 16,
+    "description": "Alien row 2/3 (crab) animation frame 1.",
+    "validated": "Y"
+  },
+  {
+    "name": "alien_crab_2",
+    "platform": "arcade",
+    "frame": 2,
+    "x": 107,
+    "y": 225,
+    "width": 22,
+    "height": 16,
+    "description": "Alien row 2/3 (crab) animation frame 2.",
+    "validated": "Y"
+  },
+  {
+    "name": "alien_octopus_1",
+    "platform": "arcade",
+    "frame": 1,
+    "x": 146,
+    "y": 225,
+    "width": 25,
+    "height": 16,
+    "description": "Alien row 4/5 (octopus) animation frame 1.",
+    "validated": "Y"
+  },
+  {
+    "name": "alien_octopus_2",
+    "platform": "arcade",
+    "frame": 2,
+    "x": 179,
+    "y": 225,
+    "width": 25,
+    "height": 16,
+    "description": "Alien row 4/5 (octopus) animation frame 2.",
+    "validated": "Y"
+  },
+  {
+    "name": "alien_squid_1",
+    "platform": "arcade",
+    "frame": 1,
+    "x": 7,
+    "y": 225,
+    "width": 16,
+    "height": 16,
+    "description": "Alien row 1 (squid) animation frame 1 used by alien formation.",
+    "validated": "Y"
+  },
+  {
+    "name": "alien_squid_2",
+    "platform": "arcade",
+    "frame": 2,
+    "x": 40,
+    "y": 225,
+    "width": 16,
+    "height": 16,
+    "description": "Alien row 1 (squid) animation frame 2 used in Alien.animate().",
+    "validated": "Y"
+  },
+  {
+    "name": "bomb_1",
+    "platform": "arcade",
+    "frame": 1,
+    "x": 171,
+    "y": 609,
+    "width": 6,
+    "height": 12,
+    "description": "Primary alien bomb sprite.",
+    "validated": "Y"
+  },
+  {
+    "name": "bomb_2",
+    "platform": "arcade",
+    "frame": 1,
+    "x": 171,
+    "y": 630,
+    "width": 6,
+    "height": 12,
+    "description": "UFO bomb sprite.",
+    "validated": "Y"
+  },
+  {
+    "name": "bomb_3",
+    "platform": "arcade",
+    "frame": 1,
+    "x": 413,
+    "y": 277,
+    "width": 6,
+    "height": 12,
+    "description": "Legacy bomb variant currently unused.",
+    "validated": "Y"
+  },
+  {
+    "name": "bullet",
+    "platform": "arcade",
+    "frame": 1,
+    "x": 201,
+    "y": 606,
+    "width": 2,
+    "height": 14,
+    "description": "Player bullet sprite referenced by Bullet.",
+    "validated": "Y"
+  },
+  {
+    "name": "bunker_full",
     "platform": "arcade",
     "frame": 1,
     "x": 316,
     "y": 213,
     "width": 44,
     "height": 32,
-    "description": "Bunker block sprite (reused for all bunker damage states)."
+    "description": "Bunker block sprite (reused for all bunker damage states).",
+    "validated": "Y"
   },
   {
-    "name": "projectile_player_missile_arcade",
+    "name": "bunker_broken_1",
     "platform": "arcade",
     "frame": 1,
-    "x": 413,
-    "y": 277,
-    "width": 6,
-    "height": 12,
-    "description": "Player bullet sprite referenced by Bullet."
+    "x": 480,
+    "y": 210,
+    "width": 44,
+    "height": 32,
+    "description": "Placeholder for bunker damage stage 1.bunker damaged on left side once.",
+    "validated": "Y"
   },
   {
-    "name": "projectile_enemy_bomb_arcade_variant1",
+    "name": "bunker_broken_2",
     "platform": "arcade",
     "frame": 1,
-    "x": 413,
-    "y": 277,
-    "width": 6,
-    "height": 12,
-    "description": "Alien bomb variant 1 used randomly for variety."
+    "x": 427,
+    "y": 210,
+    "width": 44,
+    "height": 32,
+    "description": "Placeholder for bunker damage stage 2. Bunker damaged on middle and right side",
+    "validated": "Y"
   },
   {
-    "name": "projectile_enemy_bomb_arcade_variant2",
+    "name": "bunker_broken_3",
     "platform": "arcade",
     "frame": 1,
-    "x": 413,
-    "y": 277,
-    "width": 6,
-    "height": 12,
-    "description": "Alien bomb variant 2 used randomly for variety."
+    "x": 480,
+    "y": 265,
+    "width": 44,
+    "height": 32,
+    "description": "Placeholder for bunker damage stage 3. Bunker damaged on both sides",
+    "validated": "Y"
   },
   {
-    "name": "projectile_enemy_bomb_arcade_variant3",
+    "name": "bunker_broken_4",
     "platform": "arcade",
     "frame": 1,
-    "x": 413,
-    "y": 277,
-    "width": 6,
-    "height": 12,
-    "description": "Alien bomb variant 3 used randomly for variety."
+    "x": 373,
+    "y": 211,
+    "width": 44,
+    "height": 32,
+    "description": "Placeholder for bunker damage stage 4. Bunker damaged on the middle twice",
+    "validated": "Y"
   },
   {
-    "name": "explosion_arcade_frame1",
+    "name": "bunker_full_v2",
     "platform": "arcade",
     "frame": 1,
-    "x": 436,
-    "y": 276,
-    "width": 26,
-    "height": 16,
-    "description": "Generic explosion graphic used for placeholder FX."
+    "x": 0,
+    "y": 0,
+    "width": 0,
+    "height": 0,
+    "description": "Placeholder for redesigned bunker (intact). Update coordinates when art is ready.",
+    "validated": "N"
   },
   {
-    "name": "explosion_arcade_frame2",
-    "platform": "arcade",
-    "frame": 2,
-    "x": 436,
-    "y": 276,
-    "width": 26,
-    "height": 16
-  },
-  {
-    "name": "digit_0_arcade",
+    "name": "digit_0",
     "platform": "arcade",
     "frame": 1,
     "x": 156,
     "y": 266,
     "width": 10,
     "height": 14,
-    "description": "Arcade scoreboard digit 0 sprite (available for HUD work)."
+    "description": "Arcade scoreboard digit 0 sprite (available for HUD work).",
+    "validated": "Y"
   },
   {
-    "name": "digit_1_arcade",
+    "name": "digit_1",
     "platform": "arcade",
     "frame": 1,
     "x": 178,
     "y": 266,
     "width": 6,
     "height": 14,
-    "description": "Arcade scoreboard digit 1 sprite (available for HUD work)."
+    "description": "Arcade scoreboard digit 1 sprite (available for HUD work).",
+    "validated": "Y"
   },
   {
-    "name": "digit_2_arcade",
+    "name": "digit_2",
     "platform": "arcade",
     "frame": 1,
     "x": 194,
     "y": 266,
     "width": 10,
     "height": 14,
-    "description": "Arcade scoreboard digit 2 sprite (available for HUD work)."
+    "description": "Arcade scoreboard digit 2 sprite (available for HUD work).",
+    "validated": "Y"
   },
   {
-    "name": "digit_3_arcade",
+    "name": "digit_3",
     "platform": "arcade",
     "frame": 1,
     "x": 213,
     "y": 266,
     "width": 10,
     "height": 14,
-    "description": "Arcade scoreboard digit 3 sprite (available for HUD work)."
+    "description": "Arcade scoreboard digit 3 sprite (available for HUD work).",
+    "validated": "Y"
   },
   {
-    "name": "digit_4_arcade",
+    "name": "digit_4",
     "platform": "arcade",
     "frame": 1,
     "x": 233,
     "y": 266,
     "width": 10,
     "height": 14,
-    "description": "Arcade scoreboard digit 4 sprite (available for HUD work)."
+    "description": "Arcade scoreboard digit 4 sprite (available for HUD work).",
+    "validated": "Y"
   },
   {
-    "name": "digit_5_arcade",
+    "name": "digit_5",
     "platform": "arcade",
     "frame": 1,
     "x": 253,
     "y": 266,
     "width": 10,
     "height": 14,
-    "description": "Arcade scoreboard digit 5 sprite (available for HUD work)."
+    "description": "Arcade scoreboard digit 5 sprite (available for HUD work).",
+    "validated": "Y"
   },
   {
-    "name": "digit_6_arcade",
+    "name": "digit_6",
     "platform": "arcade",
     "frame": 1,
     "x": 253,
     "y": 266,
     "width": 10,
     "height": 14,
-    "description": "Arcade scoreboard digit 6 sprite (available for HUD work)."
+    "description": "Arcade scoreboard digit 6 sprite (available for HUD work).",
+    "validated": "N"
   },
   {
-    "name": "digit_7_arcade",
+    "name": "digit_7",
     "platform": "arcade",
     "frame": 1,
     "x": 273,
     "y": 266,
     "width": 10,
     "height": 14,
-    "description": "Arcade scoreboard digit 7 sprite (available for HUD work)."
+    "description": "Arcade scoreboard digit 7 sprite (available for HUD work).",
+    "validated": "Y"
   },
   {
-    "name": "text_hi_score_arcade",
-    "platform": "arcade",
-    "frame": 1,
-    "x": 8,
-    "y": 264,
-    "width": 122,
-    "height": 14,
-    "description": "Arcade HI-SCORE label available for HUD polish."
-  },
-  {
-    "name": "text_credit_arcade",
+    "name": "text_credit",
     "platform": "arcade",
     "frame": 1,
     "x": 22,
     "y": 298,
     "width": 90,
     "height": 14,
-    "description": "CREDIT label used on attract screens."
+    "description": "CREDIT label used on attract screens.",
+    "validated": "Y"
   },
   {
-    "name": "title_logo_marquee",
+    "name": "text_hi_score",
     "platform": "arcade",
     "frame": 1,
-    "x": 172,
+    "x": 8,
+    "y": 264,
+    "width": 122,
+    "height": 14,
+    "description": "Arcade HI-SCORE label available for HUD polish.",
+    "validated": "Y"
+  },
+  {
+    "name": "title_logo",
+    "platform": "arcade",
+    "frame": 1,
+    "x": 173,
     "y": 10,
-    "width": 130,
-    "height": 155,
-    "description": "Start/menu marquee logo surface shown on attract/menu screens."
+    "width": 229,
+    "height": 158,
+    "description": "Start/menu marquee logo surface shown on attract/menu screens.",
+    "validated": "Y"
   }
 ]

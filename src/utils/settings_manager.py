@@ -16,9 +16,11 @@ class SettingsManager:
     """Load and persist simple boolean/toggle options."""
 
     DEFAULTS = {
-        "audio_enabled": False,
+        "audio_enabled": False,  # Sound effects
+        "music_enabled": False,
         "intro_demo_enabled": True,
         "debug_sprite_borders": False,
+        "tint_enabled": False,
     }
 
     def __init__(self, path: Optional[str] = None):
@@ -86,6 +88,18 @@ class SettingsManager:
 
     def set_debug_borders_enabled(self, enabled: bool) -> None:
         self.set_option("debug_sprite_borders", bool(enabled))
+
+    def tint_enabled(self) -> bool:
+        return bool(self.get_option("tint_enabled", False))
+
+    def set_tint_enabled(self, enabled: bool) -> None:
+        self.set_option("tint_enabled", bool(enabled))
+
+    def music_enabled(self) -> bool:
+        return bool(self.get_option("music_enabled", False))
+
+    def set_music_enabled(self, enabled: bool) -> None:
+        self.set_option("music_enabled", bool(enabled))
 
     def as_dict(self) -> Dict[str, Any]:
         """Return a shallow copy of the in-memory settings."""

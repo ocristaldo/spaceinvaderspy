@@ -52,6 +52,7 @@ ALIEN_START_SPEED = 0.4
 ALIEN_MAX_SPEED = 1.6
 ALIEN_SPEED_INCREMENT = 0.02  # Legacy constant kept for compatibility
 ALIEN_BOMB_CHANCE = 0.01  # Base probability per frame to drop a bomb
+UFO_BOMB_CHANCE = 0.02  # Chance per frame for the UFO to drop a bomb
 
 # Attract mode configuration (idle demo mode)
 ATTRACT_IDLE_TIME = int(os.environ.get("SPACEINVADERS_ATTRACT_TIMEOUT", "15000"))  # ms of idle time before demo

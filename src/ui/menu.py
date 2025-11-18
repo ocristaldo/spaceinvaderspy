@@ -12,10 +12,13 @@ class Menu:
     """Minimal Menu helper for displaying a title and options."""
 
     CONTROL_LINES = [
-        "←/→ : Move the cannon",
+        "<-/-> : Move the cannon",
         "SPACE : Fire (default 1 bullet)",
         "SPACE (after death) : Respawn",
-        "A : Toggle audio (persists)",
+        "A : Toggle sound FX",
+        "M : Toggle music",
+        "ENTER : Start (uses 1 credit)",
+        "C : Insert credit",
         "D : Replay intro demo (menu options)",
         "I : Toggle intro demo autoplay (menu options)",
         "P / ESC : Pause / Resume",
@@ -47,6 +50,9 @@ class Menu:
         self.showing_credits = False
         self.options_audio_on = False
         self.options_demo_enabled = True
+        self.options_tint_enabled = False
+        self.options_music_on = False
+        self.options_music_on = False
         self.options_selection = 0
         self.high_scores = []
         self.credits = 0
@@ -170,9 +176,19 @@ class Menu:
         # default true; audio state can be passed when opening
         self.showing_options = True
 
-    def update_options_state(self, audio_on: bool, demo_enabled: bool):
+    def update_options_state(
+        self,
+        audio_on: bool,
+        demo_enabled: bool,
+        tint_enabled: Optional[bool] = None,
+        music_on: Optional[bool] = None,
+    ):
         self.options_audio_on = bool(audio_on)
         self.options_demo_enabled = bool(demo_enabled)
+        if tint_enabled is not None:
+            self.options_tint_enabled = bool(tint_enabled)
+        if music_on is not None:
+            self.options_music_on = bool(music_on)
 
     def hide_options(self):
         self.showing_options = False
@@ -219,7 +235,7 @@ class Menu:
             rect = text.get_rect(center=(w // 2, start_y + idx * line_height))
             surface.blit(text, rect)
 
-        hint = small.render("Use ↑/↓ + ENTER (ESC to exit)", True, (180, 180, 180))
+        hint = small.render("Use ^/v + ENTER (ESC to exit)", True, (180, 180, 180))
         surface.blit(hint, hint.get_rect(center=(w // 2, h - 60)))
 
     def handle_key(self, key: int) -> Optional[str]:
@@ -302,9 +318,16 @@ class Menu:
     def hide_controls(self):
         self.showing_controls = False
 
-    def show_options_with_settings(self, audio_on: bool, demo_enabled: bool, debug_borders: Optional[bool] = None):
+    def show_options_with_settings(
+        self,
+        audio_on: bool,
+        demo_enabled: bool,
+        debug_borders: Optional[bool] = None,
+        tint_enabled: Optional[bool] = None,
+        music_enabled: Optional[bool] = None,
+    ):
         """Open options overlay and set option state to display."""
-        self.update_options_state(audio_on, demo_enabled)
+        self.update_options_state(audio_on, demo_enabled, tint_enabled, music_enabled)
         if debug_borders is not None:
             self.set_debug_borders(debug_borders)
         self.options_selection = 0
@@ -315,11 +338,14 @@ class Menu:
         sound_state = "ON" if self.options_audio_on else "OFF"
         demo_state = "ENABLED" if self.options_demo_enabled else "DISABLED"
         border_state = "ON" if self.debug_draw_borders else "OFF"
+        tint_state = "ON" if self.options_tint_enabled else "OFF"
+        music_state = "ON" if self.options_music_on else "OFF"
         return [
-            (f"Sound: {sound_state} (toggle)", "options_toggle_audio"),
-            ("Play intro demo preview", "options_play_demo"),
+            (f"Sound FX: {sound_state}", "options_toggle_audio"),
+            (f"Music: {music_state}", "options_toggle_music"),
             (f"Intro demo autoplay: {demo_state}", "options_toggle_autodemo"),
             (f"Sprite borders: {border_state}", "options_toggle_borders"),
+            (f"Sprite tint: {tint_state}", "options_toggle_tint"),
             ("Back", "options_back"),
         ]
 
@@ -347,4 +373,8 @@ class Menu:
             return "options_toggle_autodemo"
         if key == pygame.K_b:
             return "options_toggle_borders"
+        if key == pygame.K_t:
+            return "options_toggle_tint"
+        if key == pygame.K_m:
+            return "options_toggle_music"
         return None

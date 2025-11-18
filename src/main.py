@@ -21,12 +21,16 @@ from .entities.alien import Alien
 from .entities.bullet import Bullet, Bomb
 from .entities.bunker import Bunker
 from .entities.ufo import UFO
+from .entities.effects import ExplosionEffect
 from .utils.sprite_viewer import SpriteViewer
 from .utils.audio_manager import AudioManager
 from .utils.high_score_manager import HighScoreManager
+from .utils.sprite_sheet import get_game_sprite, clear_tint_cache
 from .ui.menu import Menu
 from .ui.font_manager import get_font
 from .ui.start_screen_demo import ScoreTableDemo, WaveFormationDemo
+from .ui.color_scheme import get_color, get_tint
+from .ui.sprite_digits import SpriteDigitWriter
 from .systems.game_state_manager import GameStateManager, GameState
 from .utils.settings_manager import SettingsManager
 
@@ -74,19 +78,28 @@ class Game:
         self.wave_message_timer = 0
         self.floating_texts = []
         self.settings_manager = SettingsManager()
+        self.tint_enabled = self.settings_manager.tint_enabled()
+        self.sfx_enabled = self.settings_manager.audio_enabled()
+        self.music_enabled = self.settings_manager.music_enabled()
         self.level_start_delay_ms = 1500
         self.level_start_ready_time = 0
         self.game_over_intro_delay_ms = 5000
         self._game_over_return_time = None
         self._game_over_processed = False
+        self.credit_count = 1
+        self.max_life_icons = 5
+        self.bottom_panel_height = 36
+        self.fast_invader_step = 0
+        self._last_music_should_play = None
+        self._build_ui_assets()
 
         # State management
         self.state_manager = GameStateManager()
 
         # Audio and scoring systems
         self.audio_manager = AudioManager()
-        if self.settings_manager.audio_enabled() and not self.audio_manager.enabled:
-            self.audio_manager.toggle_audio()
+        self.audio_manager.set_sfx_enabled(self.sfx_enabled)
+        self.audio_manager.set_music_enabled(self.music_enabled)
         self.high_score_manager = HighScoreManager()
 
         self.score = 0
@@ -95,10 +108,12 @@ class Game:
         self.extra_lives_interval = 70000
         self.lives_awarded = 0  # Track how many extra lives have been awarded
 
-        self.player = Player()
+        self.player = Player(tint=self._sprite_tint("player"))
         self.player_group = pygame.sprite.GroupSingle(self.player)
+        self._position_player()
         self.bullet_group = pygame.sprite.Group()
         self.bomb_group = pygame.sprite.Group()
+        self.effects_group = pygame.sprite.Group()
         self.bunker_group = self.create_bunkers()
         self.ufo_group = pygame.sprite.Group()
 
@@ -110,10 +125,15 @@ class Game:
         self.sprite_viewer = SpriteViewer(self.screen)
         self.viewing_sprites = False
         self.menu = Menu()
-        self.menu.update_options_state(self.audio_manager.enabled, self.settings_manager.intro_demo_enabled())
-        self.score_demo = ScoreTableDemo()
+        self.menu.update_options_state(
+            self.sfx_enabled,
+            self.settings_manager.intro_demo_enabled(),
+            self.tint_enabled,
+            self.music_enabled,
+        )
+        self.score_demo = ScoreTableDemo(tint_enabled=self.tint_enabled)
         self.start_screen_demo = self.score_demo  # Backwards-compatibility for older tests/utilities
-        self.wave_demo = WaveFormationDemo()
+        self.wave_demo = WaveFormationDemo(tint_enabled=self.tint_enabled)
         self.demo_cycle = [self.score_demo, self.wave_demo]
         self.demo_cycle_enabled = False
         self.demo_cycle_index = 0
@@ -134,7 +154,7 @@ class Game:
             self.start_intro_demo()
         else:
             self.state_manager.change_state(GameState.MENU)
-        audio_status = "ON" if self.audio_manager.enabled else "muted (press 'A' to toggle)"
+        audio_status = "ON" if self.sfx_enabled else "muted (press 'A' to toggle)"
         logging.info("Game started. Player lives=%d. Audio %s", self.lives, audio_status)
 
     @property
@@ -161,6 +181,8 @@ class Game:
         self.bullet_group.empty()
         self.bomb_group.empty()
         self.ufo_group.empty()
+        self.effects_group.empty()
+        self.audio_manager.stop_ufo_loop()
         
         # Reset player
         self._respawn_player()
@@ -173,6 +195,7 @@ class Game:
         self.alien_direction = 1
         self._reset_alien_progression()
         self.last_ufo_time = pygame.time.get_ticks()
+        self.fast_invader_step = 0
         
         logging.info("Game reset complete")
 
@@ -186,7 +209,6 @@ class Game:
         values = base_values[:rows]
 
         # Get sprite dimensions for centering
-        from .utils.sprite_sheet import get_game_sprite
         sprite_widths = {
             30: get_game_sprite('alien_squid_1', config.SPRITE_SCALE).get_width(),
             20: get_game_sprite('alien_crab_1', config.SPRITE_SCALE).get_width(),
@@ -215,7 +237,7 @@ class Game:
                 x = cell_x + offset_within_cell
                 row_base_y = margin_y + row_idx * spacing_y
                 y = row_base_y + (max_row_height - sprite_heights[value])
-                group.add(Alien(x, y, value))
+                group.add(Alien(x, y, value, tint=self._alien_tint(value)))
         return group
 
     def create_bunkers(self):
@@ -223,10 +245,84 @@ class Game:
         spacing = self.logical_width // (constants.BLOCK_NUMBER + 1)
         player_top = self.player.rect.top
         bunker_bottom = max(0, player_top - config.BUNKER_PLAYER_GAP)
+        tint = self._sprite_tint("bunker")
         for i in range(constants.BLOCK_NUMBER):
             center_x = spacing * (i + 1)
-            group.add(Bunker(center_x, bunker_bottom))
+            group.add(Bunker(center_x, bunker_bottom, tint=tint))
         return group
+
+    def _sprite_tint(self, key: str):
+        if not self.tint_enabled:
+            return None
+        return get_tint(key)
+
+    def _alien_tint(self, value: int):
+        mapping = {30: "alien_squid", 20: "alien_crab", 10: "alien_octopus"}
+        return self._sprite_tint(mapping.get(value, "alien_octopus"))
+
+    def _player_floor(self) -> int:
+        return self.logical_height - self.bottom_panel_height - 4
+
+    def _position_player(self):
+        if hasattr(self, "player") and self.player:
+            self.player.rect.midbottom = (self.logical_width // 2, self._player_floor())
+
+    def _build_ui_assets(self):
+        life_icon = get_game_sprite("player", config.SPRITE_SCALE, tint=self._sprite_tint("life_icon"))
+        if life_icon.get_width() > 0:
+            scale_factor = 0.8
+            size = (
+                max(1, int(life_icon.get_width() * scale_factor)),
+                max(1, int(life_icon.get_height() * scale_factor)),
+            )
+            self.life_icon_surface = pygame.transform.smoothscale(life_icon, size)
+        else:
+            self.life_icon_surface = life_icon
+        self.hi_label_surface = get_game_sprite(
+            "text_hi_score", config.SPRITE_SCALE, tint=self._sprite_tint("text_hi_score")
+        )
+        self.credit_label_surface = get_game_sprite(
+            "text_credit", config.SPRITE_SCALE, tint=self._sprite_tint("text_credit")
+        )
+        self.digit_writer = SpriteDigitWriter(tint_enabled=self.tint_enabled)
+        icon_height = self.life_icon_surface.get_height() if self.life_icon_surface else 16
+        self.bottom_panel_height = max(36, icon_height + 12)
+        if hasattr(self, "player"):
+            self._position_player()
+
+    def _refresh_playfield_sprites(self):
+        self.player = Player(tint=self._sprite_tint("player"))
+        self.player_group = pygame.sprite.GroupSingle(self.player)
+        self._position_player()
+        self.bunker_group = self.create_bunkers()
+        self.alien_group = self.create_aliens()
+        self.bullet_group.empty()
+        self.bomb_group.empty()
+        self.effects_group.empty()
+
+    def _apply_tint_preference(self, enabled: bool):
+        if enabled == self.tint_enabled:
+            return
+        self.tint_enabled = enabled
+        clear_tint_cache()
+        self._build_ui_assets()
+        self._refresh_playfield_sprites()
+        self.score_demo.set_tint_enabled(self.tint_enabled)
+        if hasattr(self.wave_demo, "set_tint_enabled"):
+            self.wave_demo.set_tint_enabled(self.tint_enabled)
+        self.menu.update_options_state(
+            self.sfx_enabled,
+            self.settings_manager.intro_demo_enabled(),
+            self.tint_enabled,
+            self.music_enabled,
+        )
+
+    def _toggle_tint_setting(self):
+        new_state = not self.tint_enabled
+        self.settings_manager.set_tint_enabled(new_state)
+        self._apply_tint_preference(new_state)
+        logging.info("Sprite tint %s", "enabled" if new_state else "disabled")
+
 
     def start_intro_demo(self, triggered_from_options: bool = False, cycle: bool = False):
         """Kick off the start-screen animation."""
@@ -270,12 +366,47 @@ class Game:
         self.attract_last_activity_time = pygame.time.get_ticks()
         logging.info("Intro demo finished; returning to menu")
 
-    def _toggle_audio_setting(self):
-        """Toggle audio and persist the setting."""
-        self.audio_manager.toggle_audio()
-        self.settings_manager.set_audio_enabled(self.audio_manager.enabled)
-        self.menu.update_options_state(self.audio_manager.enabled, self.settings_manager.intro_demo_enabled())
-        logging.info("Audio toggled: %s", "ON" if self.audio_manager.enabled else "OFF")
+    def _toggle_sfx_setting(self):
+        """Toggle sound effects and persist the setting."""
+        new_state = not self.sfx_enabled
+        self.sfx_enabled = new_state
+        self.audio_manager.set_sfx_enabled(new_state)
+        self.settings_manager.set_audio_enabled(new_state)
+        self.menu.update_options_state(
+            self.sfx_enabled,
+            self.settings_manager.intro_demo_enabled(),
+            self.tint_enabled,
+            self.music_enabled,
+        )
+        logging.info("Sound FX toggled: %s", "ON" if self.sfx_enabled else "OFF")
+
+    def _toggle_music_setting(self):
+        """Toggle background music and persist the setting."""
+        new_state = not self.music_enabled
+        self.music_enabled = new_state
+        self.audio_manager.set_music_enabled(new_state)
+        self.settings_manager.set_music_enabled(new_state)
+        self.menu.update_options_state(
+            self.sfx_enabled,
+            self.settings_manager.intro_demo_enabled(),
+            self.tint_enabled,
+            self.music_enabled,
+        )
+        self._update_music_state()
+        logging.info("Menu music toggled: %s", "ON" if self.music_enabled else "OFF")
+
+    def _update_music_state(self):
+        playing_state = self.state_manager.current_state == GameState.PLAYING
+        if not playing_state:
+            self.audio_manager.stop_ufo_loop()
+        should_play = self.music_enabled and not playing_state and not self.viewing_sprites
+        if should_play == self._last_music_should_play:
+            return
+        self._last_music_should_play = should_play
+        if should_play:
+            self.audio_manager.play_menu_music()
+        else:
+            self.audio_manager.stop_music()
 
     def _set_debug_borders(self, enabled: bool) -> None:
         enabled = bool(enabled)
@@ -352,6 +483,12 @@ class Game:
                         self._return_to_intro_screen(trigger="key_event")
                         continue
 
+                # Universal hotkeys that work everywhere
+                # Credit insertion (works at any time)
+                if event.key == pygame.K_c:
+                    self._insert_credit()
+                    continue
+
                 if self.state_manager.current_state == GameState.ATTRACT:
                     if event.key in (pygame.K_RETURN, pygame.K_SPACE):
                         self._finish_intro_demo(forced=True)
@@ -366,19 +503,25 @@ class Game:
                         if event.key == pygame.K_i:
                             new_state = not self.settings_manager.intro_demo_enabled()
                             self.settings_manager.set_intro_demo_enabled(new_state)
-                            self.menu.update_options_state(self.audio_manager.enabled, new_state)
+                            self.menu.update_options_state(
+                                self.sfx_enabled,
+                                new_state,
+                                self.tint_enabled,
+                                self.music_enabled,
+                            )
                             logging.info("Intro demo autoplay %s", "enabled" if new_state else "disabled")
                             continue
-                    if event.key == pygame.K_a:
-                        self._toggle_audio_setting()
-                        continue
                     if not self.menu.showing_options and event.key == pygame.K_d:
                         self.start_intro_demo(triggered_from_options=True, cycle=True)
                         continue
                     action = self.menu.handle_key(event.key)
                     if action == "start":
+                        if self.credit_count <= 0:
+                            logging.info("Insert credit to start")
+                            continue
+                        self.credit_count -= 1
                         self.reset_game()
-                        logging.info("Game started from menu")
+                        logging.info("Game started from menu (credit remaining=%02d)", self.credit_count)
                     elif action == "controls":
                         self.menu.show_controls()
                         logging.info("Controls overlay opened from menu")
@@ -394,13 +537,15 @@ class Game:
                     elif action == "options":
                         # Open options overlay and pass current settings state
                         self.menu.show_options_with_settings(
-                            self.audio_manager.enabled,
+                            self.sfx_enabled,
                             self.settings_manager.intro_demo_enabled(),
                             self.debug_sprite_borders,
+                            self.tint_enabled,
+                            self.music_enabled,
                         )
                         logging.info("Options overlay opened from menu")
                     elif action == "options_toggle_audio":
-                        self._toggle_audio_setting()
+                        self._toggle_sfx_setting()
                         continue
                     elif action == "options_play_demo":
                         self.menu.hide_options()
@@ -409,11 +554,22 @@ class Game:
                     elif action == "options_toggle_autodemo":
                         new_state = not self.settings_manager.intro_demo_enabled()
                         self.settings_manager.set_intro_demo_enabled(new_state)
-                        self.menu.update_options_state(self.audio_manager.enabled, new_state)
+                        self.menu.update_options_state(
+                            self.sfx_enabled,
+                            new_state,
+                            self.tint_enabled,
+                            self.music_enabled,
+                        )
                         logging.info("Intro demo autoplay %s", "enabled" if new_state else "disabled")
                         continue
                     elif action == "options_toggle_borders":
                         self._set_debug_borders(not self.debug_sprite_borders)
+                        continue
+                    elif action == "options_toggle_music":
+                        self._toggle_music_setting()
+                        continue
+                    elif action == "options_toggle_tint":
+                        self._toggle_tint_setting()
                         continue
                     elif action == "options_back":
                         continue
@@ -435,6 +591,7 @@ class Game:
                 ):
                     bullet = Bullet(self.player.get_bullet_spawn_position())
                     self.bullet_group.add(bullet)
+                    self.audio_manager.play_sound("shoot")
                     logging.info("Bullet fired from player position")
 
                 # P or ESC: Toggle pause when playing
@@ -451,11 +608,15 @@ class Game:
                     self.running = False
                     logging.info("Game quit by user (Q key)")
 
-                # A key: Toggle audio on/off
+                # Audio hotkeys
                 if event.key == pygame.K_a:
-                    # If options overlay open or during play, allow toggling audio
                     if self.menu.showing_options or self.state_manager.current_state == GameState.PLAYING:
-                        self._toggle_audio_setting()
+                        self._toggle_sfx_setting()
+                        continue
+                if event.key == pygame.K_m:
+                    if self.menu.showing_options or self.state_manager.current_state != GameState.PLAYING:
+                        self._toggle_music_setting()
+                        continue
 
     def spawn_bomb(self):
         """
@@ -482,7 +643,7 @@ class Game:
             # Select random alien from remaining aliens
             alien = random.choice(self.alien_group.sprites())
             # Create bomb at alien's bottom center
-            bomb = Bomb(alien.rect.midbottom)
+            bomb = Bomb(alien.rect.midbottom, sprite_name='bomb_1', tint=self._sprite_tint("bomb_1"))
             self.bomb_group.add(bomb)
             logging.debug("Alien bomb spawned at %s from alien at %s", 
                          bomb.rect.topleft, alien.rect.topleft)
@@ -493,6 +654,22 @@ class Game:
             self.ufo_group.add(UFO(-60, 40))  # Start UFO slightly higher
             self.last_ufo_time = now
             logging.info("UFO spawned")
+            self.audio_manager.start_ufo_loop()
+    
+    def _maybe_drop_ufo_bombs(self):
+        """Allow active UFOs to drop their own bomb type while flying across."""
+        if self.state_manager.current_state != GameState.PLAYING:
+            return
+        if not self.ufo_group:
+            self.audio_manager.stop_ufo_loop()
+            return
+        for ufo in self.ufo_group.sprites():
+            if random.random() < config.UFO_BOMB_CHANCE:
+                bomb = Bomb(ufo.rect.midbottom, sprite_name='bomb_2', tint=self._sprite_tint("bomb_2"))
+                self.bomb_group.add(bomb)
+                logging.debug("UFO bomb spawned at %s", bomb.rect.topleft)
+        if not self.ufo_group:
+            self.audio_manager.stop_ufo_loop()
 
     def update_alien_speed(self):
         """Increase alien speed as their numbers decrease."""
@@ -503,6 +680,12 @@ class Game:
             base = config.ALIEN_START_SPEED
             self.alien_speed = base + progress * (max_speed - base)
 
+    def _play_fast_invader_sound(self):
+        if not self.alien_group:
+            return
+        self.audio_manager.play_fast_invader(self.fast_invader_step)
+        self.fast_invader_step = (self.fast_invader_step + 1) % 4
+
     def update(self):
         pressed = pygame.key.get_pressed()
         if self.waiting_for_respawn:
@@ -510,11 +693,13 @@ class Game:
         self.player_group.update(pressed)
         # Update non-projectile entities first
         self.ufo_group.update()
+        self._maybe_drop_ufo_bombs()
 
         # Animate aliens every 30 frames (0.5 seconds at 60 FPS)
         if pygame.time.get_ticks() % 500 < 16:  # Roughly every 0.5 seconds
             for alien in self.alien_group:
                 alien.animate()
+            self._play_fast_invader_sound()
 
         # Move aliens as a group (classic Space Invaders movement)
         if self.alien_group:
@@ -549,6 +734,8 @@ class Game:
         for bullet, aliens in hits.items():
             for alien in aliens:
                 self.score += alien.value
+                self._spawn_explosion(alien.rect.center)
+                self.audio_manager.play_sound("invaderkilled")
                 logging.info("Alien destroyed at %s", alien.rect.topleft)
         if hits:
             self.update_alien_speed()
@@ -557,6 +744,8 @@ class Game:
         for bullet, ufos in hits.items():
             for ufo in ufos:
                 self.score += ufo.value
+                self._spawn_explosion(ufo.rect.center)
+                self.audio_manager.play_sound("explosion")
                 logging.info("UFO destroyed for %d points", ufo.value)
                 self._add_floating_text(str(ufo.value), ufo.rect.center, color=constants.GREEN)
 
@@ -580,6 +769,8 @@ class Game:
         if hit_bombs:
             self.lives -= len(hit_bombs)
             logging.warning("Player hit! Lives left=%d", self.lives)
+            self._spawn_explosion(self.player.rect.center)
+            self.audio_manager.play_sound("explosion")
             if self.lives <= 0:
                 self._enter_game_over_state("Game over: player destroyed")
             else:
@@ -603,6 +794,7 @@ class Game:
         # Update bullets and bombs after handling collisions to keep frame semantics
         self.bullet_group.update()
         self.bomb_group.update()
+        self.effects_group.update()
 
         if self.game_over:
             logging.info("Game over detected")
@@ -615,8 +807,9 @@ class Game:
 
     def _respawn_player(self):
         """Respawn the player ship at the starting position."""
-        self.player = Player()
+        self.player = Player(tint=self._sprite_tint("player"))
         self.player_group = pygame.sprite.GroupSingle(self.player)
+        self._position_player()
 
     def _handle_life_loss(self):
         """Pause gameplay after losing a life and wait for player input to resume."""
@@ -705,6 +898,7 @@ class Game:
     def draw(self):
         # If viewing sprites, draw sprite viewer instead of game
         # Attract/demo state renders whichever animated scene is active
+        self._update_music_state()
         if self.state_manager.current_state == GameState.ATTRACT:
             if not self.active_demo:
                 self.active_demo = self.score_demo
@@ -728,7 +922,7 @@ class Game:
 
         # Normal game drawing
         surface = self.playfield_surface
-        surface.fill(constants.BLACK)
+        surface.fill(get_color("background"))
 
         # If in MENU state, draw the menu and return
         if self.state_manager.current_state == GameState.MENU:
@@ -741,29 +935,11 @@ class Game:
         self.bunker_group.draw(surface)
         self.bullet_group.draw(surface)
         self.bomb_group.draw(surface)
+        self.effects_group.draw(surface)
         self.ufo_group.draw(surface)
 
-        # Draw HUD: Score, High Score, Lives, and Audio Status
-        surface_width, surface_height = surface.get_size()
-        score_surf = self.font.render(f"Score: {self.score}", True, constants.WHITE)
-        high_score = self.high_score_manager.get_high_score()
-        high_score_surf = self.font.render(f"Hi: {high_score}", True, constants.WHITE)
-        lives_surf = self.font.render(f"Lives: {self.lives}", True, constants.WHITE)
-        level_surf = self.font.render(f"Level: {self.level}", True, constants.WHITE)
-        
-        # Audio status indicator
-        audio_status = "Audio: ON" if self.audio_manager.enabled else "Audio: OFF"
-        audio_color = constants.GREEN if self.audio_manager.enabled else constants.RED
-        audio_surf = self.small_font.render(audio_status, True, audio_color)
-        
-        surface.blit(score_surf, (10, 5))
-        high_score_rect = high_score_surf.get_rect(midtop=(surface_width // 2, 5))
-        surface.blit(high_score_surf, high_score_rect)
-        surface.blit(lives_surf, (surface_width - lives_surf.get_width() - 10, 5))
-        surface.blit(level_surf, (surface_width - level_surf.get_width() - 10, 30))
-        surface.blit(audio_surf, (10, surface_height - audio_surf.get_height() - 10))
-
         self._draw_floating_texts(surface)
+        self._draw_scoreboard(surface)
 
         if self.wave_message_timer > pygame.time.get_ticks():
             self._draw_wave_message()
@@ -923,7 +1099,12 @@ class Game:
             return
         logging.info("Returning to intro screen after game over (%s)", trigger)
         self.reset_game(start_playing=False)
-        self.menu.update_options_state(self.audio_manager.enabled, self.settings_manager.intro_demo_enabled())
+        self.menu.update_options_state(
+            self.sfx_enabled,
+            self.settings_manager.intro_demo_enabled(),
+            self.tint_enabled,
+            self.music_enabled,
+        )
         self.menu.hide_controls()
         self.menu.hide_high_scores()
         self.menu.hide_options()
@@ -937,6 +1118,83 @@ class Game:
             self.start_intro_demo()
         else:
             self.state_manager.change_state(GameState.MENU)
+
+    def _insert_credit(self, amount: int = 1) -> None:
+        self.credit_count = min(99, self.credit_count + max(1, amount))
+        self.attract_last_activity_time = pygame.time.get_ticks()
+        logging.info("Credit inserted. Total=%02d", self.credit_count)
+
+    def _spawn_explosion(self, position):
+        tint = self._sprite_tint("explosion")
+        self.effects_group.add(ExplosionEffect(position, tint=tint))
+
+    def _draw_scoreboard(self, surface: pygame.Surface):
+        width, _ = surface.get_size()
+        margin = 6
+        hud_color = get_color("hud_text")
+
+        score_label = self.small_font.render("SCORE", True, hud_color)
+        hi_label = self.hi_label_surface or self.small_font.render("HI-SCORE", True, hud_color)
+        level_label = self.small_font.render("LEVEL", True, hud_color)
+
+        label_height = max(score_label.get_height(), hi_label.get_height(), level_label.get_height())
+
+        score_label_y = margin + (label_height - score_label.get_height()) // 2
+        surface.blit(score_label, (10, score_label_y))
+
+        hi_label_y = margin + (label_height - hi_label.get_height()) // 2
+        hi_rect = hi_label.get_rect(midtop=(width // 2, hi_label_y))
+        surface.blit(hi_label, hi_rect)
+
+        level_label_y = margin + (label_height - level_label.get_height()) // 2
+        level_label_rect = level_label.get_rect(topright=(width - 10, level_label_y))
+        surface.blit(level_label, level_label_rect)
+
+        values_y = margin + label_height + 4
+        score_digits = self.digit_writer.render(f"{self.score:05d}")
+        surface.blit(score_digits, (10, values_y))
+
+        hi_digits = self.digit_writer.render(f"{self.high_score_manager.get_high_score():05d}")
+        hi_digits_rect = hi_digits.get_rect(midtop=(width // 2, values_y))
+        surface.blit(hi_digits, hi_digits_rect)
+
+        level_digits = self.digit_writer.render(f"{self.level:02d}")
+        level_digits_rect = level_digits.get_rect(topright=(width - 10, values_y))
+        surface.blit(level_digits, level_digits_rect)
+
+        self._draw_bottom_panel(surface)
+
+    def _draw_bottom_panel(self, surface: pygame.Surface):
+        width, height = surface.get_size()
+        overlay_height = self.bottom_panel_height
+        overlay_top = height - overlay_height
+        pygame.draw.line(surface, get_color("divider"), (0, overlay_top), (width, overlay_top), 1)
+        icon = self.life_icon_surface
+        icons_right = 10
+        if icon:
+            for idx in range(min(self.lives, self.max_life_icons)):
+                x = 10 + idx * (icon.get_width() + 4)
+                surface.blit(icon, (x, overlay_top + 6))
+                icons_right = x + icon.get_width()
+        else:
+            icons_right = 10
+        status_text = self.small_font.render(
+            f"SFX {'ON' if self.sfx_enabled else 'OFF'}  MUSIC {'ON' if self.music_enabled else 'OFF'}",
+            True,
+            get_color("hud_text"),
+        )
+        surface.blit(status_text, (icons_right + 12, overlay_top + 8))
+        credit_text = self.credit_label_surface
+        digits = self.digit_writer.render(f"{self.credit_count:02d}")
+        label_height = credit_text.get_height() if credit_text else digits.get_height()
+        gap = 6 if credit_text else 0
+        total_width = (credit_text.get_width() if credit_text else 0) + gap + digits.get_width()
+        start_x = width - total_width - 10
+        start_y = overlay_top + 6
+        if credit_text:
+            surface.blit(credit_text, (start_x, start_y))
+            start_x += credit_text.get_width() + gap
+        surface.blit(digits, (start_x, start_y + label_height - digits.get_height()))
 
     def _draw_life_lost_message(self):
         """Overlay prompting the player to continue after losing a life."""

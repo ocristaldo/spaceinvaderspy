@@ -1,18 +1,20 @@
 # 👾 Space Invaders Python Clone
 
-A work-in-progress recreation of the classic Space Invaders arcade game built with Python and Pygame, guided directly by the design notes in `docs/space_invaders_spec.md`. We keep the original sprites/feel while layering quality-of-life features for modern platforms.
+**v1.0.0 - RELEASED** ✅
+
+A faithful recreation of the 1978 Space Invaders arcade game built with Python and Pygame. Features classic single-player gameplay with 8 difficulty waves, cabinet-accurate HUD, persistent high scores, audio effects, and modern quality-of-life features.
 
 ## 🎯 Project Status
 
-**Current:** Phase 2 Complete ✅ | **Next:** Phase 3 (Game States + Menu)  
+**Current:** v1.0.0 Released ✅ | **Next:** v1.1 (2-player alternating mode)
 **For full details, see [docs/PROJECT.md](docs/PROJECT.md) or [docs/STATUS.md](docs/STATUS.md)**
 
 ### Quick Stats
-- ✅ Core game playable
-- ✅ Audio system (muted by default)
-- ✅ High score persistence
-- ✅ Extra lives milestones
-- ✅ 10/10 tests passing
+- ✅ Core game fully playable (single-player, 8 waves)
+- ✅ Cabinet-accurate HUD with sprite digits
+- ✅ Persistent high scores (top 10)
+- ✅ Audio system (SFX + music, toggleable)
+- ✅ 71/71 tests passing, zero crashes
 
 ## 🎮 Current Features
 

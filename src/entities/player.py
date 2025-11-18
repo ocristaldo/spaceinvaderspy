@@ -16,10 +16,11 @@ class Player(pygame.sprite.Sprite):
     It has collision detection and proper boundary checking.
     """
 
-    def __init__(self):
+    def __init__(self, tint=None):
         """Initialize the player spaceship."""
         super().__init__()
         self.logger = setup_logger(__name__)
+        self._tint = tint
         
         try:
             self._create_sprite()
@@ -34,7 +35,7 @@ class Player(pygame.sprite.Sprite):
         """Create the player sprite graphics using the sprite sheet."""
         try:
             from ..utils.sprite_sheet import get_game_sprite
-            self.image = get_game_sprite('player', config.SPRITE_SCALE)
+            self.image = get_game_sprite('player', config.SPRITE_SCALE, tint=self._tint)
             self.logger.debug("Loaded player sprite from sprite sheet")
         except Exception as e:
             self.logger.warning(f"Failed to load player sprite from sheet: {e}. Using fallback.")

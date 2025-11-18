@@ -1,131 +1,40 @@
-# 🗺️ Space Invaders Py - Vision & Roadmap
+# 🗺️ Roadmap – Path to v1.0.0
 
-> **For detailed project status, phases, and action items, see [PROJECT.md](PROJECT.md) and [STATUS.md](STATUS.md)**
-
----
-
-## 🎯 Product Vision
-
-Build a faithful Space Invaders clone in Python that matches the 1978 cabinet feel while adding optional modern conveniences. The game should:
-
-1. **Be playable today** - Core Space Invaders loop works now
-2. **Add depth gradually** - Match cabinet features first, then layer optional enhancements
-3. **Stay maintainable** - Clean code, good tests, clear docs
-4. **Welcome contributors** - Easy to understand and extend
+> **Reference docs:** [PROJECT.md](PROJECT.md) (management hub), [STATUS.md](STATUS.md) (live progress), [RELEASE_NOTES.md](RELEASE_NOTES.md) (public summary)
 
 ---
 
-## 📈 High-Level Phases
+## 🎬 Phase NOW – Launch Prep (Dec 2025)
+**Goal:** Ship a faithful, single-player cabinet experience with the refreshed HUD/tint system.
 
-### Phase 1: Foundation ✅ Complete
-- Core Space Invaders gameplay
-- Collision detection
-- Scoring and lives
-- Sprite system
-- CI/CD pipeline
-
-### Phase 2: Quick Wins ✅ Complete
-- Audio system (muted by default)
-- High score persistence
-- Extra lives milestones
-- Unit tests
-
-### Phase 3: Foundation Systems 📅 Next
-- Game state machine
-- Menu UI
-- Pause system
-- Level progression
-
-### Phase 4: Cabinet Accuracy 📅 Planned
-- Attract mode loop (title, Insert Coin, score table, demo)
-- Credit/start flow (coin, 1P/2P start buttons)
-- Explosion/bunker art polish
-- Authentic HUD and score advance table
-
-### Phase 5: Polish & Release 📅 Final
-- Performance tuning
-- Comprehensive tests
-- 2-player alternating mode
-- Packaging for distribution
+| Epic | Tasks | Exit Criteria |
+|------|-------|---------------|
+| ✅ Credit / Start Flow | Complete | MENU shows `CREDIT 00`, `C` inserts coins, Start consumes one per game. |
+| Attract Loop Upgrade | - Reuse HUD overlays in demos<br>- Cycle score table, instructions, and staged gameplay clips<br>- Respect tint toggle & divider line | Idle mode mirrors cabinet presentation; any key exits to MENU. |
+| Alternating 2P Scaffold | - Maintain per-player score/lives<br>- Swap control after death<br>- Display both scores at top HUD | Two players can alternate turns using the same wave; HUD reflects current player. |
+| Release Packaging | - Smoke-test on Win/macOS/Linux<br>- Capture screenshots/gifs<br>- Finalize README & RELEASE_NOTES | Releasable build + documentation bundle posted on GitHub. |
 
 ---
 
-## 🎮 Feature Roadmap
-
-### Today (Phase 2)
-- ✅ Classic Space Invaders gameplay
-- ✅ Audio (muted by default, toggle with 'A')
-- ✅ High scores saved to disk
-- ✅ Extra lives at 20k + 70k points
-
-### Soon (Phase 3)
-- 📅 Game menu and attract mode
-- 📅 Pause/resume functionality
-- 📅 Multi-wave level progression
-- 📅 Difficulty scaling
-
-### Later (Phase 4)
-- 📅 Attract mode visuals + score advance table
-- 📅 Credit/start flow (coin + 1P/2P buttons)
-- 📅 Explosion/bunker art polish
-- 📅 Authentic HUD styling
-
-### Eventually (Phase 5)
-- 📅 Accessibility toggles (multi-shot default, slow mode)
-- 📅 2-player alternating mode
-- 📅 Leaderboard system
-- 📅 Release packaging + reference screenshots
+## 🔭 Phase NEXT – Post-Launch Enhancements
+1. **Authentic attract scripting** – Insert coin prompt animations, cycling score advance table, and demo AI refinements.  
+2. **Gameplay modifiers** – Accessibility toggles (multi-shot, slow mode, endless mode).  
+3. **2P competitive mode** – Track alternating runs in the high score table.  
+4. **Online release package** – Itch.io page or similar distribution with binaries + instructions.  
+5. **Stretch Goals** – Challenge stages, tractor beam enemy variants, deluxe sprite packs.
 
 ---
 
-## 📋 Design Principles
-
-1. **Start Simple** - Get Space Invaders working first
-2. **Honor the Cabinet** - Match 1978 behavior before optional enhancements
-3. **Test Everything** - Aim for 70%+ code coverage
-4. **Document Clearly** - Make architecture easy to follow
-5. **Welcome Help** - Contribute-friendly setup and docs
-
----
-
-## 🚀 How to Get Started
-
-### To Play
-```bash
-python -m src.main
-```
-
-### To Contribute
-1. Read [PROJECT.md](PROJECT.md) for full context
-2. Check [STATUS.md](STATUS.md) for current work
-3. Pick an item from Phase 3 (next phase)
-4. Create a feature branch and submit a PR
-
-### To Understand the Code
-1. Read `docs/GAMEPLAY_OVERVIEW.md` - how current systems work
-2. Read `docs/space_invaders_spec.md` - cabinet reference we're matching
-3. Explore `src/main.py` - main game loop
-4. Check tests for expected behavior
+## ✅ Recently Delivered
+- Cabinet-aligned HUD with sprite digits, credit/lives panel, and divider line.  
+- Optional sprite tinting plus palette configuration (`src/ui/color_scheme.py`).  
+- Explosion FX and bomb variants wired to the atlas.  
+- Credit/coin flow implemented (`C` inserts, Start consumes, HUD counter updates live).  
+- `docs/SPRITES.md` annotated with usage + validation state for every sprite.
 
 ---
 
-## 🎯 Success Criteria
-
-Each phase is complete when:
-- All features working as designed
-- Tests passing (70%+ coverage by Phase 5)
-- Documentation up to date
-- No known bugs or performance issues
-
----
-
-## 📞 Questions?
-
-- **What should I work on?** → Check [STATUS.md](STATUS.md)
-- **How does X work?** → See [PROJECT.md](PROJECT.md)
-- **What's the plan?** → You're reading it
-- **How do I contribute?** → [PROJECT.md Contributing section](PROJECT.md#-how-to-contribute)
-
----
-
-**For detailed project management, see [PROJECT.md](PROJECT.md)**
+## 🧾 Tracking & Issues
+- **GitHub Issues:** use labels `launch-blocker`, `enhancement`, `docs`.  
+- **Kanban:** simple columns on the project board (Backlog → In Progress → Review → Done).  
+- **Owner cadence:** at least one touch per day on blockers; daily stand-up note in project discussions when travelling/offline.

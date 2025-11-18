@@ -12,7 +12,7 @@ class Bunker(pygame.sprite.Sprite):
     They provide strategic cover but deteriorate over time when hit.
     """
 
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, tint=None):
         """
         Initialize a bunker.
         
@@ -30,7 +30,7 @@ class Bunker(pygame.sprite.Sprite):
             from ..utils.sprite_sheet import get_game_sprite
             bunker_sprites = ['bunker_full', 'bunker_damaged_1', 'bunker_damaged_2', 'bunker_damaged_3']
             for sprite_name in bunker_sprites:
-                image = get_game_sprite(sprite_name, config.SPRITE_SCALE)
+                image = get_game_sprite(sprite_name, config.SPRITE_SCALE, tint=tint)
                 self.images.append(image)
             self.image = self.images[0]
             self.base_image = self.image.copy()
