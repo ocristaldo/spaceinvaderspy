@@ -1396,19 +1396,29 @@ class Game:
                         winner_player = 1
 
                     # Check if this is a high score
-                    is_high_score = self.high_score_manager.check_high_score(winner_score)
-                    if is_high_score or self.high_score_manager.is_high_score_position(winner_score):
-                        # Show initials entry screen
-                        def on_initials_confirmed(initials: str):
-                            """Callback when initials are confirmed."""
-                            self.high_score_manager.update_score(winner_score, initials, player=winner_player)
-                            self.initials_entry_screen = None
-                            logging.info(f"High score saved: {winner_score} by {initials} (Player {winner_player})")
+                    try:
+                        is_high_score = self.high_score_manager.check_high_score(winner_score)
+                        if is_high_score or self.high_score_manager.is_high_score_position(winner_score):
+                            # Show initials entry screen
+                            def on_initials_confirmed(initials: str):
+                                """Callback when initials are confirmed."""
+                                try:
+                                    self.high_score_manager.update_score(winner_score, initials, player=winner_player)
+                                    self.initials_entry_screen = None
+                                    logging.info(f"High score saved: {winner_score} by {initials} (Player {winner_player})")
+                                except Exception as e:
+                                    logging.error(f"Error saving high score: {e}", exc_info=True)
+                                    self.initials_entry_screen = None
 
-                        self.initials_entry_screen = InitialsEntry(winner_score, on_initials_confirmed)
-                    else:
-                        # Just save the score without initials entry
-                        self.high_score_manager.update_score(winner_score, initials="---", player=winner_player)
+                            self.initials_entry_screen = InitialsEntry(winner_score, on_initials_confirmed)
+                        else:
+                            # Just save the score without initials entry
+                            try:
+                                self.high_score_manager.update_score(winner_score, initials="---", player=winner_player)
+                            except Exception as e:
+                                logging.error(f"Error saving score: {e}", exc_info=True)
+                    except Exception as e:
+                        logging.error(f"Error checking high score: {e}", exc_info=True)
 
                     self._game_over_processed = True
                     logging.info("High score table updated after game over")
