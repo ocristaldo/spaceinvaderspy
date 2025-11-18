@@ -92,7 +92,7 @@ class Game:
         self.game_over_intro_delay_ms = 5000
         self._game_over_return_time = None
         self._game_over_processed = False
-        self.credit_count = 1
+        self.credit_count = 0
         self.max_life_icons = 5
         self.bottom_panel_height = 36
         self.fast_invader_step = 0
@@ -595,6 +595,25 @@ class Game:
                 if self.state_manager.current_state == GameState.ATTRACT:
                     if event.key in (pygame.K_RETURN, pygame.K_SPACE):
                         self._finish_intro_demo(forced=True)
+                        continue
+                    # 1/2 keys to start game directly from attract mode
+                    if event.key == pygame.K_1:
+                        if self.credit_count <= 0:
+                            logging.info("Insert credit to start")
+                            continue
+                        self.credit_count -= 1
+                        self.two_player_mode = False
+                        self.reset_game()
+                        logging.info("1-Player game started from attract (credit remaining=%02d)", self.credit_count)
+                        continue
+                    if event.key == pygame.K_2:
+                        if self.credit_count <= 0:
+                            logging.info("Insert credit to start")
+                            continue
+                        self.credit_count -= 1
+                        self.start_two_player_game()
+                        logging.info("2-Player game started from attract (credit remaining=%02d)", self.credit_count)
+                        continue
                     continue
 
                 # Menu navigation when in MENU state
@@ -1472,8 +1491,8 @@ class Game:
         label_height = credit_text.get_height() if credit_text else digits.get_height()
         gap = 6 if credit_text else 0
         total_width = (credit_text.get_width() if credit_text else 0) + gap + digits.get_width()
-        # Center credits on screen
-        start_x = (width - total_width) // 2
+        # Position credits on the right side of the screen
+        start_x = width - total_width - 10
         start_y = overlay_top + 6
         if credit_text:
             surface.blit(credit_text, (start_x, start_y))
