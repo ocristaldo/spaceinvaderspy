@@ -158,10 +158,15 @@ class ContinueScreen:
             instr_rect = instr_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
             surface.blit(instr_text, instr_rect)
 
-            instr_y += instr_rect.height + 20
-            instr2_text = small_font.render("C to insert coin", True, (150, 150, 200))
+            instr_y += instr_rect.height + 15
+            instr2_text = small_font.render("(1 credit for either mode)", True, (150, 200, 150))
             instr2_rect = instr2_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
             surface.blit(instr2_text, instr2_rect)
+
+            instr_y += instr2_rect.height + 20
+            instr3_text = small_font.render("C to insert more coins", True, (150, 150, 200))
+            instr3_rect = instr3_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)
+            surface.blit(instr3_text, instr3_rect)
         else:
             instr_text = small_font.render("INSERT COIN TO CONTINUE", True, (255, 100, 100))
             instr_rect = instr_text.get_rect(centerx=surface.get_width() // 2, y=instr_y)

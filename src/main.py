@@ -1163,11 +1163,15 @@ class Game:
 
         def on_continue_2p():
             """Callback when player continues with 2-player."""
+            # For continuing, we only need 1 credit (similar to 1P continue)
+            # This allows switching from 1P to 2P or vice versa on continue
             if self.credit_count > 0:
                 self.credit_count -= 1
                 self.game_over = False  # Reset for new game
                 self.start_two_player_game()
                 logging.info("Game continued (2P) with credits remaining=%02d", self.credit_count)
+            else:
+                logging.info("Cannot continue 2P - no credits available")
 
         def on_timeout():
             """Callback when countdown reaches 0."""
@@ -1513,6 +1517,9 @@ class Game:
         # Update credit display in attract mode screens
         if self.score_demo:
             self.score_demo.set_credit_count(self.credit_count)
+        # Update credit display in continue screen
+        if self.continue_screen:
+            self.continue_screen.set_credit_count(self.credit_count)
         logging.info("Credit inserted. Total=%02d", self.credit_count)
 
     def _spawn_explosion(self, position):
