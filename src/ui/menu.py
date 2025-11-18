@@ -162,7 +162,9 @@ class Menu:
 
         font, small = self._section_fonts["high_scores"]
         for idx, score in enumerate(self.high_scores[:10]):
-            line = font.render(f"{idx + 1}. {score}", True, (230, 230, 230))
+            # Format: "1. 5000 AAA" (rank, score, initials)
+            score_text = f"{idx + 1}. {score.score:5d}  {score.initials}" if hasattr(score, 'score') else f"{idx + 1}. {score}"
+            line = font.render(score_text, True, (230, 230, 230))
             surface.blit(line, line.get_rect(center=(w // 2, h // 4 + idx * (font.get_linesize() + 4))))
 
         hint = small.render("Press ESC or ENTER to return", True, (180, 180, 180))

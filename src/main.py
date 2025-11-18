@@ -1155,6 +1155,11 @@ class Game:
         # Store the current game mode for continue callbacks
         was_two_player = self.two_player_mode
 
+        # Save snapshot of credits at start of continue screen
+        # If player lets timer expire, we'll restore this value
+        # (discarding any coins inserted during countdown)
+        credits_at_continue_start = self.credit_count
+
         def on_continue_1p():
             """Callback when player continues with 1-player."""
             # 1P continue: requires 1 credit
@@ -1180,7 +1185,11 @@ class Game:
 
         def on_timeout():
             """Callback when countdown reaches 0."""
-            logging.info("Continue countdown expired, returning to menu")
+            logging.info("Continue countdown expired, returning to menu. Restoring credits from %02d to %02d",
+                        self.credit_count, credits_at_continue_start)
+            # Restore credits to value at start of continue screen
+            # This discards any coins inserted during countdown that weren't used
+            self.credit_count = credits_at_continue_start
             self._return_to_intro_screen(trigger="continue_timeout")
             self.continue_screen = None
 
