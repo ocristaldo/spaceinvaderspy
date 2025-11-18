@@ -6,8 +6,8 @@ A faithful recreation of the 1978 Space Invaders arcade game built with Python a
 
 ## 🎯 Project Status
 
-**Current:** v1.0.0 Released ✅ | **Next:** v1.1 (2-player alternating mode)
-**For full details, see [docs/PROJECT.md](docs/PROJECT.md) or [docs/STATUS.md](docs/STATUS.md)**
+**Current:** v1.0.0 Released ✅ | **Next:** v2.0 (Dynamic themes, power-ups, multiple modes)
+**For full details, see [docs/V2_0_ROADMAP.md](docs/V2_0_ROADMAP.md), [docs/REFACTORING_GUIDE.md](docs/REFACTORING_GUIDE.md), [docs/PROJECT.md](docs/PROJECT.md), or [docs/STATUS.md](docs/STATUS.md)**
 
 ### Quick Stats
 - ✅ Core game fully playable (single-player, 8 waves)

@@ -52,7 +52,6 @@ class Menu:
         self.options_demo_enabled = True
         self.options_tint_enabled = False
         self.options_music_on = False
-        self.options_music_on = False
         self.options_selection = 0
         self.high_scores = []
         self.credits = 0
