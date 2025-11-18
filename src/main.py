@@ -607,10 +607,10 @@ class Game:
                         logging.info("1-Player game started from attract (credit remaining=%02d)", self.credit_count)
                         continue
                     if event.key == pygame.K_2:
-                        if self.credit_count <= 0:
-                            logging.info("Insert credit to start")
+                        if self.credit_count < 2:
+                            logging.info("Need 2 credits to start 2-player game")
                             continue
-                        self.credit_count -= 1
+                        self.credit_count -= 2
                         self.start_two_player_game()
                         logging.info("2-Player game started from attract (credit remaining=%02d)", self.credit_count)
                         continue
@@ -630,10 +630,10 @@ class Game:
                         continue
                     # 2 key: Start 2-player game
                     elif event.key == pygame.K_2:
-                        if self.credit_count <= 0:
-                            logging.info("Insert credit to start")
+                        if self.credit_count < 2:
+                            logging.info("Need 2 credits to start 2-player game")
                             continue
-                        self.credit_count -= 1
+                        self.credit_count -= 2
                         self.start_two_player_game()
                         logging.info("2-Player game started (credit remaining=%02d)", self.credit_count)
                         continue
