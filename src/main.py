@@ -883,7 +883,11 @@ class Game:
         hits = pygame.sprite.groupcollide(self.bullet_group, self.alien_group, True, True)
         for bullet, aliens in hits.items():
             for alien in aliens:
-                self.score += alien.value
+                # Add score to current player
+                if self.two_player_mode and self.current_player == 2:
+                    self.p2_score += alien.value
+                else:
+                    self.score += alien.value
                 self._spawn_explosion(alien.rect.center)
                 self.audio_manager.play_sound("invaderkilled")
                 logging.info("Alien destroyed at %s", alien.rect.topleft)
@@ -893,7 +897,11 @@ class Game:
         hits = pygame.sprite.groupcollide(self.bullet_group, self.ufo_group, True, True)
         for bullet, ufos in hits.items():
             for ufo in ufos:
-                self.score += ufo.value
+                # Add score to current player
+                if self.two_player_mode and self.current_player == 2:
+                    self.p2_score += ufo.value
+                else:
+                    self.score += ufo.value
                 self._spawn_explosion(ufo.rect.center)
                 self.audio_manager.play_sound("explosion")
                 logging.info("UFO destroyed for %d points", ufo.value)
@@ -917,11 +925,18 @@ class Game:
         except Exception:
             hit_bombs = []
         if hit_bombs:
-            self.lives -= len(hit_bombs)
-            logging.warning("Player %d hit! Lives left=%d", self.current_player, self.lives)
+            # Deduct lives from current player
+            if self.two_player_mode and self.current_player == 2:
+                self.p2_lives -= len(hit_bombs)
+                current_lives = self.p2_lives
+            else:
+                self.lives -= len(hit_bombs)
+                current_lives = self.lives
+
+            logging.warning("Player %d hit! Lives left=%d", self.current_player, current_lives)
             self._spawn_explosion(self.player.rect.center)
             self.audio_manager.play_sound("explosion")
-            if self.lives <= 0:
+            if current_lives <= 0:
                 # In 2-player mode, check if other player has lives
                 if self.two_player_mode:
                     if self.current_player == 1:
@@ -1473,8 +1488,10 @@ class Game:
         pygame.draw.line(surface, get_color("divider"), (0, overlay_top), (width, overlay_top), 1)
         icon = self.life_icon_surface
         icons_right = 10
+        # Get current player's lives (P2 lives if in 2P mode and current_player == 2)
+        current_lives = self.p2_lives if (self.two_player_mode and self.current_player == 2) else self.lives
         if icon:
-            for idx in range(min(self.lives, self.max_life_icons)):
+            for idx in range(min(current_lives, self.max_life_icons)):
                 x = 10 + idx * (icon.get_width() + 4)
                 surface.blit(icon, (x, overlay_top + 6))
                 icons_right = x + icon.get_width()
