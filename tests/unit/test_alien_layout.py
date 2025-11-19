@@ -1,12 +1,13 @@
 import os
+
 import pygame
 import pytest
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 from src import config
-from src.main import Game
 from src.entities.alien import Alien
+from src.main import Game
 
 
 @pytest.fixture(autouse=True)

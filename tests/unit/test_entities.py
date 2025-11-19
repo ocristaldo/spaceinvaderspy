@@ -1,67 +1,68 @@
 """
 Unit tests for game entities.
 """
-import unittest
-import pygame
-import sys
 import os
+import sys
+import unittest
+
+import pygame
 
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from src.entities.player import Player
+from src import config
 from src.entities.alien import Alien
 from src.entities.bullet import Bullet
 from src.entities.bunker import Bunker
-from src import config
+from src.entities.player import Player
 
 
 class TestPlayer(unittest.TestCase):
     """Test cases for Player entity."""
-    
+
     @classmethod
     def setUpClass(cls):
         """Set up pygame for testing."""
         pygame.init()
         pygame.display.set_mode((1, 1))  # Minimal display for testing
-    
+
     def setUp(self):
         """Set up test fixtures."""
         self.player = Player()
-    
+
     def test_player_initialization(self):
         """Test player is initialized correctly."""
         self.assertIsNotNone(self.player.image)
         self.assertIsNotNone(self.player.rect)
         self.assertEqual(self.player.speed, 5)
-    
+
     def test_player_movement(self):
         """Test player movement."""
         initial_x = self.player.rect.x
-        
+
         # Create a proper mock for pygame.key.get_pressed()
         import unittest.mock
         with unittest.mock.patch('pygame.key.get_pressed') as mock_keys:
             # Mock left key pressed
             mock_keys.return_value = {pygame.K_LEFT: True, pygame.K_RIGHT: False}
-            
+
             # Create a mock pressed object that behaves like pygame keys
             pressed = unittest.mock.MagicMock()
             pressed.__getitem__ = lambda self, key: key == pygame.K_LEFT
-            
+
             self.player.update(pressed)
             self.assertLess(self.player.rect.x, initial_x)
 
 
 class TestAlien(unittest.TestCase):
     """Test cases for Alien entity."""
-    
+
     @classmethod
     def setUpClass(cls):
         """Set up pygame for testing."""
         pygame.init()
         pygame.display.set_mode((1, 1))
-    
+
     def test_alien_initialization(self):
         """Test alien is initialized correctly."""
         alien = Alien(100, 100, 30)
@@ -74,20 +75,20 @@ class TestAlien(unittest.TestCase):
 
 class TestBullet(unittest.TestCase):
     """Test cases for Bullet entity."""
-    
+
     @classmethod
     def setUpClass(cls):
         """Set up pygame for testing."""
         pygame.init()
         pygame.display.set_mode((1, 1))
-    
+
     def test_bullet_initialization(self):
         """Test bullet is initialized correctly."""
         bullet = Bullet((100, 100))
         self.assertIsNotNone(bullet.image)
         self.assertIsNotNone(bullet.rect)
         self.assertEqual(bullet.speed, config.BULLET_SPEED)
-    
+
     def test_bullet_movement(self):
         """Test bullet moves correctly."""
         bullet = Bullet((100, 100))
@@ -98,13 +99,13 @@ class TestBullet(unittest.TestCase):
 
 class TestBunker(unittest.TestCase):
     """Test cases for Bunker entity."""
-    
+
     @classmethod
     def setUpClass(cls):
         """Set up pygame for testing."""
         pygame.init()
         pygame.display.set_mode((1, 1))
-    
+
     def test_bunker_initialization(self):
         """Test bunker is initialized correctly."""
         bunker = Bunker(100, 100)

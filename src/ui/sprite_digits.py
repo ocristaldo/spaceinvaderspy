@@ -1,8 +1,9 @@
 """Utility helpers for rendering numeric strings via sprite digits or font digits."""
 from __future__ import annotations
 
-import pygame
 from typing import Dict
+
+import pygame
 
 from .. import config
 from ..utils.sprite_sheet import get_game_sprite

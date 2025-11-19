@@ -1,9 +1,11 @@
 """Bullet and bomb entities - projectiles in the game."""
-import pygame
 from typing import Tuple
-from .. import constants
-from .. import config
+
+import pygame
+
+from .. import config, constants
 from ..utils.logger import setup_logger
+
 
 class Bullet(pygame.sprite.Sprite):
     """
@@ -30,7 +32,7 @@ class Bullet(pygame.sprite.Sprite):
             # Fallback to simple rectangle
             self.image = pygame.Surface((2, 8))
             self.image.fill(constants.WHITE)
-        
+
         self.rect = self.image.get_rect(midbottom=pos)
         self.speed = config.BULLET_SPEED
 

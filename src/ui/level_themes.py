@@ -4,7 +4,7 @@ Level-based color themes for Space Invaders v2.0.
 Each level has a unique vibrant color palette affecting all sprites,
 HUD elements, and visual effects. Themes cycle after level 8.
 """
-from typing import Dict, Tuple, Optional
+from typing import Dict, Optional, Tuple
 
 # RGB color type
 Color = Tuple[int, int, int]

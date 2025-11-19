@@ -7,8 +7,8 @@ import pygame
 
 from .. import config, constants
 from ..utils.sprite_sheet import get_game_sprite, get_title_logo
-from .font_manager import get_font
 from .color_scheme import get_tint
+from .font_manager import get_font
 
 
 class ScoreTableDemo:

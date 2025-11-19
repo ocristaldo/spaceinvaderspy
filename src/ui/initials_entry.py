@@ -3,8 +3,10 @@ Initials Entry Screen for High Score Entry
 
 Allows players to enter 3-character initials after achieving a high score.
 """
+from typing import Callable
+
 import pygame
-from typing import Optional, Callable
+
 from ..utils.logger import setup_logger
 from .font_manager import get_font
 

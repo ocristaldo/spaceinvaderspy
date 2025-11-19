@@ -1,9 +1,11 @@
 """UFO entity - bonus mystery ship that appears periodically."""
-import pygame
 import random
-from .. import constants
-from .. import config
+
+import pygame
+
+from .. import config, constants
 from ..utils.logger import setup_logger
+
 
 class UFO(pygame.sprite.Sprite):
     """
@@ -34,7 +36,7 @@ class UFO(pygame.sprite.Sprite):
             # Draw UFO as an ellipse
             pygame.draw.ellipse(self.image, constants.RED, (0, 0, 32, 16))
             pygame.draw.ellipse(self.image, constants.WHITE, (8, 4, 16, 8))
-        
+
         self.rect = self.image.get_rect(topleft=(x, y))
         self.speed = 2
         self.value = random.choice([50, 100, 150, 300])

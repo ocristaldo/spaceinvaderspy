@@ -4,8 +4,9 @@ Audio Manager for Space Invaders.
 Handles all sound effects and music, with support for toggling audio on/off
 and volume control. Audio is muted by default.
 """
-import os
 import logging
+import os
+
 import pygame
 
 logger = logging.getLogger(__name__)
@@ -78,7 +79,7 @@ class AudioManager:
         """Play a sound effect if audio is enabled and the sound exists."""
         if not self.available or not self.sfx_enabled or key not in self.sounds:
             return
-        
+
         try:
             sound = self.sounds[key]
             sound.set_volume(self.volume)

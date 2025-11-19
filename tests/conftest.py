@@ -1,5 +1,6 @@
 """Pytest configuration for Space Invaders tests."""
 import os
+
 import pygame
 import pytest
 

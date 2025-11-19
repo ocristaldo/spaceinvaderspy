@@ -4,10 +4,12 @@ Sprite sheet utility for extracting sprites from the main SpaceInvaders.png file
 This module handles loading and extracting individual sprites from the sprite sheet,
 providing a centralized way to manage all game graphics using JSON coordinate data.
 """
-import pygame
-import os
 import json
+import os
 from typing import Dict, Optional, Tuple
+
+import pygame
+
 from .logger import setup_logger
 
 
@@ -18,7 +20,7 @@ class SpriteSheet:
     The SpaceInvaders.png contains all game sprites in a grid layout.
     This class loads coordinate data from JSON files and extracts sprites accordingly.
     """
-    
+
     def __init__(self, filename: str, json_filename: Optional[str] = None):
         """
         Initialize the sprite sheet loader.
@@ -34,7 +36,7 @@ class SpriteSheet:
         self.sprite_coords: Dict = {}
         self._load_sprite_sheet()
         self._load_sprite_coordinates()
-    
+
     def _load_sprite_sheet(self) -> None:
         """Load the sprite sheet image from file."""
         try:
@@ -52,17 +54,17 @@ class SpriteSheet:
             # Create a fallback surface
             self.sprite_sheet = pygame.Surface((256, 256), pygame.SRCALPHA)
             self.sprite_sheet.fill((255, 0, 255))  # Magenta for missing sprites
-    
+
     def _load_sprite_coordinates(self) -> None:
         """Load sprite coordinates from JSON file."""
         if not self.json_filename:
             self.logger.debug("No JSON coordinate file specified, using fallback coordinates")
             return
-        
+
         try:
             with open(self.json_filename, 'r') as f:
                 sprite_data = json.load(f)
-            
+
             # Convert list of sprite data to dictionary keyed by sprite name
             for sprite in sprite_data:
                 name = sprite.get('name', '')
@@ -73,13 +75,13 @@ class SpriteSheet:
                     'height': sprite.get('height', 16),
                     'frame': sprite.get('frame')
                 }
-            
+
             self.logger.info(f"Loaded {len(self.sprite_coords)} sprite coordinates from {self.json_filename}")
-            
+
         except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
             self.logger.error(f"Failed to load sprite coordinates from {self.json_filename}: {e}")
             self.sprite_coords = {}
-    
+
     def get_sprite_by_name(self, sprite_name: str, scale: int = 1) -> pygame.Surface:
         """
         Extract a sprite by name using JSON coordinate data.
@@ -97,10 +99,10 @@ class SpriteSheet:
             sprite = pygame.Surface((16 * scale, 16 * scale), pygame.SRCALPHA)
             sprite.fill((255, 0, 255))  # Magenta for missing sprites
             return sprite
-        
+
         coords = self.sprite_coords[sprite_name]
         return self.get_sprite(coords['x'], coords['y'], coords['width'], coords['height'], scale)
-    
+
     def get_sprite(self, x: int, y: int, width: int, height: int, scale: int = 1) -> pygame.Surface:
         """
         Extract a sprite from the sprite sheet.
@@ -121,20 +123,20 @@ class SpriteSheet:
             sprite = pygame.Surface((width, height), pygame.SRCALPHA)
             sprite.fill((255, 0, 255))  # Magenta for missing sprites
             return sprite
-        
+
         try:
             # Extract the sprite from the sheet
             sprite_rect = pygame.Rect(x, y, width, height)
             sprite = pygame.Surface((width, height), pygame.SRCALPHA)
             sprite.blit(self.sprite_sheet, (0, 0), sprite_rect)
-            
+
             # Scale the sprite if requested
             if scale != 1:
                 new_size = (width * scale, height * scale)
                 sprite = pygame.transform.scale(sprite, new_size)
-            
+
             return sprite
-            
+
         except Exception as e:
             self.logger.error(f"Failed to extract sprite at ({x}, {y}, {width}, {height}): {e}")
             # Return a fallback sprite
@@ -236,7 +238,7 @@ def get_game_sprite(sprite_name: str, scale: int = 2, tint: Optional[Tuple[int, 
         pygame.Surface containing the requested sprite
     """
     sheet = _get_shared_sprite_sheet()
-    
+
     arcade_sprite_name = ARCADE_SPRITE_MAPPING.get(sprite_name)
     if not arcade_sprite_name:
         logger = setup_logger(__name__)
@@ -244,7 +246,7 @@ def get_game_sprite(sprite_name: str, scale: int = 2, tint: Optional[Tuple[int, 
         placeholder = pygame.Surface((16 * scale, 16 * scale), pygame.SRCALPHA)
         placeholder.fill((255, 0, 255))
         return placeholder
-    
+
     if tint is not None:
         tint_tuple = tuple(int(c) for c in tint[:3])
         cache_key = (arcade_sprite_name, scale, tint_tuple)
@@ -252,7 +254,7 @@ def get_game_sprite(sprite_name: str, scale: int = 2, tint: Optional[Tuple[int, 
             base_surface = sheet.get_sprite_by_name(arcade_sprite_name, scale)
             _tint_cache[cache_key] = _apply_tint(base_surface, tint_tuple)
         return _tint_cache[cache_key].copy()
-    
+
     return sheet.get_sprite_by_name(arcade_sprite_name, scale)
 
 

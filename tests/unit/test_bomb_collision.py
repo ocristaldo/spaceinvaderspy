@@ -1,12 +1,13 @@
-import pygame
-import sys
 import os
+import sys
+
+import pygame
 
 # Ensure src is on path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from src.main import Game
 from src.entities.bullet import Bomb
+from src.main import Game
 
 
 def test_bomb_collision_decrements_lives_and_triggers_game_over():

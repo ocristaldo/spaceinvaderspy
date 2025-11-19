@@ -1,6 +1,8 @@
 import logging
+from typing import Dict, List, Optional, Tuple
+
 import pygame
-from typing import Optional, List, Tuple, Dict
+
 from .. import config
 from ..utils.sprite_sheet import get_title_logo
 from .font_manager import get_font, get_menu_overlay_fonts

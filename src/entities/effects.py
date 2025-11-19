@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import pygame
+
 from .. import config
 from ..utils.sprite_sheet import get_game_sprite
 

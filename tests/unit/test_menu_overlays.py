@@ -1,9 +1,11 @@
-import pygame
-import pytest
-from src.main import Game
-
 # Use the SDL "dummy" video driver for headless test runs
 import os
+
+import pygame
+import pytest
+
+from src.main import Game
+
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 
 @pytest.fixture(autouse=True)

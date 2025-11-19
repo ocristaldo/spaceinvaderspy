@@ -1,10 +1,12 @@
 """
 Unit tests for audio manager, high score manager, and extra lives system.
 """
-import pytest
 import os
 import tempfile
 from unittest.mock import patch
+
+import pytest
+
 from src.utils.audio_manager import AudioManager
 from src.utils.high_score_manager import HighScoreManager
 
@@ -35,13 +37,13 @@ class TestAudioManager:
         with patch('pygame.mixer.init'):
             with patch('pygame.mixer.music.set_volume'):
                 manager = AudioManager()
-                
+
                 manager.set_volume(1.5)
                 assert manager.volume == 1.0
-                
+
                 manager.set_volume(-0.5)
                 assert manager.volume == 0.0
-                
+
                 manager.set_volume(0.5)
                 assert manager.volume == 0.5
 
@@ -51,10 +53,10 @@ class TestAudioManager:
             with patch('pygame.mixer.music.set_volume'):
                 manager = AudioManager()
                 manager.set_volume(0.5)
-                
+
                 manager.increase_volume(0.2)
                 assert abs(manager.volume - 0.7) < 0.001
-                
+
                 manager.decrease_volume(0.3)
                 assert abs(manager.volume - 0.4) < 0.001
 
@@ -75,7 +77,7 @@ class TestHighScoreManager:
         with tempfile.TemporaryDirectory() as tmpdir:
             scores_file = os.path.join(tmpdir, "scores.json")
             manager = HighScoreManager(scores_file)
-            
+
             # Override the path method
             manager.scores_file = scores_file
             with patch.object(manager, '_get_scores_path', return_value=scores_file):
@@ -89,7 +91,7 @@ class TestHighScoreManager:
             scores_file = os.path.join(tmpdir, "scores.json")
             manager = HighScoreManager(scores_file)
             manager.scores_file = scores_file
-            
+
             with patch.object(manager, '_get_scores_path', return_value=scores_file):
                 manager.high_score = 1000
                 assert manager.check_high_score(2000) is True
@@ -103,7 +105,7 @@ class TestHighScoreManager:
             manager = HighScoreManager(scores_file)
             manager.scores_file = scores_file
             manager.all_scores = [5000, 3000, 8000, 1000]
-            
+
             top = manager.get_top_scores(3)
             assert top == [5000, 3000, 8000]
 
@@ -113,12 +115,12 @@ class TestHighScoreManager:
             scores_file = os.path.join(tmpdir, "scores.json")
             manager = HighScoreManager(scores_file)
             manager.scores_file = scores_file
-            
+
             with patch.object(manager, '_get_scores_path', return_value=scores_file):
                 # Add 15 scores
                 for i in range(1000, 16000, 1000):
                     manager.update_score(i)
-                
+
                 # Should only keep top 10
                 assert len(manager.all_scores) <= 10
 
@@ -130,9 +132,9 @@ class TestExtraLivesMilestones:
         """Test the threshold calculation logic for extra lives."""
         # Verify that extra lives are awarded at correct thresholds
         # First extra life at 20,000, then every 70,000 thereafter
-        
+
         thresholds = [20000, 90000, 160000, 230000]
-        
+
         for i, threshold in enumerate(thresholds):
             # At or above threshold
             assert threshold >= 20000

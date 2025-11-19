@@ -4,8 +4,10 @@ Continue Screen for game over with countdown
 Shows when both players are out of lives with a 10-second countdown.
 Player can insert credit and press 1 or 2 to continue.
 """
+from typing import Callable
+
 import pygame
-from typing import Callable, Optional
+
 from ..utils.logger import setup_logger
 from .font_manager import get_font
 

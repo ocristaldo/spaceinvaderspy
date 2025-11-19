@@ -3,10 +3,10 @@ High Score Manager for Space Invaders.
 
 Persists high scores with player initials to disk and provides methods to track and update them.
 """
-import os
 import json
 import logging
-from typing import List, Tuple, Optional
+import os
+from typing import List
 
 logger = logging.getLogger(__name__)
 

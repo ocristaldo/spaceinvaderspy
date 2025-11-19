@@ -1,8 +1,9 @@
 """Bunker entity - destructible cover for the player."""
 import pygame
-from .. import constants
-from .. import config
+
+from .. import config, constants
 from ..utils.logger import setup_logger
+
 
 class Bunker(pygame.sprite.Sprite):
     """
@@ -24,7 +25,7 @@ class Bunker(pygame.sprite.Sprite):
         self.logger = setup_logger(__name__)
         self.health = 4
         self.images = []
-        
+
         try:
             # Load bunker sprites from sprite sheet
             from ..utils.sprite_sheet import get_game_sprite

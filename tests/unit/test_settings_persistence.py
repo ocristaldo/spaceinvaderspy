@@ -1,6 +1,8 @@
 import os
+
 import pygame
 import pytest
+
 from src.main import Game
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")

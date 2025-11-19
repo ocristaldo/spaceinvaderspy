@@ -2,15 +2,16 @@
 Comprehensive tests for 2-player mechanics including hit-based switching and state persistence.
 Tests Phase 1.3 features: hit-based switching and independent game state.
 """
+import os
+import sys
+
 import pygame
 import pytest
-import sys
-import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from src.main import Game
 from src.entities.bullet import Bomb
+from src.main import Game
 from src.systems.game_state_manager import GameState
 
 
@@ -172,7 +173,6 @@ class TestGameStatePersistence:
 
         # Set P1 to level 3
         self.game.level = 3
-        initial_alien_count = len(self.game.alien_group)
 
         # Switch to P2 (first time)
         self.game.switch_player()
@@ -189,7 +189,6 @@ class TestGameStatePersistence:
 
         # Advance P1 to level 2
         self.game.level = 2
-        initial_alien_count = len(self.game.alien_group)
 
         # Switch to P2
         self.game.switch_player()
@@ -233,7 +232,6 @@ class TestGameStatePersistence:
 
         # Modify P1 state
         self.game.level = 2
-        aliens_before = len(self.game.alien_group)
 
         # Switch to P2
         self.game.switch_player()

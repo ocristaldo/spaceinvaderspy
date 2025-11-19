@@ -1,10 +1,11 @@
 """
 Player entity - represents the player's spaceship.
 """
-import pygame
 from typing import Any
-from .. import constants
-from .. import config
+
+import pygame
+
+from .. import config, constants
 from ..utils.logger import setup_logger
 
 
@@ -21,7 +22,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.logger = setup_logger(__name__)
         self._tint = tint
-        
+
         try:
             self._create_sprite()
             self._initialize_position()
@@ -30,7 +31,7 @@ class Player(pygame.sprite.Sprite):
         except Exception as e:
             self.logger.error(f"Failed to initialize player: {e}")
             raise
-    
+
     def _create_sprite(self) -> None:
         """Create the player sprite graphics using the sprite sheet."""
         try:
@@ -42,7 +43,7 @@ class Player(pygame.sprite.Sprite):
             # Fallback to drawn sprite
             self.image = pygame.Surface((22, 16), pygame.SRCALPHA)
             self.image.fill((0, 0, 0, 0))  # Transparent background
-            
+
             # Draw a simple spaceship shape
             points = [
                 (11, 0),   # Top center
@@ -54,7 +55,7 @@ class Player(pygame.sprite.Sprite):
                 (16, 8),   # Right wing
             ]
             pygame.draw.polygon(self.image, constants.WHITE, points)
-    
+
     def _initialize_position(self) -> None:
         """Set the initial position of the player."""
         self.rect = self.image.get_rect(
@@ -73,12 +74,12 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x -= self.speed
             if pressed[pygame.K_RIGHT]:
                 self.rect.x += self.speed
-            
+
             # Keep player within screen bounds
             self.rect.clamp_ip(pygame.Rect(0, 0, config.BASE_WIDTH, config.BASE_HEIGHT))
         except Exception as e:
             self.logger.error(f"Error updating player: {e}")
-    
+
     def get_bullet_spawn_position(self) -> tuple:
         """Get the position where bullets should spawn."""
         return self.rect.midtop

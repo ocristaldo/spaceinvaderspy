@@ -11,34 +11,34 @@ educational purposes only. It includes no original assets or code from the
 1978 release and is not endorsed by the trademark holders.
 """
 import logging
-import sys
-from typing import List, Optional, Tuple
-import pygame
+import os
 import random
-from . import constants
-from . import config
-from .entities.player import Player
+import sys
+from typing import Optional, Tuple
+
+import pygame
+
+from . import config, constants
 from .entities.alien import Alien
-from .entities.bullet import Bullet, Bomb
+from .entities.bullet import Bomb, Bullet
 from .entities.bunker import Bunker
-from .entities.ufo import UFO
 from .entities.effects import ExplosionEffect
-from .utils.sprite_viewer import SpriteViewer
+from .entities.player import Player
+from .entities.ufo import UFO
+from .systems.game_state_manager import GameState, GameStateManager
+from .ui.color_scheme import get_color, get_tint
+from .ui.continue_screen import ContinueScreen
+from .ui.font_manager import get_font
+from .ui.initials_entry import InitialsEntry
+from .ui.level_themes import LevelTheme, get_level_theme
+from .ui.menu import Menu
+from .ui.sprite_digits import FontDigitWriter
+from .ui.start_screen_demo import ScoreTableDemo, WaveFormationDemo
 from .utils.audio_manager import AudioManager
 from .utils.high_score_manager import HighScoreManager
-from .utils.sprite_sheet import get_game_sprite, clear_tint_cache
-from .ui.menu import Menu
-from .ui.font_manager import get_font
-from .ui.start_screen_demo import ScoreTableDemo, WaveFormationDemo
-from .ui.color_scheme import get_color, get_tint
-from .ui.sprite_digits import FontDigitWriter
-from .ui.level_themes import get_level_theme, LevelTheme
-from .ui.initials_entry import InitialsEntry
-from .ui.continue_screen import ContinueScreen
-from .systems.game_state_manager import GameStateManager, GameState
 from .utils.settings_manager import SettingsManager
-
-import os
+from .utils.sprite_sheet import clear_tint_cache, get_game_sprite
+from .utils.sprite_viewer import SpriteViewer
 
 # Check if DEBUG mode is enabled
 DEBUG_MODE = os.environ.get("SPACEINVADERS_DEBUG", "").lower() in ("1", "true", "yes")
@@ -180,7 +180,7 @@ class Game:
         self.alien_group = self.create_aliens()
         self.alien_direction = 1
         self._reset_alien_progression()
-        
+
         # Sprite viewer for testing
         self.sprite_viewer = SpriteViewer(self.screen)
         self.viewing_sprites = False
@@ -238,27 +238,27 @@ class Game:
         self.state_manager.change_state(GameState.PLAYING if start_playing else GameState.MENU)
         self._game_over_processed = False
         self._game_over_return_time = None
-        
+
         # Clear all sprite groups
         self.bullet_group.empty()
         self.bomb_group.empty()
         self.ufo_group.empty()
         self.effects_group.empty()
         self.audio_manager.stop_ufo_loop()
-        
+
         # Reset player
         self._respawn_player()
-        
+
         # Recreate aliens and bunkers
         self.alien_group = self.create_aliens()
         self.bunker_group = self.create_bunkers()
-        
+
         # Reset alien movement
         self.alien_direction = 1
         self._reset_alien_progression()
         self.last_ufo_time = pygame.time.get_ticks()
         self.fast_invader_step = 0
-        
+
         logging.info("Game reset complete")
 
     def start_two_player_game(self) -> None:
@@ -902,7 +902,7 @@ class Game:
             or not self.alien_group
         ):
             return
-        
+
         # Probability-based bomb spawn (starts gentle, ramps up as aliens fall)
         bomb_chance = config.ALIEN_BOMB_CHANCE + (
             max(0, self.initial_alien_count - len(self.alien_group)) * 0.0005
@@ -913,7 +913,7 @@ class Game:
             # Create bomb at alien's bottom center
             bomb = Bomb(alien.rect.midbottom, sprite_name='bomb_1', tint=self._sprite_tint("bomb_1"))
             self.bomb_group.add(bomb)
-            logging.debug("Alien bomb spawned at %s from alien at %s", 
+            logging.debug("Alien bomb spawned at %s from alien at %s",
                          bomb.rect.topleft, alien.rect.topleft)
 
     def spawn_ufo(self):
@@ -923,7 +923,7 @@ class Game:
             self.last_ufo_time = now
             logging.info("UFO spawned")
             self.audio_manager.start_ufo_loop()
-    
+
     def _maybe_drop_ufo_bombs(self):
         """Allow active UFOs to drop their own bomb type while flying across."""
         if self.state_manager.current_state != GameState.PLAYING:
@@ -1375,7 +1375,7 @@ class Game:
         while self.running:
             # Process all input events (keyboard, mouse, window events)
             self.handle_events()
-            
+
             # Only update game logic during active play
             if (
                 self.state_manager.current_state == GameState.PLAYING
@@ -1384,7 +1384,7 @@ class Game:
             ):
                 if pygame.time.get_ticks() >= self.level_start_ready_time:
                     self.update()
-            
+
             # Always draw the current game state
             self.draw()
 
@@ -1403,7 +1403,7 @@ class Game:
                 and pygame.time.get_ticks() - self.attract_last_activity_time >= self.attract_idle_time
             ):
                 self.start_intro_demo(cycle=True)
-            
+
             # Handle game over state - show game over screen and wait for restart
             if self.game_over:
                 if not self._game_over_processed:
@@ -1472,13 +1472,13 @@ class Game:
                         and pygame.time.get_ticks() >= self._game_over_return_time
                     ):
                         self._return_to_intro_screen(trigger="timer")
-            
+
             # Maintain consistent frame rate (60 FPS)
             self.clock.tick(60)
-        
+
         # Clean up pygame resources when exiting
         pygame.quit()
-    
+
     def _draw_game_over_message(self):
         """
         Draw the game over message overlay on the current screen.
@@ -1491,11 +1491,11 @@ class Game:
         overlay.set_alpha(128)  # 50% transparency
         overlay.fill(constants.BLACK)
         self.playfield_surface.blit(overlay, (0, 0))
-        
+
         # Draw game over text
         game_over_text = self.font.render("GAME OVER", True, constants.WHITE)
         final_score_text = self.font.render(f"Final Score: {self.score}", True, constants.WHITE)
-        
+
         # Check if new high score
         is_high_score = self.high_score_manager.check_high_score(self.score)
         if is_high_score:
@@ -1504,10 +1504,10 @@ class Game:
         else:
             high_score_color = constants.WHITE
             high_score_msg = f"Hi-Score: {self.high_score_manager.get_high_score()}"
-        
+
         high_score_text = self.font.render(high_score_msg, True, high_score_color)
         restart_text = self.font.render("Press R to restart or Q to quit", True, constants.WHITE)
-        
+
         # Center the text on screen
         center_x = self.logical_width // 2
         center_y = self.logical_height // 2
@@ -1515,7 +1515,7 @@ class Game:
         final_score_rect = final_score_text.get_rect(center=(center_x, center_y - 20))
         high_score_rect = high_score_text.get_rect(center=(center_x, center_y + 10))
         restart_rect = restart_text.get_rect(center=(center_x, center_y + 50))
-        
+
         self.playfield_surface.blit(game_over_text, game_over_rect)
         self.playfield_surface.blit(final_score_text, final_score_rect)
         self.playfield_surface.blit(high_score_text, high_score_rect)

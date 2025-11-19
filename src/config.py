@@ -1,5 +1,6 @@
 import os
 from typing import Tuple
+
 from . import constants
 
 BASE_DIR = os.path.dirname(__file__)
