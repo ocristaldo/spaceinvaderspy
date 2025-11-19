@@ -119,6 +119,8 @@ select = [
 ignore = [
     "E203",  # whitespace before ':'
     "E501",  # line too long (handled by line-length)
+    "C901",  # function too complex (accepted for game loop and event handling)
+    "B023",  # function definition does not bind loop variable (false positives in closures)
 ]
 
 [tool.ruff.lint.per-file-ignores]
