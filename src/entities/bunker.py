@@ -8,7 +8,7 @@ from ..utils.logger import setup_logger
 class Bunker(pygame.sprite.Sprite):
     """
     Destructible bunker that provides cover for the player.
-    
+
     Bunkers can be damaged by both player bullets and alien bombs.
     They provide strategic cover but deteriorate over time when hit.
     """
@@ -16,7 +16,7 @@ class Bunker(pygame.sprite.Sprite):
     def __init__(self, x: int, y: int, tint=None):
         """
         Initialize a bunker.
-        
+
         Args:
             x: X position on screen
             y: Y position on screen

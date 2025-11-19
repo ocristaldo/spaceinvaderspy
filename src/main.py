@@ -646,7 +646,7 @@ class Game:
     def handle_events(self):
         """
         Process all pygame events including keyboard input and window events.
-        
+
         This method handles:
         - Window close events (X button)
         - Keyboard input for shooting, quitting, and restarting
@@ -889,7 +889,7 @@ class Game:
     def spawn_bomb(self):
         """
         Randomly spawn bombs from alien ships.
-        
+
         This method:
         - Checks if any aliens exist (no bombs if no aliens)
         - Uses random probability (2% chance per frame) to spawn bombs
@@ -999,7 +999,7 @@ class Game:
 
         # Collisions
         hits = pygame.sprite.groupcollide(self.bullet_group, self.alien_group, True, True)
-        for bullet, aliens in hits.items():
+        for _bullet, aliens in hits.items():
             for alien in aliens:
                 # Add score to current player
                 if self.two_player_mode and self.current_player == 2:
@@ -1013,7 +1013,7 @@ class Game:
             self.update_alien_speed()
 
         hits = pygame.sprite.groupcollide(self.bullet_group, self.ufo_group, True, True)
-        for bullet, ufos in hits.items():
+        for _bullet, ufos in hits.items():
             for ufo in ufos:
                 # Add score to current player
                 if self.two_player_mode and self.current_player == 2:
@@ -1365,7 +1365,7 @@ class Game:
     def run(self):
         """
         Main game loop - handles the core game execution cycle.
-        
+
         This method runs continuously until the game is quit, managing:
         - Event handling (input processing)
         - Game state updates (physics, collisions, AI)
@@ -1482,7 +1482,7 @@ class Game:
     def _draw_game_over_message(self):
         """
         Draw the game over message overlay on the current screen.
-        
+
         This method draws a semi-transparent overlay with game over text,
         final score, high score, and restart instructions without blocking the game loop.
         """

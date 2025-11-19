@@ -12,7 +12,7 @@ from ..utils.logger import setup_logger
 class Player(pygame.sprite.Sprite):
     """
     Player spaceship entity.
-    
+
     The player ship can move left and right and fire bullets.
     It has collision detection and proper boundary checking.
     """
@@ -65,7 +65,7 @@ class Player(pygame.sprite.Sprite):
     def update(self, pressed: Any) -> None:
         """
         Update player position based on input.
-        
+
         Args:
             pressed: Pygame key state object
         """

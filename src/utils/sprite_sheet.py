@@ -16,7 +16,7 @@ from .logger import setup_logger
 class SpriteSheet:
     """
     Handles loading and extracting sprites from a sprite sheet using JSON coordinate data.
-    
+
     The SpaceInvaders.png contains all game sprites in a grid layout.
     This class loads coordinate data from JSON files and extracts sprites accordingly.
     """
@@ -24,7 +24,7 @@ class SpriteSheet:
     def __init__(self, filename: str, json_filename: Optional[str] = None):
         """
         Initialize the sprite sheet loader.
-        
+
         Args:
             filename: Path to the sprite sheet image file
             json_filename: Path to the JSON coordinate file (optional)
@@ -85,11 +85,11 @@ class SpriteSheet:
     def get_sprite_by_name(self, sprite_name: str, scale: int = 1) -> pygame.Surface:
         """
         Extract a sprite by name using JSON coordinate data.
-        
+
         Args:
             sprite_name: Name of the sprite from the JSON file
             scale: Scale factor for the sprite (default: 1)
-        
+
         Returns:
             pygame.Surface containing the extracted sprite
         """
@@ -106,14 +106,14 @@ class SpriteSheet:
     def get_sprite(self, x: int, y: int, width: int, height: int, scale: int = 1) -> pygame.Surface:
         """
         Extract a sprite from the sprite sheet.
-        
+
         Args:
             x: X coordinate of the sprite in the sheet
             y: Y coordinate of the sprite in the sheet
             width: Width of the sprite
             height: Height of the sprite
             scale: Scale factor for the sprite (default: 1)
-        
+
         Returns:
             pygame.Surface containing the extracted sprite
         """
@@ -228,12 +228,12 @@ def _apply_tint(surface: pygame.Surface, tint_color: Tuple[int, int, int]) -> py
 def get_game_sprite(sprite_name: str, scale: int = 2, tint: Optional[Tuple[int, int, int]] = None) -> pygame.Surface:
     """
     Get a specific game sprite by name using arcade JSON coordinates.
-    
+
     Args:
         sprite_name: Name of the sprite (key in ARCADE_SPRITE_MAPPING)
         scale: Scale factor for the sprite
         tint: Optional RGB tuple used to recolor non-black pixels
-    
+
     Returns:
         pygame.Surface containing the requested sprite
     """

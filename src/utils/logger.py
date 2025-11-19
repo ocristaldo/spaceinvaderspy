@@ -9,12 +9,12 @@ from typing import Optional
 def setup_logger(name: str, level: int = logging.INFO, log_file: Optional[str] = None) -> logging.Logger:
     """
     Set up a logger with consistent formatting.
-    
+
     Args:
         name: Logger name (usually __name__)
         level: Logging level
         log_file: Optional log file path
-    
+
     Returns:
         Configured logger instance
     """

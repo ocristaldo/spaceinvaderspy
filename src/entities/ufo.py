@@ -10,7 +10,7 @@ from ..utils.logger import setup_logger
 class UFO(pygame.sprite.Sprite):
     """
     UFO (mystery ship) that appears occasionally for bonus points.
-    
+
     The UFO flies across the top of the screen at regular intervals
     and awards random bonus points when destroyed.
     """
@@ -18,7 +18,7 @@ class UFO(pygame.sprite.Sprite):
     def __init__(self, x: int, y: int):
         """
         Initialize a UFO.
-        
+
         Args:
             x: Starting X position
             y: Starting Y position

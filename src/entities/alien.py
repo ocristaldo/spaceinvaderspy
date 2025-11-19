@@ -8,7 +8,7 @@ from ..utils.logger import setup_logger
 class Alien(pygame.sprite.Sprite):
     """
     Alien invader sprite with animation and point values.
-    
+
     Aliens move in formation and can drop bombs. Different alien types
     have different point values and sprite animations.
     """
@@ -16,10 +16,10 @@ class Alien(pygame.sprite.Sprite):
     def __init__(self, x: int, y: int, value: int, tint=None):
         """
         Initialize an alien sprite.
-        
+
         Args:
             x: X position on screen
-            y: Y position on screen  
+            y: Y position on screen
             value: Point value (30=squid, 20=crab, 10=octopus)
         """
         super().__init__()

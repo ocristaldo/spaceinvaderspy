@@ -10,7 +10,7 @@ from ..utils.logger import setup_logger
 class Bullet(pygame.sprite.Sprite):
     """
     Player bullet projectile.
-    
+
     Bullets are fired by the player and travel upward to destroy aliens.
     Only one bullet can be active at a time in classic Space Invaders.
     """
@@ -18,7 +18,7 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, pos: Tuple[int, int]):
         """
         Initialize a player bullet.
-        
+
         Args:
             pos: Starting position (x, y) for the bullet
         """
@@ -46,7 +46,7 @@ class Bullet(pygame.sprite.Sprite):
 class Bomb(pygame.sprite.Sprite):
     """
     Alien bomb projectile.
-    
+
     Bombs are dropped by aliens and travel downward toward the player.
     Multiple bombs can be active simultaneously.
     """
@@ -54,7 +54,7 @@ class Bomb(pygame.sprite.Sprite):
     def __init__(self, pos: Tuple[int, int], sprite_name: str = 'bomb_1', tint=None):
         """
         Initialize an alien bomb.
-        
+
         Args:
             pos: Starting position (x, y) for the bomb
             sprite_name: Sprite identifier (aliens use `bomb_1`, UFOs use `bomb_2`)

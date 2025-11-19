@@ -24,7 +24,7 @@ class SpriteViewer:
     def __init__(self, screen: pygame.Surface):
         """
         Initialize the sprite viewer.
-        
+
         Args:
             screen: The pygame screen surface to draw on
         """
@@ -91,10 +91,10 @@ class SpriteViewer:
     def load_platform_sprites(self, platform: str) -> bool:
         """
         Load sprites for a specific platform.
-        
+
         Args:
             platform: Platform name ('arcade', 'atari', 'deluxe', 'intellivision')
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -231,10 +231,10 @@ class SpriteViewer:
     def get_platform_from_key_combo(self, keys_pressed) -> Optional[str]:
         """
         Determine which platform to show based on key combination.
-        
+
         Args:
             keys_pressed: pygame key state from pygame.key.get_pressed()
-            
+
         Returns:
             Platform name or None if no valid combination
         """
@@ -261,7 +261,7 @@ class SpriteViewer:
     def handle_navigation(self, keys_pressed) -> None:
         """
         Handle navigation keys for page switching and platform switching.
-        
+
         Args:
             keys_pressed: pygame key state from pygame.key.get_pressed()
         """
