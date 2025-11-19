@@ -23,7 +23,12 @@ def test_menu_to_play_and_pause_toggle():
     game.handle_events()
     assert game.state == "MENU"
 
-    # Simulate pressing RETURN to start (menu selected defaults to Start)
+    # Insert a credit first
+    event = pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_c})
+    pygame.event.post(event)
+    game.handle_events()
+
+    # Simulate pressing RETURN to start (menu selected defaults to 1-Player)
     event = pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_RETURN})
     pygame.event.post(event)
     game.handle_events()

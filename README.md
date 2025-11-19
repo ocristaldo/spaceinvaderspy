@@ -16,7 +16,7 @@ A faithful recreation of the 1978 Space Invaders arcade game built with Python a
 - ✅ Cabinet-accurate HUD with sprite digits and player indicator
 - ✅ Persistent high scores (top 10 with player initials)
 - ✅ Audio system (SFX + music, toggleable)
-- ✅ 77/85 tests passing, comprehensive 2P test coverage
+- ✅ 85/85 tests passing, comprehensive 2P test coverage
 
 ## 🎮 Current Features
 

@@ -19,8 +19,8 @@ def _skip_attract(game: Game):
 
 
 def _open_options(game: Game):
-    # Move selection down to Options (Start, High Scores, Controls, Options)
-    for _ in range(3):
+    # Move selection down to Options (1-Player, 2-Player, High Scores, Controls, Options)
+    for _ in range(4):
         pygame.event.post(pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_DOWN}))
     pygame.event.post(pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_RETURN}))
     game.handle_events()

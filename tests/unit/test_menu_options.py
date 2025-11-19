@@ -28,7 +28,7 @@ def _dismiss_attract_mode(game: Game) -> None:
 
 
 def _open_options(game: Game) -> None:
-    for _ in range(3):
+    for _ in range(4):
         pygame.event.post(pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_DOWN}))
         game.handle_events()
     pygame.event.post(pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_RETURN}))
